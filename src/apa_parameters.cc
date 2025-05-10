@@ -1,0 +1,56 @@
+/*
+ * Filename: /home/yukan/Documents/work/local_mapping/src/apa_parameters.cc
+ * Path: /home/yukan/Documents/work/local_mapping/src
+ * Created Date: Thursday, May 8th 2025, 4:41:53 pm
+ * Author: yukan
+ *
+ * Copyright (c) 2025 PATAC
+ */
+#include "apa_parameters.h"
+
+namespace apa_slam {
+ApaParameters::ApaParameters() {}
+
+ApaParameters &ApaParameters::GetInstance() {
+  static ApaParameters instance;
+  return instance;
+}
+
+void ApaParameters::printout_parameters() {
+  std::cout << "========= Project Parameters: =========\n";
+  std::cout << "simulation.slot_mea_noise_x: " << _sim_params.slot_mea_noise_x
+            << std::endl;
+  std::cout << "simulation.slot_mea_noise_y: " << _sim_params.slot_mea_noise_y
+            << std::endl;
+  std::cout << "simulation.odo_velocity_noise: "
+            << _sim_params.odo_velocity_noise << std::endl;
+  std::cout << "simulation.odo_angular_velocity_noise: "
+            << _sim_params.odo_angular_velocity_noise << std::endl;
+  std::cout << "simulation.perception_sensing_range: "
+            << _sim_params.perception_sensing_range << std::endl;
+}
+
+const SimulationParams &ApaParameters::GetSimulationParameters() {
+  return _sim_params;
+}
+
+bool ApaParameters::LoadParameters(const std::string &json_file) {
+  try {
+    std::ifstream input(json_file);
+    json data = json::parse(input);
+
+    _sim_params.slot_mea_noise_x = data["simulation"]["slot_mea_noise_x"];
+    _sim_params.slot_mea_noise_y = data["simulation"]["slot_mea_noise_y"];
+    _sim_params.odo_velocity_noise = data["simulation"]["odo_velocity_noise"];
+    _sim_params.odo_angular_velocity_noise =
+        data["simulation"]["odo_angular_velocity_noise"];
+    _sim_params.perception_sensing_range =
+        data["simulation"]["perception_sensing_range"];
+  } catch (const std::exception &e) {
+    std::cerr << "JSON Error: " << e.what() << std::endl;
+    return false;
+  }
+  printout_parameters();
+  return true;
+}
+}  // namespace apa_slam

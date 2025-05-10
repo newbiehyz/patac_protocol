@@ -1,0 +1,29 @@
+/*
+ * Filename: /home/yukan/Documents/work/local_mapping/include/visualization/pangolin_drawer.h
+ * Path: /home/yukan/Documents/work/local_mapping/include/visualization
+ * Created Date: Friday, May 9th 2025, 11:53:30 am
+ * Author: yukan
+ *
+ * Copyright (c) 2025 PATAC
+ */
+#include <queue>
+#include <pangolin/pangolin.h>
+#include <ekf_estimator.h>
+namespace apa_slam {
+  class PangolinDrawer {
+  public:
+    typedef std::shared_ptr<PangolinDrawer> Ptr;
+    PangolinDrawer();
+
+    void DrawAPA();
+  private:
+
+    void draw_local_map();
+
+    void draw_vehicle(const Pose& latest_pose);
+    void draw_vehicle_bbox();
+
+    void draw_traj();
+    std::map<double, Pose> _traj;
+  };
+}  // namespace apa_slam

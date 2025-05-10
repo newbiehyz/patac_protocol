@@ -1,0 +1,57 @@
+# 编译生成文件
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+*.exe
+*.out
+
+# 调试文件
+*.pdb
+*.idb
+*.ilk
+*.exp
+
+# 构建目录
+build/
+bin/
+Debug/
+Release/
+x64/
+x86/
+.vs/
+out/
+
+# IDE 相关文件
+.idea/
+*.sln
+*.vcxproj*
+*.vcproj
+*.user
+*.suo
+*.ncb
+*.sdf
+
+# CMake 生成文件
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+Makefile
+
+
+# 日志文件
+*.log
+
+# 临时文件
+*.tmp
+*~
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
