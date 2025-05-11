@@ -19,7 +19,7 @@
 #include <limits>
 #include <vector>
 
-namespace mono_lane_mapping {
+namespace apa_slam {
 
 class HungarianOptimizer {
   static constexpr int kHungarianOptimizerRowNotFound = -1;
@@ -200,4 +200,4 @@ class HungarianOptimizer {
   HungarianOptimizer::Step state_;
 };
 
-}  // namespace mono_lane_mapping
+}  // namespace apa_slam

@@ -21,20 +21,26 @@ void SemanticMap::AddLandmark(const SensorType type,
   _map[type][landmark->GetId()] = landmark;
 }
 
-bool SemanticMap::HasMap(const SensorType type) { return _map.count(type); }
+bool SemanticMap::HasLandmark(const SensorType type, const int id) {
+  if (!_map.count(type)) {
+    return false;
+  }
+
+  if (!_map.at(type).count(id)) {
+    return false;
+  }
+
+  return true;
+}
+
+bool SemanticMap::HasMap(const SensorType type) const {
+  return _map.count(type);
+}
 
 const std::unordered_map<int, SemanticLandmark::Ptr>& SemanticMap::GetMap(
     const SensorType type) {
+  std::lock_guard<std::mutex> lock(_data_mutex);
   return _map.at(type);
-}
-
-void SemanticMap::ProcessMatching(const std::vector<SemanticMea::Ptr>& meas,
-                                  const std::vector<int>& matching_res,
-                                  const Pose& mea_pose) {
-  const auto mea_type = meas.at(0)->GetSemanticMeaType();
-  if (mea_type == SEMANTIC_TYPE_PARKING_SLOT) {
-    process_slot_matching(meas, matching_res, mea_pose);
-  }
 }
 
 int SemanticMap::GetMapLandmarkNum(const SensorType& type) {
@@ -49,18 +55,5 @@ int SemanticMap::GetMapLandmarkNum(const SensorType& type) {
 }
 
 void SemanticMap::ClearMap() { _map.clear(); }
-
-void SemanticMap::process_slot_matching(
-    const std::vector<SemanticMea::Ptr>& meas,
-    const std::vector<int>& matching_res, const Pose& mea_pose) {
-  for (size_t i = 0; i < matching_res.size(); ++i) {
-    if (matching_res.at(i) == -1) {
-      Eigen::MatrixXd lm_data =
-          Eigen::MatrixXd::Zero(PARKING_SLOT_DATA_ROWS, PARKING_SLOT_DATA_COLS);
-      int id = this->GetMapLandmarkNum(SEMANTIC_TYPE_PARKING_SLOT) + 1;
-      SemanticLandmark::Ptr slot_lm = std::make_shared<ParkingSlotLandmark>(id, lm_data.data());
-    }
-  }
-}
 
 }  // namespace apa_slam

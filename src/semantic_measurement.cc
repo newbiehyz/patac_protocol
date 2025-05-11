@@ -15,4 +15,8 @@ SemanticMea::SemanticMea(const SensorType& type, const double timestamp)
 
 SensorType SemanticMea::GetSemanticMeaType() { return _type; }
 
+double SemanticMea::GetMeaTimestamp() {
+  return _timestamp;
+}
+
 }  // namespace apa_slam

@@ -15,11 +15,11 @@
 #include <unordered_map>
 
 #include "kinematic_measurement.h"
+#include "map_management.h"
 #include "parking_slot_tracker.h"
+#include "semantic_map.h"
 #include "semantic_measurement.h"
 #include "tracker_base.h"
-
-#include "semantic_map.h"
 
 namespace apa_slam {
 class EkfEstimator {
@@ -52,8 +52,9 @@ class EkfEstimator {
       std::unordered_map<SensorType, std::vector<SemanticMea::Ptr> >&
           sorted_meas);
 
-  void process_parking_slot_meas(
-      const double ts, const std::vector<SemanticMea::Ptr>& parking_slot_meas);
+  void process_semantic_meas(
+      const SensorType& type, const double ts,
+      const std::vector<SemanticMea::Ptr>& parking_slot_meas);
 
   bool get_pose(const double ts, Pose& pose);
 

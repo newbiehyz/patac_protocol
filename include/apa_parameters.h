@@ -23,9 +23,11 @@ class ApaParameters {
   static ApaParameters& GetInstance();
   bool LoadParameters(const std::string& json_file);
   const SimulationParams& GetSimulationParameters();
+  const EstimatorParams& GetEstimatorParamters();
 
  private:
   void printout_parameters();
   SimulationParams _sim_params;
+  EstimatorParams _est_params;
 };
 }  // namespace apa_slam

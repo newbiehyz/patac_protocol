@@ -22,7 +22,7 @@ namespace apa_slam {
 
     void draw_vehicle(const Pose& latest_pose);
     void draw_vehicle_bbox();
-
+    void draw_parking_slot(const Eigen::MatrixXd &data);
     void draw_traj();
     std::map<double, Pose> _traj;
   };

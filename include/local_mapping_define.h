@@ -1,9 +1,9 @@
 /*
- * Filename: /home/yukan/Documents/work/local_mapping/include/local_mapping_define.h
- * Path: /home/yukan/Documents/work/local_mapping/include
- * Created Date: Thursday, May 8th 2025, 1:36:50 pm
- * Author: yukan
- * 
+ * Filename:
+ * /home/yukan/Documents/work/local_mapping/include/local_mapping_define.h Path:
+ * /home/yukan/Documents/work/local_mapping/include Created Date: Thursday, May
+ * 8th 2025, 1:36:50 pm Author: yukan
+ *
  * Copyright (c) 2025 PATAC
  */
 
@@ -18,12 +18,14 @@
 
 #define ODO_DATA_ROWS 2
 
-#define VEHICLE_WIDTH 1.2
-#define VEHICLE_HEIGHT 1.2
-#define VEHICLE_FORWARD_DIST 3.718
-#define VEHICLE_BACKWARD_DIST 0.921
+#define VEHICLE_WIDTH 1.0
+#define VEHICLE_HEIGHT 1.0
+#define VEHICLE_FORWARD_DIST 2.518
+#define VEHICLE_BACKWARD_DIST -0.921
 
 #define BUMPER_ALERT_RANGE 3.0
+
+namespace apa_slam {
 
 struct SimulationParams {
   double slot_mea_noise_x;
@@ -33,7 +35,10 @@ struct SimulationParams {
   double perception_sensing_range;
 };
 
-namespace apa_slam {
+struct EstimatorParams {
+  double slot_matching_dist_thresh;
+  double slot_matching_angle_thresh;
+};
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };
 
@@ -43,8 +48,6 @@ enum SensorType {
   SEMANTIC_TYPE_PARKING_SLOT = 2,
   SEMANTIC_TYPE_PARKING_COLUMN = 3
 };
-
-
 
 struct Pose {
   double x;

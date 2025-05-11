@@ -8,7 +8,10 @@
  */
 
 #include "tracker_base.h"
-
+#include "local_mapping_define.h"
+#include "apa_parameters.h"
+#include "hungarian.h"
+#include "semantic_map.h"
 namespace apa_slam {
 class ParkingSlotTracker : public TrackerBase {
  public:

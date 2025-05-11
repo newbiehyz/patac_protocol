@@ -10,7 +10,7 @@
 
 #include <memory>
 #include <unordered_map>
-
+#include <mutex>
 #include "local_mapping_define.h"
 #include "parking_slot_landmark.h"
 #include "semantic_landmark.h"
@@ -20,21 +20,19 @@ class SemanticMap {
   typedef std::shared_ptr<SemanticMap> Ptr;
   SemanticMap();
   static SemanticMap& GetInstance();
-  void ProcessMatching(const std::vector<SemanticMea::Ptr>& meas,
-                       const std::vector<int>& matching_res,
-                       const Pose& mea_pose);
+
   void AddLandmark(const SensorType type, SemanticLandmark::Ptr landmark);
-  bool HasMap(const SensorType type);
+  bool HasMap(const SensorType type) const;
   const std::unordered_map<int, SemanticLandmark::Ptr>& GetMap(
       const SensorType type);
   void ClearMap();
   int GetMapLandmarkNum(const SensorType& type);
+  bool HasLandmark(const SensorType type, const int id);
 
  private:
-  void process_slot_matching(const std::vector<SemanticMea::Ptr>& meas,
-                             const std::vector<int>& matching_res,
-                             const Pose& mea_pose);
   std::unordered_map<SensorType, std::unordered_map<int, SemanticLandmark::Ptr>>
       _map;
+
+  std::mutex _data_mutex;
 };
 }  // namespace apa_slam

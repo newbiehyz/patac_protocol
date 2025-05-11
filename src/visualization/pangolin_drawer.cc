@@ -23,6 +23,24 @@ void PangolinDrawer::draw_traj() {
   glEnd();
 }
 
+void PangolinDrawer::draw_parking_slot(const Eigen::MatrixXd& data) {
+  const double l = 5.0f;
+  
+  glPointSize(3.0);
+
+  glBegin(GL_POINTS);
+  glColor3f(.0f, 1.0f, 0.0f);
+  glVertex3f(data.col(0).x(), data.col(0).y(), .0f);
+  glVertex3f(data.col(1).x(), data.col(1).y(), .0f);
+  glEnd();
+
+  glBegin(GL_POINTS);
+  glColor3f(1.0f, 0.0f, 0.0f);
+  Eigen::Vector2d pt = (data.col(0).head(2) + data.col(1).head(2)) * .5f;
+  glVertex3f(pt.x(), pt.y(), .0f);
+  glEnd();
+}
+
 void PangolinDrawer::draw_vehicle_bbox() {
   glColor3f(0.5, 0.0, 0.5);
   glLineWidth(3.0);
@@ -67,9 +85,21 @@ void PangolinDrawer::DrawAPA() {
       _traj.erase(_traj.begin());
     }
   }
+
+  draw_local_map();
 }
 
-void PangolinDrawer::draw_local_map() {}
+void PangolinDrawer::draw_local_map() {
+  if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
+    return;
+  }
+  const auto slot_map =
+      SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
+  for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
+    Eigen::MatrixXd data = it->second->GetLandmarkData();
+    draw_parking_slot(data);
+  }
+}
 
 void PangolinDrawer::draw_vehicle(const Pose& latest_pose) {
   Eigen::Vector3d twb(latest_pose.x, latest_pose.y, .0);

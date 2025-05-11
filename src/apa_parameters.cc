@@ -28,10 +28,19 @@ void ApaParameters::printout_parameters() {
             << _sim_params.odo_angular_velocity_noise << std::endl;
   std::cout << "simulation.perception_sensing_range: "
             << _sim_params.perception_sensing_range << std::endl;
+
+  std::cout << "estimator.slot_matching_dist_thresh: "
+            << _est_params.slot_matching_dist_thresh << std::endl;
+  std::cout << "estimator.slot_matching_angle_thresh: "
+            << _est_params.slot_matching_angle_thresh << std::endl;
 }
 
 const SimulationParams &ApaParameters::GetSimulationParameters() {
   return _sim_params;
+}
+
+const EstimatorParams &ApaParameters::GetEstimatorParamters() {
+  return _est_params;
 }
 
 bool ApaParameters::LoadParameters(const std::string &json_file) {
@@ -46,6 +55,12 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
         data["simulation"]["odo_angular_velocity_noise"];
     _sim_params.perception_sensing_range =
         data["simulation"]["perception_sensing_range"];
+
+    _est_params.slot_matching_dist_thresh =
+        data["estimator"]["slot_matching_dist_thresh"];
+    _est_params.slot_matching_angle_thresh =
+        data["estimator"]["slot_matching_angle_thresh"];
+
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;
     return false;

@@ -1,6 +1,6 @@
 #include "hungarian.h"
 
-namespace mono_lane_mapping {
+namespace apa_slam {
 
 HungarianOptimizer::HungarianOptimizer(
     const std::vector<std::vector<double>>& costs)
@@ -437,4 +437,4 @@ void HungarianOptimizer::AugmentPath() {
 
   state_ = &HungarianOptimizer::PrimeZeroes;
 }
-}  // namespace mono_lane_mapping
+}  // namespace apa_slam

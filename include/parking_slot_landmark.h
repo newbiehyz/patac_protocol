@@ -20,6 +20,7 @@ class ParkingSlotLandmark : public SemanticLandmark {
   typedef std::shared_ptr<ParkingSlotLandmark> Ptr;
   ParkingSlotLandmark(const int id, double* data);
   Eigen::MatrixXd GetLandmarkData();
+  void AddSemanticMea(const double timestmap, const Pose &mea_pose, const SemanticMea::Ptr mea);
 
  private:
   Eigen::MatrixXd _data;

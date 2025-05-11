@@ -48,24 +48,26 @@ void EkfEstimator::InputSemanticMea(
   sort_semantic_meas(semantic_meas, meas_sorted);
 
   for (auto it = meas_sorted.begin(); it != meas_sorted.end(); ++it) {
-    if (it->first == SEMANTIC_TYPE_PARKING_SLOT) {
-      process_parking_slot_meas(ts, it->second);
-    }
+    const SensorType mea_type = it->first;
+    process_semantic_meas(mea_type, ts, it->second);
   }
 }
 
-void EkfEstimator::process_parking_slot_meas(
-    const double ts, const std::vector<SemanticMea::Ptr> &parking_slot_meas) {
+void EkfEstimator::process_semantic_meas(
+    const SensorType &type, const double ts,
+    const std::vector<SemanticMea::Ptr> &parking_slot_meas) {
   Pose mea_pose;
   if (!get_pose(ts, mea_pose)) {
     return;
   }
 
   std::vector<int> matching_rs =
-      _tracker_pools.at(SEMANTIC_TYPE_PARKING_SLOT)
-          ->HungarianMatching(parking_slot_meas, mea_pose);
+      _tracker_pools.at(type)->HungarianMatching(parking_slot_meas, mea_pose);
 
-  
+  MapManagement::GetInstance().ProcessMatching(parking_slot_meas, matching_rs,
+                                               mea_pose, type);
+
+  std::cout << "Map Size: " << SemanticMap::GetInstance().GetMapLandmarkNum(SEMANTIC_TYPE_PARKING_SLOT) << std::endl;
 }
 
 bool EkfEstimator::get_pose(const double ts, Pose &pose) {
@@ -102,8 +104,8 @@ bool EkfEstimator::get_pose(const double ts, Pose &pose) {
   pose.y = pose_translation[1];
   pose.yaw = pose_yaw;
 
-  std::cout << "---- " << t << " " << pose_translation.transpose() << " "
-            << pose_yaw << std::endl;
+  // std::cout << "---- " << t << " " << pose_translation.transpose() << " "
+  //           << pose_yaw << std::endl;
 
   return true;
 }

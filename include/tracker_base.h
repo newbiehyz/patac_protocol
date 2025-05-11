@@ -26,6 +26,7 @@ class TrackerBase {
 
  protected:
   std::vector<SemanticMea::Ptr> _last_meas;
+  std::vector<int> _last_map_matching;
   Pose _last_pose;
 
  private:

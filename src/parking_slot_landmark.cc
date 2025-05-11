@@ -16,4 +16,9 @@ ParkingSlotLandmark::ParkingSlotLandmark(const int id, double *data)
           data, PARKING_SLOT_DATA_ROWS, PARKING_SLOT_DATA_COLS)) {}
 
 Eigen::MatrixXd ParkingSlotLandmark::GetLandmarkData() { return _data; }
+
+void ParkingSlotLandmark::AddSemanticMea(const double timestmap, const Pose &mea_pose, const SemanticMea::Ptr mea) {
+  auto mea_ordered = mea;
+  _meas.insert({timestmap, {mea_pose, mea_ordered}});
+}
 }  // namespace apa_slam

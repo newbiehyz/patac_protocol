@@ -16,10 +16,6 @@ SensorType SemanticLandmark::GetSemanticType() { return _type; }
 
 int SemanticLandmark::GetId() { return _id; }
 
-void SemanticLandmark::AddSemanticMea(const double timestmap, const SemanticMea::Ptr mea) {
-  _meas.insert({timestmap, mea});
-}
-
 void SemanticLandmark::InitializeLandmark() {
   _initialized = true;
 }

@@ -21,7 +21,7 @@ class SemanticMea {
   SensorType GetSemanticMeaType();
   virtual Eigen::MatrixXd GetMeaData() = 0;
   virtual void AddNoise(const Eigen::VectorXd& noise) = 0;
-
+  double GetMeaTimestamp();
  private:
   SensorType _type;
   double _timestamp;
