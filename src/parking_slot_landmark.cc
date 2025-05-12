@@ -13,12 +13,32 @@ namespace apa_slam {
 ParkingSlotLandmark::ParkingSlotLandmark(const int id, double *data)
     : SemanticLandmark(SEMANTIC_TYPE_PARKING_SLOT, id),
       _data(Eigen::Map<Eigen::MatrixXd, Eigen::ColMajor>(
-          data, PARKING_SLOT_DATA_ROWS, PARKING_SLOT_DATA_COLS)) {}
+          data, DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT)) {}
 
 Eigen::MatrixXd ParkingSlotLandmark::GetLandmarkData() { return _data; }
 
-void ParkingSlotLandmark::AddSemanticMea(const double timestmap, const Pose &mea_pose, const SemanticMea::Ptr mea) {
-  auto mea_ordered = mea;
-  _meas.insert({timestmap, {mea_pose, mea_ordered}});
+void ParkingSlotLandmark::AddSemanticMea(const double timestmap,
+                                         const Pose &mea_pose,
+                                         const SemanticMea::Ptr mea) {
+  Eigen::Matrix2d mea_data = mea->GetMeaData().topLeftCorner(2, 2);
+  Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
+  Eigen::Rotation2Dd rot(mea_pose.yaw);
+  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+  Eigen::Matrix2d pt_w = Rwb * mea_data + twb.replicate(1, 2);
+
+  Eigen::Matrix2d pt_w_swap = pt_w;
+  pt_w_swap.col(0).swap(pt_w_swap.col(1));
+
+  bool swap_mea_cols = false;
+  Eigen::Matrix2d error_mea = _data - pt_w;
+  Eigen::Matrix2d error_mea_swap = _data - pt_w_swap;
+
+  if (error_mea_swap.colwise().norm().norm() >
+      error_mea.colwise().norm().norm()) {
+    mea_data.col(0).swap(mea_data.col(1));
+    mea->SetMeaData(mea_data);
+  }
+
+  _meas.insert({timestmap, {mea_pose, mea}});
 }
 }  // namespace apa_slam

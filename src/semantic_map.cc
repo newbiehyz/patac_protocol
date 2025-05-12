@@ -43,6 +43,21 @@ const std::unordered_map<int, SemanticLandmark::Ptr>& SemanticMap::GetMap(
   return _map.at(type);
 }
 
+void SemanticMap::AddMea(const SensorType type, const int id,
+                         const SemanticMea::Ptr mea, const Pose& mea_pose) {
+  if (!_map.count(type)) {
+    std::cout << "No such Map\n";
+    return;
+  }
+
+  if (!_map.at(type).count(id)) {
+    std::cout << "No such Id\n";
+    return;
+  }
+  double timestamp = mea->GetMeaTimestamp();
+  _map.at(type).at(id)->AddSemanticMea(timestamp, mea_pose, mea);
+}
+
 int SemanticMap::GetMapLandmarkNum(const SensorType& type) {
   int num = 0;
   if (!_map.count(type)) {

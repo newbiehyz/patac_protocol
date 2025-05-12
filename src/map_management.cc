@@ -38,9 +38,10 @@ void MapManagement::process_slot_matching(
 
     if (SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,
                                                map_id)) {
+      SemanticMap::GetInstance().AddMea(SEMANTIC_TYPE_PARKING_SLOT, map_id, meas.at(i), mea_pose);                                   
     } else {
       Eigen::MatrixXd lm_data =
-          Eigen::MatrixXd::Zero(PARKING_SLOT_DATA_ROWS, PARKING_SLOT_DATA_COLS);
+          Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
 
       Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
       Eigen::Rotation2Dd rot(mea_pose.yaw);

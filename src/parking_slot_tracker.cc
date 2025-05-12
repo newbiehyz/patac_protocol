@@ -26,14 +26,12 @@ std::vector<int> ParkingSlotTracker::HungarianMatching(
                                   .GetEstimatorParamters()
                                   .slot_matching_angle_thresh;
   if (_last_meas.empty()) {
-    _last_meas = meas;
-    _last_pose = pose;
+
 
     for (size_t i = 0; i < meas.size(); ++i) {
       map_matching.at(i) = i;
     }
 
-    _last_map_matching = map_matching;
 
   } else {
     std::vector<int> unassigned_ref_idx, unassigned_new_idx;
@@ -72,6 +70,11 @@ std::vector<int> ParkingSlotTracker::HungarianMatching(
     }
   }
 
+  _last_meas = meas;
+  _last_pose = pose;
+  _last_map_matching = map_matching;
+
+
   return map_matching;
 }
 
@@ -91,7 +94,7 @@ Eigen::VectorXd ParkingSlotTracker::compute_matching_distance(
   Eigen::Matrix2d pt0_w =
       Rwb0 * mea0->GetMeaData().topLeftCorner(2, 2) + twb0.replicate(1, 2);
   Eigen::Matrix2d pt1_w =
-      Rwb0 * mea1->GetMeaData().topLeftCorner(2, 2) + twb1.replicate(1, 2);
+      Rwb1 * mea1->GetMeaData().topLeftCorner(2, 2) + twb1.replicate(1, 2);
 
   distance[0] =
       ((pt0_w.col(0) + pt0_w.col(1) - pt1_w.col(0) - pt1_w.col(1)) * .5).norm();

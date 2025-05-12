@@ -93,12 +93,12 @@ bool EkfEstimator::get_pose(const double ts, Pose &pose) {
     return false;
   }
 
-  double t = (ts - it0->first) / (it1->first - it0->first);
+  double ratio = (ts - it0->first) / (it1->first - it0->first);
   Eigen::Vector2d pose_translation = interpolate_translation(
       Eigen::Vector2d(it0->second.pose.x, it0->second.pose.y),
-      Eigen::Vector2d(it1->second.pose.x, it1->second.pose.y), t);
+      Eigen::Vector2d(it1->second.pose.x, it1->second.pose.y), ratio);
   double pose_yaw =
-      interpolate_angle(it0->second.pose.yaw, it1->second.pose.yaw, t);
+      interpolate_angle(it0->second.pose.yaw, it1->second.pose.yaw, ratio);
 
   pose.x = pose_translation[0];
   pose.y = pose_translation[1];

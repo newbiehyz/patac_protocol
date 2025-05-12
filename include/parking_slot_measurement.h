@@ -9,20 +9,21 @@
  */
 #pragma once
 
-#include <Eigen/Eigen>
 #include <iostream>
 #include <memory>
+#include <random>
+#include <Eigen/Eigen>
 
 #include "semantic_measurement.h"
-
+#include "apa_parameters.h"
 namespace apa_slam {
 class ParkingSlotMea : public SemanticMea {
  public:
   typedef std::shared_ptr<ParkingSlotMea> Ptr;
   ParkingSlotMea(const double timestamp, double* data);
   Eigen::MatrixXd GetMeaData();
-  void AddNoise(const Eigen::VectorXd& noise);
-
+  void AddNoise();
+  void SetMeaData(const Eigen::MatrixXd &data);
  private:
   Eigen::MatrixXd _data;
 };

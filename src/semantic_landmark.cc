@@ -10,17 +10,15 @@
 
 namespace apa_slam {
 SemanticLandmark::SemanticLandmark(const SensorType &type, const int id)
-    : _type(type), _id(id), _initialized(false) {}
+    : _type(type), _id(id), _initialized(false), _margin(false) {}
 
 SensorType SemanticLandmark::GetSemanticType() { return _type; }
 
 int SemanticLandmark::GetId() { return _id; }
 
-void SemanticLandmark::InitializeLandmark() {
-  _initialized = true;
-}
+void SemanticLandmark::InitializeLandmark() { _initialized = true; }
 
-bool SemanticLandmark::Initialized() {
-  return _initialized;
-}
+bool SemanticLandmark::Initialized() { return _initialized; }
+
+bool SemanticLandmark::Margin() { return _margin; }
 }  // namespace apa_slam

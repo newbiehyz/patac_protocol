@@ -8,9 +8,11 @@
  */
 #pragma once
 
+#include <iostream>
 #include <memory>
-#include <unordered_map>
 #include <mutex>
+#include <unordered_map>
+
 #include "local_mapping_define.h"
 #include "parking_slot_landmark.h"
 #include "semantic_landmark.h"
@@ -28,6 +30,8 @@ class SemanticMap {
   void ClearMap();
   int GetMapLandmarkNum(const SensorType& type);
   bool HasLandmark(const SensorType type, const int id);
+  void AddMea(const SensorType type, const int id, const SemanticMea::Ptr mea,
+              const Pose& mea_pose);
 
  private:
   std::unordered_map<SensorType, std::unordered_map<int, SemanticLandmark::Ptr>>

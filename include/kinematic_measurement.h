@@ -21,7 +21,7 @@ class KinematicMea {
   SensorType GetKineticMeaType();
   virtual ~KinematicMea() = default;
   virtual Eigen::VectorXd GetMeaData() = 0;
-  virtual void AddNoise(const Eigen::VectorXd &noise) = 0;
+  virtual void AddNoise() = 0;
 
  private:
   SensorType _type;

@@ -75,8 +75,8 @@ void SimDataLoader::generate_semantic_meas() {
       }
 
       Eigen::MatrixXd mea =
-          Eigen::MatrixXd::Zero(PARKING_SLOT_DATA_ROWS, PARKING_SLOT_DATA_COLS);
-      for (int i = 0; i < PARKING_SLOT_DATA_COLS; ++i) {
+          Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
+      for (int i = 0; i < DATA_COLS_PARKING_SLOT; ++i) {
         Eigen::Vector2d point_w = lm_data.col(i).head(2);
         Eigen::Vector2d point_b = Rbw * point_w + tbw;
         mea.col(i).head(2) = point_b;
@@ -84,6 +84,8 @@ void SimDataLoader::generate_semantic_meas() {
 
       SemanticMea::Ptr slot_mea =
           std::make_shared<ParkingSlotMea>(ts, mea.data());
+
+      slot_mea->AddNoise();
       _semantic_mea[ts].push_back(slot_mea);
     }
 
@@ -120,11 +122,13 @@ void SimDataLoader::load_dataset_pose(const std::string& pose_file) {
     ss >> timestamp >> pose.x >> pose.y >> pose.yaw >> velocity_x >>
         velocity_y >> angular_velocity;
     _gt_pose[timestamp] = pose;
-    Eigen::VectorXd odo_mea_data = Eigen::VectorXd::Zero(ODO_DATA_ROWS);
+    Eigen::VectorXd odo_mea_data = Eigen::VectorXd::Zero(DATA_ROWS_ODO);
     odo_mea_data[0] = std::hypotf(velocity_x, velocity_y);
     odo_mea_data[1] = angular_velocity;
     KinematicMea::Ptr odo_mea =
         std::make_shared<OdoMea>(timestamp, odo_mea_data.data());
+
+    odo_mea->AddNoise();
 
     _mea_seq[timestamp].push_back(ReplaySensorType::REPLAY_TYPE_KINEMATIC);
     _kinematic_mea[timestamp].push_back(odo_mea);
@@ -142,10 +146,10 @@ void SimDataLoader::load_dataset_map(const std::string& map_file) {
     std::stringstream ss(line);
     int id;
     Eigen::MatrixXd slot_data =
-        Eigen::MatrixXd::Zero(PARKING_SLOT_DATA_ROWS, PARKING_SLOT_DATA_COLS);
+        Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
     ss >> id;
-    for (int i = 0; i < PARKING_SLOT_DATA_COLS; ++i) {
-      for (int j = 0; j < PARKING_SLOT_DATA_ROWS; ++j) {
+    for (int i = 0; i < DATA_COLS_PARKING_SLOT; ++i) {
+      for (int j = 0; j < DATA_ROWS_PARKING_SLOT; ++j) {
         ss >> slot_data(j, i);
       }
     }
