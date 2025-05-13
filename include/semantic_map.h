@@ -16,6 +16,8 @@
 #include "local_mapping_define.h"
 #include "parking_slot_landmark.h"
 #include "semantic_landmark.h"
+
+
 namespace apa_slam {
 class SemanticMap {
  public:
@@ -32,6 +34,10 @@ class SemanticMap {
   bool HasLandmark(const SensorType type, const int id);
   void AddMea(const SensorType type, const int id, const SemanticMea::Ptr mea,
               const Pose& mea_pose);
+
+  void InitializeLandmark(const SensorType type, const int id,
+                          const Eigen::VectorXd& vehicle_mean,
+                          Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx);
 
  private:
   std::unordered_map<SensorType, std::unordered_map<int, SemanticLandmark::Ptr>>

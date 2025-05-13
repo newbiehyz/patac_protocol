@@ -64,6 +64,8 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
         data["estimator"]["slot_matching_angle_thresh"];
     _est_params.slot_min_tracking_times = data["estimator"]["slot_min_tracking_times"];
 
+    _est_params.max_tracking_time = data["estimator"]["max_tracking_time"];
+
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;
     return false;

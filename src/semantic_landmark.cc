@@ -10,7 +10,12 @@
 
 namespace apa_slam {
 SemanticLandmark::SemanticLandmark(const SensorType& type, const int id)
-    : _type(type), _id(id), _initialized(false), _margin(false) {}
+    : _type(type),
+      _id(id),
+      _initialized(false),
+      _margin(false),
+      _update(false),
+      _need_intialize(false) {}
 
 SensorType SemanticLandmark::GetSemanticType() { return _type; }
 
@@ -18,17 +23,22 @@ int SemanticLandmark::GetId() { return _id; }
 
 bool SemanticLandmark::Initialized() { return _initialized; }
 
-bool SemanticLandmark::Margin() { return _margin; }
+bool SemanticLandmark::NeedMargin() { return _margin; }
 
-void SemanticLandmark::NotifyAugmentation() {
-  EKFManagement::GetInstance().AddAugmentationList(this->GetSemanticType(),
-                                                   this->GetId());
+void SemanticLandmark::SetMarginFlag(const bool& flag) { _margin = flag; }
+
+bool SemanticLandmark::NeedUpdate() { return _update; }
+
+void SemanticLandmark::SetUpdateFlag(const bool& flag) { _update = flag; }
+
+void SemanticLandmark::SetNeedInitializeFlag(const bool& flag) {
+  _need_intialize = flag;
 }
 
+bool SemanticLandmark::NeedInitialize() { return _need_intialize; }
 
-
-void SemanticLandmark::NotifyUpdate() {}
-
-void SemanticLandmark::NotifyMarginalization() {}
+void SemanticLandmark::SetInitializeFlag(const bool& flag) {
+  _initialized = flag;
+}
 
 }  // namespace apa_slam

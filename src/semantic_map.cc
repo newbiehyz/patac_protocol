@@ -43,6 +43,13 @@ const std::unordered_map<int, SemanticLandmark::Ptr>& SemanticMap::GetMap(
   return _map.at(type);
 }
 
+  void SemanticMap::InitializeLandmark(const SensorType type, const int id,
+                          const Eigen::VectorXd& vehicle_mean,
+                          Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx) {
+    _map.at(type).at(id)->InitializeLandmark(vehicle_mean, vehicle_P, Jx);
+  }
+
+
 void SemanticMap::AddMea(const SensorType type, const int id,
                          const SemanticMea::Ptr mea, const Pose& mea_pose) {
   if (!_map.count(type)) {

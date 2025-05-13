@@ -9,6 +9,7 @@
   "estimator": {
     "slot_matching_dist_thresh": 0.5,
     "slot_matching_angle_thresh": 0.174,
-    "slot_min_tracking_times": 5
+    "slot_min_tracking_times": 5,
+    "max_tracking_time": 5.0
   }
 }

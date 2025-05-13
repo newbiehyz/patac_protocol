@@ -14,13 +14,13 @@
 #include <mutex>
 #include <unordered_map>
 
+#include "ekf_management.h"
 #include "kinematic_measurement.h"
 #include "map_management.h"
 #include "parking_slot_tracker.h"
-#include "semantic_map.h"
+// #include "semantic_map.h"
 #include "semantic_measurement.h"
 #include "tracker_base.h"
-#include "ekf_management.h"
 namespace apa_slam {
 class EkfEstimator {
  public:
@@ -43,6 +43,8 @@ class EkfEstimator {
   bool Initialized() const;
 
   double GetLatestTimestamp();
+
+
 
  private:
   void process_odo_mea(const double ts, const KinematicMea::Ptr odo_mea);

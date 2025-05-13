@@ -19,13 +19,9 @@ void EKFManagement::Init() {
                        .GetSimulationParameters()
                        .odo_angular_velocity_noise;
 
-
-
   _N = Eigen::MatrixXd::Zero(NOISE_ODO_SIZE, NOISE_ODO_SIZE);
   _N.diagonal()[0] = noise_v * noise_v;
   _N.diagonal()[1] = noise_w * noise_w;
-
- 
 
   this->ClearList();
 }
@@ -43,12 +39,14 @@ void EKFManagement::ClearList() {
 
 void EKFManagement::ClearStateList() { _state_list.clear(); }
 
-void EKFManagement::Update() {
+void EKFManagement::Update(const double timestamp) {
   ekf_update();
   state_augmentation();
   state_marginalization();
 
   this->ClearList();
+
+  _ts = timestamp;
 }
 
 void EKFManagement::ekf_update() {
@@ -60,20 +58,18 @@ void EKFManagement::ekf_update() {
 Eigen::MatrixXd EKFManagement::construct_P() {
   int n_state_size = STATE_VEHICLE_SIZE;
   for (auto it = _state_list.begin(); it != _state_list.end(); ++it) {
-    switch (it->first)
-    {
-    case SEMANTIC_TYPE_PARKING_SLOT:
-      n_state_size += STATE_PARKING_SLOT_SIZE;
-      break;
-    
-    default:
-      break;
+    switch (it->first) {
+      case SEMANTIC_TYPE_PARKING_SLOT:
+        n_state_size += STATE_PARKING_SLOT_SIZE;
+        break;
+
+      default:
+        break;
     }
   }
 
   Eigen::MatrixXd P = Eigen::MatrixXd::Zero(n_state_size, n_state_size);
   P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = _vehicle_cov;
-  
 
   return P;
 }
@@ -83,16 +79,27 @@ void EKFManagement::state_augmentation() {
     return;
   }
   Eigen::MatrixXd P = this->construct_P();
-  for (auto it = _augmentation_list.begin(); it != _augmentation_list.end(); ++it) {
-    switch (it->first)
-    {
-    case SEMANTIC_TYPE_PARKING_SLOT:
-      P.conservativeResize(P.rows() + STATE_PARKING_SLOT_SIZE, P.cols() + STATE_PARKING_SLOT_SIZE);
-      
-      break;
-    
-    default:
-      break;
+  for (auto it = _augmentation_list.begin(); it != _augmentation_list.end();
+       ++it) {
+    for (size_t i = 0; i < it->second.size(); ++i) {
+      auto semantic_type = it->first;
+      auto landmark_id = it->second.at(i);
+
+      if (!SemanticMap::GetInstance().HasLandmark(semantic_type, landmark_id)) {
+        std::cout << "FATAL ERROR, NO SUCH LANDMARK!!!!!!!!!\n";
+        continue;
+      }
+      switch (it->first) {
+        case SEMANTIC_TYPE_PARKING_SLOT: {
+          Eigen::MatrixXd Jx;
+          SemanticMap::GetInstance().InitializeLandmark(semantic_type,
+                                                        landmark_id, _vehicle_state, _vehicle_cov, Jx);
+          break;
+        }
+
+        default:
+          break;
+      }
     }
   }
 }
@@ -106,15 +113,6 @@ CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
   return CrossCorrelationKey{id_a, id_b};
 }
 
-void EKFManagement::AddAugmentationList(const SensorType &type, const int id) {
-  _augmentation_list[type].push_back(id);
-}
-
-void EKFManagement::AddUpdateList(const SensorType &type, const int id) {
-  _update_list[type].push_back(id);
-}
-void EKFManagement::AddMarginalizationList(const SensorType &type,
-                                           const int id) {}
 
 void EKFManagement::Propagate(const double v, const double w, const double dt,
                               const Eigen::VectorXd &x_vehicle0,
@@ -144,7 +142,6 @@ void EKFManagement::Propagate(const double v, const double w, const double dt,
   yaw += dt * w;
   x_vehicle1.head(2) = twb;
   x_vehicle1[2] = yaw;
-
 
   _vehicle_cov = P_vehicle1;
   _vehicle_state = x_vehicle1;

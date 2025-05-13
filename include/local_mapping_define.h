@@ -45,6 +45,7 @@ struct EstimatorParams {
   double slot_matching_dist_thresh;
   double slot_matching_angle_thresh;
   int slot_min_tracking_times;
+  double max_tracking_time;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };

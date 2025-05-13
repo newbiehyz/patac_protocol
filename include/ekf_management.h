@@ -14,6 +14,7 @@
 
 #include "apa_parameters.h"
 #include "local_mapping_define.h"
+#include "semantic_map.h"
 struct CrossCorrelationId {
   apa_slam::SensorType type;
   int id;
@@ -71,10 +72,8 @@ class EKFManagement {
                  const Eigen::VectorXd &x_vehicle0,
                  const Eigen::MatrixXd &P_vehicle0, Eigen::VectorXd &x_vehicle1,
                  Eigen::MatrixXd &P_vehicle1);
-  void AddAugmentationList(const SensorType &type, const int id);
-  void AddUpdateList(const SensorType &type, const int id);
-  void AddMarginalizationList(const SensorType &type, const int id);
-  void Update();
+
+  void Update(const double timestamp);
   void ClearList();
   void ClearStateList();
  private:
@@ -93,10 +92,10 @@ class EKFManagement {
 
   Eigen::MatrixXd _N;                                  // odo measurement
   
-  std::unordered_map<SensorType, std::vector<int>> _augmentation_list;
-  std::unordered_map<SensorType, std::vector<int>> _marginalization_list;
-  std::unordered_map<SensorType, std::vector<int>> _update_list;
-  std::unordered_map<SensorType, std::vector<int>> _state_list;
+  std::unordered_map<SensorType, std::vector<int>> _augmentation_list; // augmentation_list
+  std::unordered_map<SensorType, std::vector<int>> _marginalization_list; // marginalization list
+  std::unordered_map<SensorType, std::vector<int>> _update_list;  // residual compute list
+  std::unordered_map<SensorType, std::vector<int>> _state_list; // full state
 
   Eigen::VectorXd _vehicle_state;
   Eigen::MatrixXd _vehicle_cov;

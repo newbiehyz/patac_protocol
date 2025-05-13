@@ -54,7 +54,7 @@ void EkfEstimator::InputSemanticMea(
     process_semantic_meas(mea_type, ts, it->second);
   }
 
-  EKFManagement::GetInstance().Update();
+  EKFManagement::GetInstance().Update(ts);
 }
 
 void EkfEstimator::process_semantic_meas(
@@ -136,6 +136,7 @@ void EkfEstimator::InputKinematicMea(
   }
 }
 
+
 bool EkfEstimator::Initialized() const { return _initialized; }
 
 double EkfEstimator::interpolate_angle(const double angle0, const double angle1,
@@ -172,7 +173,6 @@ void EkfEstimator::process_odo_mea(const double ts,
     _mean = mean_new;
     _cov = cov_new;
   }
-
 
   Pose dr_pose;
   dr_pose.x = mean_new[0];

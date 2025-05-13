@@ -9,10 +9,9 @@
 #pragma once
 #include <memory>
 
-#include "ekf_management.h"
 #include "local_mapping_define.h"
 #include "semantic_measurement.h"
-
+// #include "ekf_estimator.h"
 namespace apa_slam {
 class SemanticLandmark {
  public:
@@ -28,15 +27,21 @@ class SemanticLandmark {
   virtual void AddSemanticMea(const double timestmap, const Pose& mea_pose,
                               const SemanticMea::Ptr mea) = 0;
 
-  void NotifyAugmentation();
-
-  void NotifyUpdate();
-
-  void NotifyMarginalization();
-
   bool Initialized();
+  
+  void SetInitializeFlag(const bool& flag);
+  
+  bool NeedMargin();
 
-  bool Margin();
+  void SetMarginFlag(const bool &flag);
+
+  bool NeedUpdate();
+
+  void SetUpdateFlag(const bool &flag);
+
+  bool NeedInitialize();
+
+  void SetNeedInitializeFlag(const bool &flag);
 
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
                                   const Eigen::MatrixXd& P,
@@ -52,5 +57,7 @@ class SemanticLandmark {
   int _id;
   bool _initialized;
   bool _margin;
+  bool _update;
+  bool _need_intialize;
 };
 }  // namespace apa_slam
