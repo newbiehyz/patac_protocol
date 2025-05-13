@@ -79,6 +79,7 @@ class EKFManagement {
 
  private:
   void state_augmentation(const std::unordered_map<SensorType, std::vector<int>> &augmentation_list);
+  void aug_update_covariance(const Eigen::MatrixXd& Jx);
   void state_marginalization(const std::unordered_map<SensorType, std::vector<int>> &marginalization_list);
   void ekf_update(
       const std::unordered_map<SensorType, std::vector<int>> &update_list);
@@ -89,9 +90,9 @@ class EKFManagement {
   Eigen::MatrixXd construct_P();
 
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
-      _lm_cross_correlation;
+      _lm_cross_correlation; // P_a_b  a=first b=second
   std::unordered_map<CrossCorrelationId, Eigen::MatrixXd>
-      _state_lm_cross_correlation;
+      _state_lm_cross_correlation; // P_state_lm
 
   Eigen::MatrixXd _N;  // odo measurement
 

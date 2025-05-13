@@ -1,1 +1,2 @@
 ADD_EXECUTABLE(test_cross_correlation_key ${CMAKE_CURRENT_SOURCE_DIR}/test_cross_correlation_key.cc)
+ADD_EXECUTABLE(test_traverse ${CMAKE_CURRENT_SOURCE_DIR}/test_traverse.cc)

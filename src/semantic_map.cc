@@ -49,6 +49,10 @@ void SemanticMap::InitializeLandmark(const SensorType type, const int id,
                                      Eigen::MatrixXd& Jx) {
   _map.at(type).at(id)->InitializeLandmark(vehicle_mean, vehicle_P, Jx);
 }
+Eigen::MatrixXd SemanticMap::GetLandmarkCov(const SensorType& type,
+                                            const int id) {
+  return _map.at(type).at(id)->GetCov();
+}
 
 void SemanticMap::GetEKFDataList(
     std::unordered_map<SensorType, std::vector<int>>& augmentation_list,
@@ -72,6 +76,27 @@ void SemanticMap::GetEKFDataList(
           marginalization_list[type].push_back(lm_id);
         }
       }
+    }
+  }
+
+  if (!augmentation_list.empty()) {
+    for (auto it = augmentation_list.begin(); it != augmentation_list.end();
+         ++it) {
+      std::sort(it->second.begin(), it->second.end());
+    }
+  }
+
+  if (!update_list.empty()) {
+    for (auto it = update_list.begin(); it != update_list.end();
+         ++it) {
+      std::sort(it->second.begin(), it->second.end());
+    }
+  }
+
+  if (!marginalization_list.empty()) {
+    for (auto it = marginalization_list.begin(); it != marginalization_list.end();
+         ++it) {
+      std::sort(it->second.begin(), it->second.end());
     }
   }
 }

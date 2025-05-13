@@ -44,6 +44,7 @@ class SemanticMap {
       std::unordered_map<SensorType, std::vector<int>>& update_list,
       std::unordered_map<SensorType, std::vector<int>>& marginalization_list);
 
+  Eigen::MatrixXd GetLandmarkCov(const SensorType& type, const int id);
 
  private:
   std::unordered_map<SensorType, std::unordered_map<int, SemanticLandmark::Ptr>>

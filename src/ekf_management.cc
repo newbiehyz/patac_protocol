@@ -35,7 +35,9 @@ void EKFManagement::ClearList() { _state_list.clear(); }
 
 void EKFManagement::ClearStateList() { _state_list.clear(); }
 
-void EKFManagement::Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P, const double timestamp) {
+void EKFManagement::Update(const Eigen::VectorXd &state_mean,
+                           const Eigen::MatrixXd &state_P,
+                           const double timestamp) {
   _vehicle_state = state_mean;
   _vehicle_cov = state_P;
   std::unordered_map<SensorType, std::vector<int>> augmentation_list;
@@ -74,21 +76,52 @@ Eigen::MatrixXd EKFManagement::construct_P() {
   Eigen::MatrixXd P = Eigen::MatrixXd::Zero(n_state_size, n_state_size);
   P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = _vehicle_cov;
 
+
+
+  for (auto it0 = _state_list.begin(); it0 != _state_list.end(); ++it0) {
+    const auto &type0 = it0->first;
+    const auto &vector0 = it0->second;
+
+    for (size_t i = 0; i < vector0.size(); ++i) {
+      const int &id0 = vector0.at(i);
+      auto it1 = it0;
+
+
+      for (; it1 != _state_list.end(); ++it1) {
+        const auto &type1 = it1->first;
+        const std::vector<int> &vector1 = it1->second;
+
+        size_t j_start = (it1 == it0) ? i : 0;
+        for (size_t j = j_start; j < vector1.size(); ++j) {
+          const int &id1 = vector1[j];
+
+          if (it0 != it1 || i != j) {
+            
+          }
+        }
+      }
+    }
+  }
+
   return P;
+}
+
+void EKFManagement::aug_update_covariance(const Eigen::MatrixXd &Jx) {
+  Eigen::MatrixXd P = construct_P();
 }
 
 void EKFManagement::state_augmentation(
     const std::unordered_map<SensorType, std::vector<int>> &augmentation_list) {
-
   if (augmentation_list.empty()) {
     return;
   }
-  std::cout << "Augmentation List\n";
-  for (auto it = augmentation_list.begin()->second.begin(); it != augmentation_list.begin()->second.end(); ++it) {
+  std::cout << "Augmentation List:\n";
+  for (auto it = augmentation_list.begin()->second.begin();
+       it != augmentation_list.begin()->second.end(); ++it) {
     std::cout << *it << " ";
   }
   std::cout << std::endl;
-  Eigen::MatrixXd P = this->construct_P();
+
   for (auto it = augmentation_list.begin(); it != augmentation_list.end();
        ++it) {
     for (size_t i = 0; i < it->second.size(); ++i) {
@@ -99,11 +132,13 @@ void EKFManagement::state_augmentation(
         std::cout << "FATAL ERROR, NO SUCH LANDMARK!!!!!!!!!\n";
         continue;
       }
-      switch (it->first) {
+      switch (semantic_type) {
         case SEMANTIC_TYPE_PARKING_SLOT: {
           Eigen::MatrixXd Jx;
           SemanticMap::GetInstance().InitializeLandmark(
               semantic_type, landmark_id, _vehicle_state, _vehicle_cov, Jx);
+          aug_update_covariance(Jx);
+          _state_list[semantic_type].push_back(landmark_id);
           break;
         }
 
