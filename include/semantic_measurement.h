@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "local_mapping_define.h"
+#include "apa_parameters.h"
 namespace apa_slam {
 class SemanticMea {
  public:
@@ -23,6 +24,7 @@ class SemanticMea {
   virtual void SetMeaData(const Eigen::MatrixXd &data) = 0;
   virtual void AddNoise() = 0;
   double GetMeaTimestamp();
+  virtual Eigen::MatrixXd GetMeasurementNosise() = 0;
  private:
   SensorType _type;
   double _timestamp;

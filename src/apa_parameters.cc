@@ -33,6 +33,8 @@ void ApaParameters::printout_parameters() {
             << _est_params.slot_matching_dist_thresh << std::endl;
   std::cout << "estimator.slot_matching_angle_thresh: "
             << _est_params.slot_matching_angle_thresh << std::endl;
+    std::cout << "estimator.slot_min_tracking_times: "
+            << _est_params.slot_min_tracking_times << std::endl;
 }
 
 const SimulationParams &ApaParameters::GetSimulationParameters() {
@@ -60,6 +62,7 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
         data["estimator"]["slot_matching_dist_thresh"];
     _est_params.slot_matching_angle_thresh =
         data["estimator"]["slot_matching_angle_thresh"];
+    _est_params.slot_min_tracking_times = data["estimator"]["slot_min_tracking_times"];
 
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;

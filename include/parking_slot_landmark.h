@@ -22,7 +22,13 @@ class ParkingSlotLandmark : public SemanticLandmark {
   Eigen::MatrixXd GetLandmarkData();
   void AddSemanticMea(const double timestmap, const Pose &mea_pose, const SemanticMea::Ptr mea);
 
- private:
+  void InitializeLandmark(const Eigen::VectorXd& state,
+                                  const Eigen::MatrixXd& P,
+                                  Eigen::MatrixXd& Jx);
+  
+  Eigen::VectorXd GetVectorizedData();
+ 
+  private:
   Eigen::MatrixXd _data;
 };
 }  // namespace apa_slam

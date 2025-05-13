@@ -13,7 +13,19 @@ namespace apa_slam {
 ParkingSlotMea::ParkingSlotMea(const double timestamp, double* data)
     : SemanticMea(SEMANTIC_TYPE_PARKING_SLOT, timestamp),
       _data(Eigen::Map<Eigen::MatrixXd, Eigen::ColMajor>(
-          data, DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT)) {}
+          data, DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT)) {
+  double noise_ps_x =
+      ApaParameters::GetInstance().GetSimulationParameters().slot_mea_noise_x;
+  double noise_ps_y =
+      ApaParameters::GetInstance().GetSimulationParameters().slot_mea_noise_y;
+  _R = Eigen::MatrixXd::Zero(NOISE_PARKING_SLOT, NOISE_PARKING_SLOT);
+  _R.diagonal()[0] = noise_ps_x * noise_ps_x;
+  _R.diagonal()[1] = noise_ps_y * noise_ps_y;
+  _R.diagonal()[2] = noise_ps_x * noise_ps_x;
+  _R.diagonal()[2] = noise_ps_y * noise_ps_y;
+}
+
+Eigen::MatrixXd ParkingSlotMea::GetMeasurementNosise() { return _R; }
 
 Eigen::MatrixXd ParkingSlotMea::GetMeaData() { return _data; }
 
@@ -32,7 +44,7 @@ void ParkingSlotMea::AddNoise() {
 
   for (int i = 0; i < _data.cols(); ++i) {
     for (int j = 0; j < _data.rows(); ++j) {
-      noise(i, j) = stdDev(j) * dist(generator); 
+      noise(i, j) = stdDev(j) * dist(generator);
     }
   }
 

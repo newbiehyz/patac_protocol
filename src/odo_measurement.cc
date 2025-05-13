@@ -22,8 +22,11 @@ void OdoMea::AddNoise() {
 
   Eigen::VectorXd noise = Eigen::VectorXd::Zero(_data.size());
   Eigen::VectorXd stdDev = Eigen::VectorXd::Zero(_data.size());
-  stdDev[0] = ApaParameters::GetInstance().GetSimulationParameters().odo_velocity_noise;
-  stdDev[1] = ApaParameters::GetInstance().GetSimulationParameters().odo_angular_velocity_noise;
+  stdDev[0] =
+      ApaParameters::GetInstance().GetSimulationParameters().odo_velocity_noise;
+  stdDev[1] = ApaParameters::GetInstance()
+                  .GetSimulationParameters()
+                  .odo_angular_velocity_noise;
 
   for (int i = 0; i < noise.size(); ++i) {
     noise(i) = stdDev(i) * dist(generator);  // 直接用标准差缩放

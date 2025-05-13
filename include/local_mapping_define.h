@@ -21,6 +21,8 @@
 #define STATE_PARKING_SLOT_SIZE 4
 
 
+#define NOISE_ODO_SIZE 2
+#define NOISE_PARKING_SLOT 4
 
 #define VEHICLE_WIDTH 1.0
 #define VEHICLE_HEIGHT 1.0
@@ -42,6 +44,7 @@ struct SimulationParams {
 struct EstimatorParams {
   double slot_matching_dist_thresh;
   double slot_matching_angle_thresh;
+  int slot_min_tracking_times;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };

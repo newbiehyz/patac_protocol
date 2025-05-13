@@ -12,8 +12,8 @@
 #include <memory>
 #include <unordered_map>
 
+#include "apa_parameters.h"
 #include "local_mapping_define.h"
-
 struct CrossCorrelationId {
   apa_slam::SensorType type;
   int id;
@@ -66,24 +66,40 @@ class EKFManagement {
   typedef std::shared_ptr<EKFManagement> Ptr;
   EKFManagement();
   void Init();
-  static EKFManagement& GetInstance();
+  static EKFManagement &GetInstance();
   void Propagate(const double v, const double w, const double dt,
                  const Eigen::VectorXd &x_vehicle0,
                  const Eigen::MatrixXd &P_vehicle0, Eigen::VectorXd &x_vehicle1,
                  Eigen::MatrixXd &P_vehicle1);
-  void StateAugmentation();
-  void StateMarginalization();
-
+  void AddAugmentationList(const SensorType &type, const int id);
+  void AddUpdateList(const SensorType &type, const int id);
+  void AddMarginalizationList(const SensorType &type, const int id);
+  void Update();
+  void ClearList();
+  void ClearStateList();
  private:
+  void state_augmentation();
+  void state_marginalization();
+  void ekf_update();
   CrossCorrelationKey make_lm_cross_correlation_key(const SensorType &type0,
                                                     const int &id0,
                                                     const SensorType &type1,
                                                     const int &id1);
+  Eigen::MatrixXd construct_P();
 
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
       _lm_cross_correlation;
+  std::unordered_map<CrossCorrelationId, Eigen::MatrixXd> _state_lm_cross_correlation; 
 
-  Eigen::MatrixXd _N; // odo measurement
-  std::unordered_map<SensorType, Eigen::MatrixXd> _R; // semantic_measurement
+  Eigen::MatrixXd _N;                                  // odo measurement
+  
+  std::unordered_map<SensorType, std::vector<int>> _augmentation_list;
+  std::unordered_map<SensorType, std::vector<int>> _marginalization_list;
+  std::unordered_map<SensorType, std::vector<int>> _update_list;
+  std::unordered_map<SensorType, std::vector<int>> _state_list;
+
+  Eigen::VectorXd _vehicle_state;
+  Eigen::MatrixXd _vehicle_cov;
+  double _ts;
 };
 }  // namespace apa_slam

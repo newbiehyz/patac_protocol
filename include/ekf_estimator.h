@@ -20,7 +20,7 @@
 #include "semantic_map.h"
 #include "semantic_measurement.h"
 #include "tracker_base.h"
-
+#include "ekf_management.h"
 namespace apa_slam {
 class EkfEstimator {
  public:

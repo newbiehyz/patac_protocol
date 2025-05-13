@@ -1,7 +1,7 @@
 {
   "simulation": {
-    "slot_mea_noise_x": 0.1,
-    "slot_mea_noise_y": 0.1,
+    "slot_mea_noise_x": 0.0,
+    "slot_mea_noise_y": 0.0,
     "odo_velocity_noise": 0.0,
     "odo_angular_velocity_noise": 0.00,
     "perception_sensing_range": 8.0

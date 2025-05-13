@@ -20,6 +20,8 @@ void EkfEstimator::Init() {
   _tracker_pools.insert({SEMANTIC_TYPE_PARKING_SLOT, parking_slot_tracker});
 
   SemanticMap::GetInstance().ClearMap();
+
+  EKFManagement::GetInstance().Init();
 }
 
 double EkfEstimator::GetLatestTimestamp() {
@@ -51,6 +53,8 @@ void EkfEstimator::InputSemanticMea(
     const SensorType mea_type = it->first;
     process_semantic_meas(mea_type, ts, it->second);
   }
+
+  EKFManagement::GetInstance().Update();
 }
 
 void EkfEstimator::process_semantic_meas(
@@ -67,7 +71,10 @@ void EkfEstimator::process_semantic_meas(
   MapManagement::GetInstance().ProcessMatching(parking_slot_meas, matching_rs,
                                                mea_pose, type);
 
-  std::cout << "Map Size: " << SemanticMap::GetInstance().GetMapLandmarkNum(SEMANTIC_TYPE_PARKING_SLOT) << std::endl;
+  std::cout << "Map Size: "
+            << SemanticMap::GetInstance().GetMapLandmarkNum(
+                   SEMANTIC_TYPE_PARKING_SLOT)
+            << std::endl;
 }
 
 bool EkfEstimator::get_pose(const double ts, Pose &pose) {
@@ -153,31 +160,24 @@ void EkfEstimator::process_odo_mea(const double ts,
   const Eigen::VectorXd &odo_data = odo_mea->GetMeaData();
   double v = odo_data[0];
   double w = odo_data[1];
-
-  Eigen::Vector2d twb;
-  double yaw;
-  {
-    std::lock_guard<std::mutex> lock(_data_mutex);
-    twb = _mean.head(2);
-    yaw = _mean[2];
-  }
-
-  Eigen::Rotation2Dd rot(yaw);
-  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
-  Eigen::Vector2d dir = Rwb.col(0);
   double dt = ts - _ts;
-  twb += dir * v * dt;
-  yaw += dt * w;
+
+  Eigen::VectorXd mean_new;
+  Eigen::MatrixXd cov_new;
+
   {
     std::lock_guard<std::mutex> lock(_data_mutex);
-    _mean.head(2) = twb;
-    _mean[2] = yaw;
+    EKFManagement::GetInstance().Propagate(v, w, dt, _mean, _cov, mean_new,
+                                           cov_new);
+    _mean = mean_new;
+    _cov = cov_new;
   }
+
 
   Pose dr_pose;
-  dr_pose.x = twb.x();
-  dr_pose.y = twb.y();
-  dr_pose.yaw = yaw;
+  dr_pose.x = mean_new[0];
+  dr_pose.y = mean_new[1];
+  dr_pose.yaw = mean_new[2];
   DrInfo dr_info;
   dr_info.pose = dr_pose;
   dr_info.angular_velocity = w;

@@ -25,8 +25,8 @@ void PangolinDrawer::draw_traj() {
 
 void PangolinDrawer::draw_parking_slot(const Eigen::MatrixXd& data) {
   const double l = 5.0f;
-  
-  glPointSize(3.0);
+
+  glPointSize(8.0);
 
   glBegin(GL_POINTS);
   glColor3f(.0f, 1.0f, 0.0f);
@@ -96,8 +96,10 @@ void PangolinDrawer::draw_local_map() {
   const auto slot_map =
       SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
   for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
-    Eigen::MatrixXd data = it->second->GetLandmarkData();
-    draw_parking_slot(data);
+    if (it->second->Initialized()) {
+      Eigen::MatrixXd data = it->second->GetLandmarkData();
+      draw_parking_slot(data);
+    }
   }
 }
 
