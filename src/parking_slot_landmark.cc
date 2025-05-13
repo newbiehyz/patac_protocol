@@ -41,28 +41,30 @@ void ParkingSlotLandmark::AddSemanticMea(const double timestmap,
 
   _meas.insert({timestmap, {mea_pose, mea}});
 
-  if (_meas.size() == ApaParameters::GetInstance()
+  if (_meas.size() >= ApaParameters::GetInstance()
                           .GetEstimatorParamters()
-                          .slot_min_tracking_times) {
+                          .slot_min_tracking_times &&
+      !Initialized()) {
     SetNeedInitializeFlag(true);
   }
 
   if (_meas.size() > ApaParameters::GetInstance()
                          .GetEstimatorParamters()
-                         .slot_min_tracking_times) {
+                         .slot_min_tracking_times &&
+      !NeedInitialize() && Initialized()) {
     SetUpdateFlag(true);
 
     double mea_t0 = _meas.begin()->first;
     double mea_t1 = _meas.rbegin()->first;
     double mea_duration = fabs(mea_t0 - mea_t1);
 
-    if(mea_duration > ApaParameters::GetInstance().GetEstimatorParamters().max_tracking_time) {
+    if (mea_duration > ApaParameters::GetInstance()
+                           .GetEstimatorParamters()
+                           .max_tracking_time) {
       SetUpdateFlag(false);
       SetMarginFlag(true);
     }
   }
-
-
 }
 
 void ParkingSlotLandmark::InitializeLandmark(const Eigen::VectorXd& state,
@@ -93,7 +95,22 @@ void ParkingSlotLandmark::InitializeLandmark(const Eigen::VectorXd& state,
   Jx.block(0, 2, 2, 1) = d_Rwb_theta * last_mea_data.col(0);
   Jx.block(2, 2, 2, 1) = d_Rwb_theta * last_mea_data.col(1);
 
+  Eigen::MatrixXd J0 = Jx.topRows(2);
+  Eigen::MatrixXd J1 = Jx.bottomRows(2);
+
+  Eigen::MatrixXd mea_cov =
+      _meas.rbegin()->second.second->GetMeasurementNosise().topLeftCorner(2, 2);
+  Eigen::MatrixXd cov =
+      Eigen::MatrixXd::Zero(STATE_PARKING_SLOT_SIZE, STATE_PARKING_SLOT_SIZE);
+  cov.topLeftCorner(2, 2) =
+      J0 * P * J0.transpose() + Rwb * mea_cov * Rwb.transpose();
+  cov.topLeftCorner(2, 2) =
+      J1 * P * J1.transpose() + Rwb * mea_cov * Rwb.transpose();
+
+  SetCov(cov);
+
   SetInitializeFlag(true);
+  SetNeedInitializeFlag(false);
 }
 
 Eigen::VectorXd ParkingSlotLandmark::GetVectorizedData() {

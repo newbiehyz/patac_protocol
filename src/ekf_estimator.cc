@@ -12,9 +12,6 @@ namespace apa_slam {
 EkfEstimator::EkfEstimator() {}
 
 void EkfEstimator::Init() {
-  _mean = Eigen::VectorXd::Zero(3);
-  _cov = 1e-7 * Eigen::MatrixXd::Identity(3, 3);
-
   TrackerBase::Ptr parking_slot_tracker =
       std::make_shared<ParkingSlotTracker>();
   _tracker_pools.insert({SEMANTIC_TYPE_PARKING_SLOT, parking_slot_tracker});
@@ -54,7 +51,7 @@ void EkfEstimator::InputSemanticMea(
     process_semantic_meas(mea_type, ts, it->second);
   }
 
-  EKFManagement::GetInstance().Update(ts);
+  EKFManagement::GetInstance().Update(_mean, _cov, ts);
 }
 
 void EkfEstimator::process_semantic_meas(
@@ -67,12 +64,23 @@ void EkfEstimator::process_semantic_meas(
 
   std::vector<int> matching_rs =
       _tracker_pools.at(type)->HungarianMatching(parking_slot_meas, mea_pose);
+  std::cout << "Matching Log:\n";
+  for (size_t i = 0; i < matching_rs.size(); ++i) {
+    std::cout << matching_rs.at(i) << " ";
+  }
+
+  std::cout << std::endl;
 
   MapManagement::GetInstance().ProcessMatching(parking_slot_meas, matching_rs,
                                                mea_pose, type);
 
-  std::cout << "Map Size: "
+  std::cout << "Map Element Num: "
             << SemanticMap::GetInstance().GetMapLandmarkNum(
+                   SEMANTIC_TYPE_PARKING_SLOT)
+            << std::endl;
+
+  std::cout << "Map Initialized Element Num: "
+            << SemanticMap::GetInstance().GetMapInitializedLandmarkNum(
                    SEMANTIC_TYPE_PARKING_SLOT)
             << std::endl;
 }
@@ -136,7 +144,6 @@ void EkfEstimator::InputKinematicMea(
   }
 }
 
-
 bool EkfEstimator::Initialized() const { return _initialized; }
 
 double EkfEstimator::interpolate_angle(const double angle0, const double angle1,
@@ -155,6 +162,8 @@ void EkfEstimator::process_odo_mea(const double ts,
                                    const KinematicMea::Ptr odo_mea) {
   if (!_initialized) {
     _ts = ts;
+    _mean = Eigen::VectorXd::Zero(3);
+    _cov = 1e-7 * Eigen::MatrixXd::Identity(3, 3);
     _initialized = true;
     return;
   }

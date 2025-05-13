@@ -73,13 +73,15 @@ class EKFManagement {
                  const Eigen::MatrixXd &P_vehicle0, Eigen::VectorXd &x_vehicle1,
                  Eigen::MatrixXd &P_vehicle1);
 
-  void Update(const double timestamp);
+  void Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P, const double timestamp);
   void ClearList();
   void ClearStateList();
+
  private:
-  void state_augmentation();
-  void state_marginalization();
-  void ekf_update();
+  void state_augmentation(const std::unordered_map<SensorType, std::vector<int>> &augmentation_list);
+  void state_marginalization(const std::unordered_map<SensorType, std::vector<int>> &marginalization_list);
+  void ekf_update(
+      const std::unordered_map<SensorType, std::vector<int>> &update_list);
   CrossCorrelationKey make_lm_cross_correlation_key(const SensorType &type0,
                                                     const int &id0,
                                                     const SensorType &type1,
@@ -88,17 +90,17 @@ class EKFManagement {
 
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
       _lm_cross_correlation;
-  std::unordered_map<CrossCorrelationId, Eigen::MatrixXd> _state_lm_cross_correlation; 
+  std::unordered_map<CrossCorrelationId, Eigen::MatrixXd>
+      _state_lm_cross_correlation;
 
-  Eigen::MatrixXd _N;                                  // odo measurement
-  
-  std::unordered_map<SensorType, std::vector<int>> _augmentation_list; // augmentation_list
-  std::unordered_map<SensorType, std::vector<int>> _marginalization_list; // marginalization list
-  std::unordered_map<SensorType, std::vector<int>> _update_list;  // residual compute list
-  std::unordered_map<SensorType, std::vector<int>> _state_list; // full state
+  Eigen::MatrixXd _N;  // odo measurement
+
+  std::unordered_map<SensorType, std::vector<int>> _state_list;  // full state
 
   Eigen::VectorXd _vehicle_state;
   Eigen::MatrixXd _vehicle_cov;
   double _ts;
+
+  bool _initialized{false};
 };
 }  // namespace apa_slam

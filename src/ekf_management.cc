@@ -31,29 +31,32 @@ EKFManagement &EKFManagement::GetInstance() {
   return instance;
 }
 
-void EKFManagement::ClearList() {
-  _marginalization_list.clear();
-  _update_list.clear();
-  _augmentation_list.clear();
-}
+void EKFManagement::ClearList() { _state_list.clear(); }
 
 void EKFManagement::ClearStateList() { _state_list.clear(); }
 
-void EKFManagement::Update(const double timestamp) {
-  ekf_update();
-  state_augmentation();
-  state_marginalization();
+void EKFManagement::Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P, const double timestamp) {
+  _vehicle_state = state_mean;
+  _vehicle_cov = state_P;
+  std::unordered_map<SensorType, std::vector<int>> augmentation_list;
+  std::unordered_map<SensorType, std::vector<int>> update_list;
+  std::unordered_map<SensorType, std::vector<int>> marginalization_list;
+  SemanticMap::GetInstance().GetEKFDataList(augmentation_list, update_list,
+                                            marginalization_list);
 
-  this->ClearList();
+  if (!_initialized) {
+    return;
+  }
+
+  ekf_update(update_list);
+  state_augmentation(augmentation_list);
+  state_marginalization(marginalization_list);
 
   _ts = timestamp;
 }
 
-void EKFManagement::ekf_update() {
-  if (_update_list.empty()) {
-    return;
-  }
-}
+void EKFManagement::ekf_update(
+    const std::unordered_map<SensorType, std::vector<int>> &update_list) {}
 
 Eigen::MatrixXd EKFManagement::construct_P() {
   int n_state_size = STATE_VEHICLE_SIZE;
@@ -74,12 +77,19 @@ Eigen::MatrixXd EKFManagement::construct_P() {
   return P;
 }
 
-void EKFManagement::state_augmentation() {
-  if (_augmentation_list.empty()) {
+void EKFManagement::state_augmentation(
+    const std::unordered_map<SensorType, std::vector<int>> &augmentation_list) {
+
+  if (augmentation_list.empty()) {
     return;
   }
+  std::cout << "Augmentation List\n";
+  for (auto it = augmentation_list.begin()->second.begin(); it != augmentation_list.begin()->second.end(); ++it) {
+    std::cout << *it << " ";
+  }
+  std::cout << std::endl;
   Eigen::MatrixXd P = this->construct_P();
-  for (auto it = _augmentation_list.begin(); it != _augmentation_list.end();
+  for (auto it = augmentation_list.begin(); it != augmentation_list.end();
        ++it) {
     for (size_t i = 0; i < it->second.size(); ++i) {
       auto semantic_type = it->first;
@@ -92,8 +102,8 @@ void EKFManagement::state_augmentation() {
       switch (it->first) {
         case SEMANTIC_TYPE_PARKING_SLOT: {
           Eigen::MatrixXd Jx;
-          SemanticMap::GetInstance().InitializeLandmark(semantic_type,
-                                                        landmark_id, _vehicle_state, _vehicle_cov, Jx);
+          SemanticMap::GetInstance().InitializeLandmark(
+              semantic_type, landmark_id, _vehicle_state, _vehicle_cov, Jx);
           break;
         }
 
@@ -103,7 +113,9 @@ void EKFManagement::state_augmentation() {
     }
   }
 }
-void EKFManagement::state_marginalization() {}
+void EKFManagement::state_marginalization(
+    const std::unordered_map<SensorType, std::vector<int>>
+        &marginalization_list) {}
 
 CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
     const SensorType &type0, const int &id0, const SensorType &type1,
@@ -112,7 +124,6 @@ CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
   auto id_b = CrossCorrelationId{type1, id1};
   return CrossCorrelationKey{id_a, id_b};
 }
-
 
 void EKFManagement::Propagate(const double v, const double w, const double dt,
                               const Eigen::VectorXd &x_vehicle0,
@@ -145,6 +156,10 @@ void EKFManagement::Propagate(const double v, const double w, const double dt,
 
   _vehicle_cov = P_vehicle1;
   _vehicle_state = x_vehicle1;
+
+  if (!_initialized) {
+    _initialized = true;
+  }
 }
 
 }  // namespace apa_slam

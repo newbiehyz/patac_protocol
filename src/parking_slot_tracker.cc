@@ -44,6 +44,7 @@ std::vector<int> ParkingSlotTracker::HungarianMatching(
 
         double cost =
             matching_cost[1] > angle_thresh ? max_cost : matching_cost[0];
+        cost = matching_cost[0] > dist_thresh ? max_cost: cost;
         cost_vector.at(i).at(j) = cost;
       }
     }

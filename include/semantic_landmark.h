@@ -28,20 +28,24 @@ class SemanticLandmark {
                               const SemanticMea::Ptr mea) = 0;
 
   bool Initialized();
-  
+
   void SetInitializeFlag(const bool& flag);
-  
+
   bool NeedMargin();
 
-  void SetMarginFlag(const bool &flag);
+  void SetMarginFlag(const bool& flag);
 
   bool NeedUpdate();
 
-  void SetUpdateFlag(const bool &flag);
+  void SetUpdateFlag(const bool& flag);
 
   bool NeedInitialize();
 
-  void SetNeedInitializeFlag(const bool &flag);
+  void SetNeedInitializeFlag(const bool& flag);
+
+  void SetCov(const Eigen::MatrixXd& cov);
+  
+  Eigen::MatrixXd GetCov();
 
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
                                   const Eigen::MatrixXd& P,
@@ -59,5 +63,7 @@ class SemanticLandmark {
   bool _margin;
   bool _update;
   bool _need_intialize;
+
+  Eigen::MatrixXd _cov;
 };
 }  // namespace apa_slam

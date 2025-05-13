@@ -43,12 +43,38 @@ const std::unordered_map<int, SemanticLandmark::Ptr>& SemanticMap::GetMap(
   return _map.at(type);
 }
 
-  void SemanticMap::InitializeLandmark(const SensorType type, const int id,
-                          const Eigen::VectorXd& vehicle_mean,
-                          Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx) {
-    _map.at(type).at(id)->InitializeLandmark(vehicle_mean, vehicle_P, Jx);
-  }
+void SemanticMap::InitializeLandmark(const SensorType type, const int id,
+                                     const Eigen::VectorXd& vehicle_mean,
+                                     Eigen::MatrixXd& vehicle_P,
+                                     Eigen::MatrixXd& Jx) {
+  _map.at(type).at(id)->InitializeLandmark(vehicle_mean, vehicle_P, Jx);
+}
 
+void SemanticMap::GetEKFDataList(
+    std::unordered_map<SensorType, std::vector<int>>& augmentation_list,
+    std::unordered_map<SensorType, std::vector<int>>& update_list,
+    std::unordered_map<SensorType, std::vector<int>>& marginalization_list) {
+  for (auto it_type = _map.begin(); it_type != _map.end(); ++it_type) {
+    const auto& type = it_type->first;
+    for (auto it_lm = it_type->second.begin(); it_lm != it_type->second.end();
+         ++it_lm) {
+      int lm_id = it_lm->first;
+      if (it_lm->second->NeedInitialize()) {
+        augmentation_list[type].push_back(lm_id);
+      }
+
+      if (it_lm->second->Initialized()) {
+        if (it_lm->second->NeedUpdate()) {
+          update_list[type].push_back(lm_id);
+        }
+
+        if (it_lm->second->NeedMargin()) {
+          marginalization_list[type].push_back(lm_id);
+        }
+      }
+    }
+  }
+}
 
 void SemanticMap::AddMea(const SensorType type, const int id,
                          const SemanticMea::Ptr mea, const Pose& mea_pose) {
@@ -71,6 +97,21 @@ int SemanticMap::GetMapLandmarkNum(const SensorType& type) {
     num = 0;
   } else {
     num = _map.at(type).size();
+  }
+
+  return num;
+}
+
+int SemanticMap::GetMapInitializedLandmarkNum(const SensorType& type) {
+  int num = 0;
+  if (!_map.count(type)) {
+    num = 0;
+  } else {
+    for (auto it = _map.at(type).begin(); it != _map.at(type).end(); ++it) {
+      if (it->second->Initialized()) {
+        ++num;
+      }
+    }
   }
 
   return num;

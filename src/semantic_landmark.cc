@@ -41,4 +41,12 @@ void SemanticLandmark::SetInitializeFlag(const bool& flag) {
   _initialized = flag;
 }
 
+  void SemanticLandmark::SetCov(const Eigen::MatrixXd& cov) {
+    _cov = cov;
+  }
+  
+  Eigen::MatrixXd SemanticLandmark::GetCov() {
+    return _cov;
+  }
+
 }  // namespace apa_slam

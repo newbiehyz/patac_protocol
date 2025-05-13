@@ -43,8 +43,6 @@ int main(int argc, char** argv) {
   while (loader->PopOutMea(type, timestamp)) {
     if (type == ReplaySensorType::REPLAY_TYPE_KINEMATIC) {
       auto kinematic_meas = loader->GetKinematicMeas(timestamp);
-      // std::cout << "-----------------------\n";
-      // std::cout << "Input Kinematic Meas: " << timestamp << " " << kinematic_meas.at(0)->GetMeaData().transpose() << std::endl;
 
       estimator.InputKinematicMea(timestamp, kinematic_meas);
       
@@ -52,15 +50,13 @@ int main(int argc, char** argv) {
 
     if (type == ReplaySensorType::REPLAY_TYPE_SEMANTIC) {
       auto semantic_meas = loader->GetSemanticMeas(timestamp);
-      // std::cout << "-----------------------\n";
-      
-      // std::cout << "Input Semantic Meas: " << timestamp << " meas num: " << semantic_meas.size() << std::endl;
-
       estimator.InputSemanticMea(timestamp, semantic_meas);
+
+      std::cout << "=============SEMANTIC================ " << timestamp << std::endl;;
 
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
   }
 
   return 0;
