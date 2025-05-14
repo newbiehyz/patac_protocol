@@ -20,15 +20,20 @@ class ParkingSlotLandmark : public SemanticLandmark {
   typedef std::shared_ptr<ParkingSlotLandmark> Ptr;
   ParkingSlotLandmark(const int id, double* data);
   Eigen::MatrixXd GetLandmarkData();
-  void AddSemanticMea(const double timestmap, const Pose &mea_pose, const SemanticMea::Ptr mea);
+  void AddSemanticMea(const double timestmap, const Pose& mea_pose,
+                      const SemanticMea::Ptr mea);
 
   void InitializeLandmark(const Eigen::VectorXd& state,
-                                  const Eigen::MatrixXd& P,
-                                  Eigen::MatrixXd& Jx);
-  
+                          const Eigen::MatrixXd& P, Eigen::MatrixXd& Jx);
+
   Eigen::VectorXd GetVectorizedData();
- 
-  private:
+
+  void GetResidualAndJacobian(const SemanticMea::Ptr& mea,
+                              const Eigen::VectorXd& v_state,
+                              Eigen::VectorXd& residual, Eigen::MatrixXd& J_v,
+                              Eigen::MatrixXd& J_lm);
+
+ private:
   Eigen::MatrixXd _data;
 };
 }  // namespace apa_slam

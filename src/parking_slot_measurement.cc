@@ -27,6 +27,14 @@ ParkingSlotMea::ParkingSlotMea(const double timestamp, double* data)
 
 Eigen::MatrixXd ParkingSlotMea::GetMeasurementNosise() { return _R; }
 
+Eigen::VectorXd ParkingSlotMea::GetVectorizedData() {
+  Eigen::VectorXd data = Eigen::VectorXd::Zero(STATE_PARKING_SLOT_SIZE);
+  data.head(2) = this->_data.col(0).head(2);
+  data.tail(2) = this->_data.col(1).head(2);
+
+  return data;
+}
+
 Eigen::MatrixXd ParkingSlotMea::GetMeaData() { return _data; }
 
 void ParkingSlotMea::SetMeaData(const Eigen::MatrixXd& data) { _data = data; };

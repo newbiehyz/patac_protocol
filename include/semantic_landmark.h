@@ -44,7 +44,7 @@ class SemanticLandmark {
   void SetNeedInitializeFlag(const bool& flag);
 
   void SetCov(const Eigen::MatrixXd& cov);
-  
+
   Eigen::MatrixXd GetCov();
 
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
@@ -52,6 +52,17 @@ class SemanticLandmark {
                                   Eigen::MatrixXd& Jx) = 0;
 
   virtual Eigen::VectorXd GetVectorizedData() = 0;
+
+  virtual void GetResidualAndJacobian(const SemanticMea::Ptr& mea,
+                                      const Eigen::VectorXd& v_state,
+                                      Eigen::VectorXd& residual,
+                                      Eigen::MatrixXd& J_v,
+                                      Eigen::MatrixXd& J_lm) = 0;
+
+  void GetLatestResidualAndJacobian(const Eigen::VectorXd& v_state,
+                                    Eigen::VectorXd& residual,
+                                    Eigen::MatrixXd& J_v,
+                                    Eigen::MatrixXd& J_lm);
 
  protected:
   std::map<double, std::pair<Pose, SemanticMea::Ptr>> _meas;

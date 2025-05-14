@@ -57,8 +57,40 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
 
 void EKFManagement::ekf_update(
     const std::map<SensorType, std::set<int>> &update_list) {
-      // for (auto )
+  Eigen::MatrixXd P = construct_P();
+  const int state_size = P.rows();
+  const int residual_size = get_residual_size(update_list);
+
+  Eigen::MatrixXd Hx = Eigen::MatrixXd::Zero(residual_size, state_size);
+  Eigen::MatrixXd R = Eigen::MatrixXd::Zero(residual_size, residual_size);
+  Eigen::VectorXd residual = Eigen::VectorXd::Zero(residual_size);
+
+  for (auto it_type = update_list.begin(); it_type != update_list.end(); ++it_type) {
+     
+  }
+}
+
+int EKFManagement::get_residual_size(
+    const std::map<SensorType, std::set<int>> &update_list) {
+  int residual_size = 0;
+  for (auto it = update_list.begin(); it != update_list.end(); ++it) {
+    const SensorType& semantic_type = it->first;
+    int size;
+    switch (semantic_type)
+    {
+    case SEMANTIC_TYPE_PARKING_SLOT:
+      size = STATE_PARKING_SLOT_SIZE;
+      break;
+    
+    default:
+      break;
     }
+
+    residual_size += size * it->second.size();
+  }
+
+  return residual_size;
+}
 
 int EKFManagement::get_state_size() {
   int n_state_size = STATE_VEHICLE_SIZE;

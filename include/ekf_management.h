@@ -109,6 +109,7 @@ class EKFManagement {
                              const Eigen::MatrixXd &correlation);  // P01
   Eigen::MatrixXd construct_P();
   int get_state_size();
+  int get_residual_size(const std::map<SensorType, std::set<int>> &update_list);
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
       _lm_cross_correlation;  // P_a_b  a=first b=second
   std::unordered_map<CrossCorrelationId, Eigen::MatrixXd>

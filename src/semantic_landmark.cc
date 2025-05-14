@@ -41,12 +41,15 @@ void SemanticLandmark::SetInitializeFlag(const bool& flag) {
   _initialized = flag;
 }
 
-  void SemanticLandmark::SetCov(const Eigen::MatrixXd& cov) {
-    _cov = cov;
-  }
-  
-  Eigen::MatrixXd SemanticLandmark::GetCov() {
-    return _cov;
-  }
+void SemanticLandmark::SetCov(const Eigen::MatrixXd& cov) { _cov = cov; }
+
+Eigen::MatrixXd SemanticLandmark::GetCov() { return _cov; }
+
+void SemanticLandmark::GetLatestResidualAndJacobian(
+    const Eigen::VectorXd& v_state, Eigen::VectorXd& residual,
+    Eigen::MatrixXd& J_v, Eigen::MatrixXd& J_lm) {
+      auto latest_mea = _meas.rbegin()->second.second;
+      GetResidualAndJacobian(latest_mea, v_state, residual, J_v, J_lm);
+    }
 
 }  // namespace apa_slam

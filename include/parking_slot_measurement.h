@@ -25,7 +25,7 @@ class ParkingSlotMea : public SemanticMea {
   void AddNoise();
   void SetMeaData(const Eigen::MatrixXd &data);
   Eigen::MatrixXd GetMeasurementNosise();
-  
+  Eigen::VectorXd GetVectorizedData();
  private:
   Eigen::MatrixXd _data;
   Eigen::MatrixXd _R;

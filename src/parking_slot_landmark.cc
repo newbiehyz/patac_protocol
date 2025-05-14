@@ -121,4 +121,46 @@ Eigen::VectorXd ParkingSlotLandmark::GetVectorizedData() {
   return vector_data;
 }
 
+void ParkingSlotLandmark::GetResidualAndJacobian(const SemanticMea::Ptr& mea,
+                                                 const Eigen::VectorXd& v_state,
+                                                 Eigen::VectorXd& residual,
+                                                 Eigen::MatrixXd& J_v,
+                                                 Eigen::MatrixXd& J_lm) {
+  Eigen::Vector2d twb = v_state.head(2);
+  double yaw = v_state[2];
+  Eigen::Rotation2Dd rot(yaw);
+  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+
+  // residual = observation - prediciton
+  residual = Eigen::VectorXd::Zero(RESIDUAL_PARKING_SLOT_SIZE);
+  Eigen::VectorXd observation = mea->GetVectorizedData();
+  Eigen::Matrix2d Rbw = Rwb.transpose();
+  Eigen::Vector2d tbw = -Rwb.transpose() * twb;
+
+  Eigen::Matrix4d R = Eigen::Matrix4d::Zero();
+  R.topLeftCorner(2, 2) = Rbw;
+  R.bottomRightCorner(2, 2) = Rbw;
+
+  Eigen::Vector4d t = tbw.replicate(2, 1);
+  residual = observation - (R * this->GetVectorizedData() + t);
+
+  J_lm = Eigen::MatrixXd::Zero(RESIDUAL_PARKING_SLOT_SIZE,
+                               STATE_PARKING_SLOT_SIZE);
+  J_v = Eigen::MatrixXd::Zero(RESIDUAL_PARKING_SLOT_SIZE, STATE_VEHICLE_SIZE);
+
+  J_lm.topLeftCorner(2, 2) = Rbw;
+  J_lm.bottomRightCorner(2, 2) = Rbw;
+
+  Eigen::Matrix2d d_Rwb_d_yaw;
+  d_Rwb_d_yaw << -sin(yaw), -cos(yaw), cos(yaw), -sin(yaw);
+
+  J_v.topLeftCorner(2, 2) = Rwb.transpose();
+  J_v.bottomLeftCorner(2, 2) = Rwb.transpose();
+  J_v.topRightCorner(2, 1) =
+      -d_Rwb_d_yaw.transpose() * this->GetLandmarkData().col(0).head(2) +
+      d_Rwb_d_yaw.transpose() * twb;
+  J_v.bottomRightCorner(2, 1) =
+      -d_Rwb_d_yaw.transpose() * this->GetLandmarkData().col(1).head(2) +
+      d_Rwb_d_yaw.transpose() * twb;
+}
 }  // namespace apa_slam
