@@ -33,6 +33,11 @@ bool SemanticMap::HasLandmark(const SensorType type, const int id) {
   return true;
 }
 
+// const SemanticLandmark::Ptr SemanticMap::GetLandmark(const SensorType& type,
+//                                                      const int& id) {
+//                                                       return _map
+//                                                      }
+
 bool SemanticMap::HasMap(const SensorType type) const {
   return _map.count(type);
 }
@@ -52,6 +57,16 @@ void SemanticMap::InitializeLandmark(const SensorType type, const int id,
 Eigen::MatrixXd SemanticMap::GetLandmarkCov(const SensorType& type,
                                             const int id) {
   return _map.at(type).at(id)->GetCov();
+}
+
+void SemanticMap::SetLandmarkCov(const SensorType& type, const int id,
+                                 const Eigen::MatrixXd& cov) {
+  _map.at(type).at(id)->SetCov(cov);
+}
+
+const SemanticLandmark::Ptr SemanticMap::GetLandmark(const SensorType& type,
+                                                     const int& id) {
+  return _map.at(type).at(id);
 }
 
 void SemanticMap::GetEKFDataList(
@@ -78,7 +93,6 @@ void SemanticMap::GetEKFDataList(
       }
     }
   }
-
 }
 
 void SemanticMap::AddMea(const SensorType type, const int id,

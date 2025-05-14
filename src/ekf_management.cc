@@ -57,7 +57,10 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
 
 void EKFManagement::ekf_update(
     const std::map<SensorType, std::set<int>> &update_list) {
-  Eigen::MatrixXd P = construct_P();
+  std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+  Eigen::MatrixXd P;
+  Eigen::VectorXd x;
+  construct_x_and_P(x, P, ekf_lm_pos);
   const int state_size = P.rows();
   const int residual_size = get_residual_size(update_list);
 
@@ -65,31 +68,153 @@ void EKFManagement::ekf_update(
   Eigen::MatrixXd R = Eigen::MatrixXd::Zero(residual_size, residual_size);
   Eigen::VectorXd residual = Eigen::VectorXd::Zero(residual_size);
 
-  for (auto it_type = update_list.begin(); it_type != update_list.end(); ++it_type) {
-     
+  int pos = 0;
+  for (auto it_type = update_list.begin(); it_type != update_list.end();
+       ++it_type) {
+    const SensorType &semantic_type = it_type->first;
+    for (auto it = it_type->second.begin(); it != it_type->second.end(); ++it) {
+      const int &landmark_id = *it;
+      Eigen::VectorXd r;
+      Eigen::MatrixXd Jacobian_vehicle, Jacobian_landmark;
+      SemanticMap::GetInstance()
+          .GetLandmark(semantic_type, landmark_id)
+          ->GetLatestResidualAndJacobian(_vehicle_state, r, Jacobian_vehicle,
+                                         Jacobian_landmark);
+      int residual_size, landmark_size;
+      switch (semantic_type) {
+        case SEMANTIC_TYPE_PARKING_SLOT:
+          residual_size = RESIDUAL_PARKING_SLOT_SIZE;
+          landmark_size = STATE_PARKING_SLOT_SIZE;
+          break;
+
+        default:
+          break;
+      }
+
+      residual.segment(pos, residual_size) = r;
+      R.block(pos, pos, residual_size, residual_size) =
+          SemanticMap::GetInstance()
+              .GetLandmark(semantic_type, landmark_id)
+              ->GetLatestMea()
+              ->GetMeasurementNosise();
+
+      Hx.block(pos, 0, residual_size, STATE_VEHICLE_SIZE) = Jacobian_vehicle;
+      int lm_pos = ekf_lm_pos.at(semantic_type).at(landmark_id);
+      Hx.block(pos, lm_pos, residual_size, landmark_size) = Jacobian_landmark;
+
+      pos += residual_size;
+    }
   }
+
+  Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
+  Eigen::MatrixXd Sinv = S.inverse();
+  Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
+  x = x + K * residual;
+  P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
+  P = (P + P.transpose()) * 0.5;
+
+  update_mean_and_cov(x, P, ekf_lm_pos);
 }
 
 int EKFManagement::get_residual_size(
     const std::map<SensorType, std::set<int>> &update_list) {
   int residual_size = 0;
   for (auto it = update_list.begin(); it != update_list.end(); ++it) {
-    const SensorType& semantic_type = it->first;
+    const SensorType &semantic_type = it->first;
     int size;
-    switch (semantic_type)
-    {
-    case SEMANTIC_TYPE_PARKING_SLOT:
-      size = STATE_PARKING_SLOT_SIZE;
-      break;
-    
-    default:
-      break;
+    switch (semantic_type) {
+      case SEMANTIC_TYPE_PARKING_SLOT:
+        size = STATE_PARKING_SLOT_SIZE;
+        break;
+
+      default:
+        break;
     }
 
     residual_size += size * it->second.size();
   }
 
   return residual_size;
+}
+
+void EKFManagement::update_mean_and_cov(
+    const Eigen::VectorXd &x, const Eigen::MatrixXd &P,
+    const std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
+  _vehicle_state = x.head(3);
+  _vehicle_cov = P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
+
+  for (auto it_type = ekf_lm_pos.begin(); it_type != ekf_lm_pos.end();
+       ++it_type) {
+    const auto &semantic_type = it_type->first;
+    for (auto it = it_type->second.begin(); it != it_type->second.end(); ++it) {
+      const int semantic_id = it->first;
+      const int pos = it->second;
+
+      CrossCorrelationId correlation_id(semantic_type, semantic_id);
+      int size;
+      switch (semantic_type) {
+        case SEMANTIC_TYPE_PARKING_SLOT:
+          size = STATE_PARKING_SLOT_SIZE;
+          break;
+
+        default:
+          break;
+      }
+      _state_lm_cross_correlation.at(correlation_id) =
+          P.block(0, pos, STATE_VEHICLE_SIZE, size);
+
+      SemanticMap::GetInstance().SetLandmarkCov(semantic_type, semantic_id,
+                                                P.block(pos, pos, size, size));
+    }
+  }
+
+  for (auto it_type0 = _lm_state_list.begin(); it_type0 != _lm_state_list.end();
+       ++it_type0) {
+    const auto &type0 = it_type0->first;
+    const auto &set0 = it_type0->second;
+    for (auto it_i = set0.begin(); it_i != set0.end(); ++it_i) {
+      const int &id0 = *it_i;
+
+      auto it_type1 = it_type0;
+      for (; it_type1 != _lm_state_list.end(); ++it_type1) {
+        const auto &type1 = it_type1->first;
+        const auto &set1 = it_type1->second;
+
+        auto j_start = (it_type0 == it_type1) ? it_i : set1.begin();
+        for (auto it_j = j_start; it_j != set1.end(); ++it_j) {
+          if (it_type0 != it_type1 || it_i != it_j) {
+            const int &id1 = *it_j;
+            int pos0 = ekf_lm_pos.at(type0).at(id0);
+            int pos1 = ekf_lm_pos.at(type1).at(id1);
+            int size0, size1;
+            switch (type0) {
+              case SEMANTIC_TYPE_PARKING_SLOT:
+                size0 = STATE_PARKING_SLOT_SIZE;
+                break;
+
+              default:
+                break;
+            }
+
+            switch (type1) {
+              case SEMANTIC_TYPE_PARKING_SLOT:
+                size1 = STATE_PARKING_SLOT_SIZE;
+                break;
+
+              default:
+                break;
+            }
+
+            Eigen::MatrixXd correlation = P.block(pos0, pos1, size0, size1);
+            CrossCorrelationId correlation_id0(type0, id0);
+            CrossCorrelationId correlation_id1(type1, id1);
+
+            set_cross_correlation(correlation_id0, correlation_id1, correlation);
+          }
+        }
+      }
+    }
+  }
 }
 
 int EKFManagement::get_state_size() {
@@ -108,10 +233,12 @@ int EKFManagement::get_state_size() {
   return n_state_size;
 }
 
-Eigen::MatrixXd EKFManagement::construct_P() {
+void EKFManagement::construct_x_and_P(
+    Eigen::VectorXd &x, Eigen::MatrixXd &P,
+    std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
   int n_state_size = get_state_size();
 
-  Eigen::MatrixXd P = Eigen::MatrixXd::Zero(n_state_size, n_state_size);
+  P = Eigen::MatrixXd::Zero(n_state_size, n_state_size);
   P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = _vehicle_cov;
 
   int pos0 = STATE_VEHICLE_SIZE;
@@ -179,13 +306,14 @@ Eigen::MatrixXd EKFManagement::construct_P() {
       pos0 += size0;
     }
   }
-
-  return P;
 }
 
 void EKFManagement::aug_update_covariance(const SensorType &type, const int &id,
                                           const Eigen::MatrixXd &Jx) {
-  Eigen::MatrixXd P = construct_P();
+  std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+  Eigen::MatrixXd P;
+  Eigen::VectorXd x;
+  construct_x_and_P(x, P, ekf_lm_pos);
   int size;
   switch (type) {
     case SEMANTIC_TYPE_PARKING_SLOT:
@@ -295,6 +423,7 @@ CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
 void EKFManagement::set_cross_correlation(const CrossCorrelationId &id0,
                                           const CrossCorrelationId &id1,
                                           const Eigen::MatrixXd &correlation) {
+  // correlation [size0 x size1]  P_01
   CrossCorrelationKey key = make_lm_cross_correlation_key(id0, id1);
   if (id0.type == key.first.type && id0.id == key.first.id) {
     _lm_cross_correlation[key] = correlation;

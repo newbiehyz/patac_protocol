@@ -47,6 +47,8 @@ class SemanticLandmark {
 
   Eigen::MatrixXd GetCov();
 
+  const SemanticMea::Ptr GetLatestMea();
+
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
                                   const Eigen::MatrixXd& P,
                                   Eigen::MatrixXd& Jx) = 0;

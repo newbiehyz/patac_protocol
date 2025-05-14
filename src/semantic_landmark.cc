@@ -48,8 +48,12 @@ Eigen::MatrixXd SemanticLandmark::GetCov() { return _cov; }
 void SemanticLandmark::GetLatestResidualAndJacobian(
     const Eigen::VectorXd& v_state, Eigen::VectorXd& residual,
     Eigen::MatrixXd& J_v, Eigen::MatrixXd& J_lm) {
-      auto latest_mea = _meas.rbegin()->second.second;
-      GetResidualAndJacobian(latest_mea, v_state, residual, J_v, J_lm);
-    }
+  auto latest_mea = _meas.rbegin()->second.second;
+  GetResidualAndJacobian(latest_mea, v_state, residual, J_v, J_lm);
+}
+
+const SemanticMea::Ptr SemanticLandmark::GetLatestMea() {
+  return _meas.rbegin()->second.second;
+}
 
 }  // namespace apa_slam

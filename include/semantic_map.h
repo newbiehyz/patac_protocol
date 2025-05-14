@@ -11,8 +11,9 @@
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <unordered_map>
 #include <set>
+#include <unordered_map>
+
 #include "local_mapping_define.h"
 #include "parking_slot_landmark.h"
 #include "semantic_landmark.h"
@@ -45,6 +46,12 @@ class SemanticMap {
       std::map<SensorType, std::set<int>>& marginalization_list);
 
   Eigen::MatrixXd GetLandmarkCov(const SensorType& type, const int id);
+
+  void SetLandmarkCov(const SensorType& type, const int id,
+                      const Eigen::MatrixXd& cov);
+
+  const SemanticLandmark::Ptr GetLandmark(const SensorType& type,
+                                          const int& id);
 
  private:
   std::unordered_map<SensorType, std::unordered_map<int, SemanticLandmark::Ptr>>
