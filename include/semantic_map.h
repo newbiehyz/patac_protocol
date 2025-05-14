@@ -12,7 +12,7 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-
+#include <set>
 #include "local_mapping_define.h"
 #include "parking_slot_landmark.h"
 #include "semantic_landmark.h"
@@ -40,9 +40,9 @@ class SemanticMap {
                           Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx);
 
   void GetEKFDataList(
-      std::unordered_map<SensorType, std::vector<int>>& augmentation_list,
-      std::unordered_map<SensorType, std::vector<int>>& update_list,
-      std::unordered_map<SensorType, std::vector<int>>& marginalization_list);
+      std::map<SensorType, std::set<int>>& augmentation_list,
+      std::map<SensorType, std::set<int>>& update_list,
+      std::map<SensorType, std::set<int>>& marginalization_list);
 
   Eigen::MatrixXd GetLandmarkCov(const SensorType& type, const int id);
 

@@ -9,14 +9,13 @@
 #include <unordered_map>
 
 #include "local_mapping_define.h"
-
 using namespace apa_slam;
 
 struct CrossCorrelationId {
-  SensorType type;
+  apa_slam::SensorType type;
   int id;
   CrossCorrelationId() = default;
-  CrossCorrelationId(SensorType t, int i) : type(t), id(i) {}
+  CrossCorrelationId(apa_slam::SensorType t, int i) : type(t), id(i) {}
 
   bool operator==(const CrossCorrelationId &other) const {
     return type == other.type && id == other.id;
@@ -30,15 +29,20 @@ struct CrossCorrelationKey {
   CrossCorrelationId first;
   CrossCorrelationId second;
   CrossCorrelationKey() = default;
-  CrossCorrelationKey(CrossCorrelationId f, CrossCorrelationId s)
-      : first(f), second(s) {}
+  CrossCorrelationKey(CrossCorrelationId f, CrossCorrelationId s) {
+    if (std::tie(f.type, f.id) < std::tie(s.type, s.id)) {
+      first = f;
+      second = s;
+    } else {
+      first = s;
+      second = f;
+    }
+  }
 
   bool operator==(const CrossCorrelationKey &other) const {
     auto [a1, b1] = std::minmax(first, second);
     auto [a2, b2] = std::minmax(other.first, other.second);
     return a1 == a2 && b1 == b2;
-
-    
   }
 };
 
@@ -59,11 +63,13 @@ struct hash<CrossCorrelationKey> {
 };
 }  // namespace std
 
-CrossCorrelationKey make_key(const SensorType &type0, const int &id0,
-                             const SensorType &type1, const int &id1) {
+CrossCorrelationKey make_lm_cross_correlation_key(const SensorType &type0,
+                                                  const int &id0,
+                                                  const SensorType &type1,
+                                                  const int &id1) {
   auto id_a = CrossCorrelationId{type0, id0};
   auto id_b = CrossCorrelationId{type1, id1};
-  return CrossCorrelationKey{id_a, id_b}; 
+  return CrossCorrelationKey{id_a, id_b};
 }
 
 int main()
@@ -71,13 +77,21 @@ int main()
 {
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd> cross_correlation;
 
-  auto key0 = make_key(SensorType::SEMANTIC_TYPE_PARKING_SLOT, 2, SensorType::SEMANTIC_TYPE_PARKING_SLOT, 5);
-  
+  auto key0 =
+      make_lm_cross_correlation_key(SensorType::SEMANTIC_TYPE_PARKING_SLOT, 2,
+                                    SensorType::SEMANTIC_TYPE_PARKING_SLOT, 5);
+
   cross_correlation[key0] = Eigen::MatrixXd::Random(5, 4);
 
-  auto key1 = make_key(SensorType::SEMANTIC_TYPE_PARKING_COLUMN, 5, SensorType::SEMANTIC_TYPE_PARKING_SLOT, 2);
+  auto key1 =
+      make_lm_cross_correlation_key(SensorType::SEMANTIC_TYPE_PARKING_COLUMN, 1,
+                                    SensorType::SEMANTIC_TYPE_PARKING_SLOT, 5);
   cross_correlation[key1] = Eigen::MatrixXd::Random(5, 4);
 
+  auto key3 =
+      make_lm_cross_correlation_key(SensorType::SEMANTIC_TYPE_PARKING_COLUMN, 1,
+                                    SensorType::SEMANTIC_TYPE_PARKING_SLOT, 2);
+  cross_correlation[key1] = Eigen::MatrixXd::Random(5, 4);
 
   return 0;
 }

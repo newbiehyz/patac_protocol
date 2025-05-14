@@ -10,11 +10,13 @@
 #pragma once
 #include <Eigen/Eigen>
 #include <memory>
+#include <set>
 #include <unordered_map>
 
 #include "apa_parameters.h"
 #include "local_mapping_define.h"
 #include "semantic_map.h"
+
 struct CrossCorrelationId {
   apa_slam::SensorType type;
   int id;
@@ -33,8 +35,15 @@ struct CrossCorrelationKey {
   CrossCorrelationId first;
   CrossCorrelationId second;
   CrossCorrelationKey() = default;
-  CrossCorrelationKey(CrossCorrelationId f, CrossCorrelationId s)
-      : first(f), second(s) {}
+  CrossCorrelationKey(CrossCorrelationId f, CrossCorrelationId s) {
+    if (std::tie(f.type, f.id) < std::tie(s.type, s.id)) {
+      first = f;
+      second = s;
+    } else {
+      first = s;
+      second = f;
+    }
+  }
 
   bool operator==(const CrossCorrelationKey &other) const {
     auto [a1, b1] = std::minmax(first, second);
@@ -73,30 +82,41 @@ class EKFManagement {
                  const Eigen::MatrixXd &P_vehicle0, Eigen::VectorXd &x_vehicle1,
                  Eigen::MatrixXd &P_vehicle1);
 
-  void Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P, const double timestamp);
+  void Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P,
+              const double timestamp);
   void ClearList();
-  void ClearStateList();
 
  private:
-  void state_augmentation(const std::unordered_map<SensorType, std::vector<int>> &augmentation_list);
-  void aug_update_covariance(const Eigen::MatrixXd& Jx);
-  void state_marginalization(const std::unordered_map<SensorType, std::vector<int>> &marginalization_list);
-  void ekf_update(
-      const std::unordered_map<SensorType, std::vector<int>> &update_list);
+  void state_augmentation(
+      const std::map<SensorType, std::set<int>> &augmentation_list);
+  void aug_update_covariance(const SensorType &type, const int &id,
+                             const Eigen::MatrixXd &Jx);
+  void state_marginalization(
+      const std::map<SensorType, std::set<int>> &marginalization_list);
+  void ekf_update(const std::map<SensorType, std::set<int>> &update_list);
   CrossCorrelationKey make_lm_cross_correlation_key(const SensorType &type0,
                                                     const int &id0,
                                                     const SensorType &type1,
                                                     const int &id1);
+  CrossCorrelationKey make_lm_cross_correlation_key(
+      const CrossCorrelationId &id0, const CrossCorrelationId &id1);
+  Eigen::MatrixXd get_cross_correlation(
+      const CrossCorrelationId &id0,
+      const CrossCorrelationId
+          &id1);  // get a = 0  b = 1, P01 = E[(a - a_hat)*(b - b_hat)']
+  void set_cross_correlation(const CrossCorrelationId &id0,
+                             const CrossCorrelationId &id1,
+                             const Eigen::MatrixXd &correlation);  // P01
   Eigen::MatrixXd construct_P();
-
+  int get_state_size();
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
-      _lm_cross_correlation; // P_a_b  a=first b=second
+      _lm_cross_correlation;  // P_a_b  a=first b=second
   std::unordered_map<CrossCorrelationId, Eigen::MatrixXd>
-      _state_lm_cross_correlation; // P_state_lm
+      _state_lm_cross_correlation;  // P_state_lm
 
   Eigen::MatrixXd _N;  // odo measurement
 
-  std::unordered_map<SensorType, std::vector<int>> _state_list;  // full state
+  std::unordered_map<SensorType, std::set<int>> _lm_state_list;  // full state
 
   Eigen::VectorXd _vehicle_state;
   Eigen::MatrixXd _vehicle_cov;

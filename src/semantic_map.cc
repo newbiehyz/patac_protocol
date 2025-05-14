@@ -55,50 +55,30 @@ Eigen::MatrixXd SemanticMap::GetLandmarkCov(const SensorType& type,
 }
 
 void SemanticMap::GetEKFDataList(
-    std::unordered_map<SensorType, std::vector<int>>& augmentation_list,
-    std::unordered_map<SensorType, std::vector<int>>& update_list,
-    std::unordered_map<SensorType, std::vector<int>>& marginalization_list) {
+    std::map<SensorType, std::set<int>>& augmentation_list,
+    std::map<SensorType, std::set<int>>& update_list,
+    std::map<SensorType, std::set<int>>& marginalization_list) {
   for (auto it_type = _map.begin(); it_type != _map.end(); ++it_type) {
     const auto& type = it_type->first;
     for (auto it_lm = it_type->second.begin(); it_lm != it_type->second.end();
          ++it_lm) {
       int lm_id = it_lm->first;
       if (it_lm->second->NeedInitialize()) {
-        augmentation_list[type].push_back(lm_id);
+        augmentation_list[type].insert(lm_id);
       }
 
       if (it_lm->second->Initialized()) {
         if (it_lm->second->NeedUpdate()) {
-          update_list[type].push_back(lm_id);
+          update_list[type].insert(lm_id);
         }
 
         if (it_lm->second->NeedMargin()) {
-          marginalization_list[type].push_back(lm_id);
+          marginalization_list[type].insert(lm_id);
         }
       }
     }
   }
 
-  if (!augmentation_list.empty()) {
-    for (auto it = augmentation_list.begin(); it != augmentation_list.end();
-         ++it) {
-      std::sort(it->second.begin(), it->second.end());
-    }
-  }
-
-  if (!update_list.empty()) {
-    for (auto it = update_list.begin(); it != update_list.end();
-         ++it) {
-      std::sort(it->second.begin(), it->second.end());
-    }
-  }
-
-  if (!marginalization_list.empty()) {
-    for (auto it = marginalization_list.begin(); it != marginalization_list.end();
-         ++it) {
-      std::sort(it->second.begin(), it->second.end());
-    }
-  }
 }
 
 void SemanticMap::AddMea(const SensorType type, const int id,
