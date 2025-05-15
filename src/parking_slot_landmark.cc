@@ -33,7 +33,7 @@ void ParkingSlotLandmark::AddSemanticMea(const double timestmap,
   Eigen::Matrix2d error_mea = _data - pt_w;
   Eigen::Matrix2d error_mea_swap = _data - pt_w_swap;
 
-  if (error_mea_swap.colwise().norm().norm() >
+  if (error_mea_swap.colwise().norm().norm() <
       error_mea.colwise().norm().norm()) {
     mea_data.col(0).swap(mea_data.col(1));
     mea->SetMeaData(mea_data);
@@ -104,7 +104,7 @@ void ParkingSlotLandmark::InitializeLandmark(const Eigen::VectorXd& state,
       Eigen::MatrixXd::Zero(STATE_PARKING_SLOT_SIZE, STATE_PARKING_SLOT_SIZE);
   cov.topLeftCorner(2, 2) =
       J0 * P * J0.transpose() + Rwb * mea_cov * Rwb.transpose();
-  cov.topLeftCorner(2, 2) =
+  cov.bottomRightCorner(2, 2) =
       J1 * P * J1.transpose() + Rwb * mea_cov * Rwb.transpose();
 
   SetCov(cov);
@@ -148,8 +148,8 @@ void ParkingSlotLandmark::GetResidualAndJacobian(const SemanticMea::Ptr& mea,
                                STATE_PARKING_SLOT_SIZE);
   J_v = Eigen::MatrixXd::Zero(RESIDUAL_PARKING_SLOT_SIZE, STATE_VEHICLE_SIZE);
 
-  J_lm.topLeftCorner(2, 2) = Rbw;
-  J_lm.bottomRightCorner(2, 2) = Rbw;
+  J_lm.topLeftCorner(2, 2) = -Rbw;
+  J_lm.bottomRightCorner(2, 2) = -Rbw;
 
   Eigen::Matrix2d d_Rwb_d_yaw;
   d_Rwb_d_yaw << -sin(yaw), -cos(yaw), cos(yaw), -sin(yaw);

@@ -22,7 +22,7 @@ ParkingSlotMea::ParkingSlotMea(const double timestamp, double* data)
   _R.diagonal()[0] = noise_ps_x * noise_ps_x;
   _R.diagonal()[1] = noise_ps_y * noise_ps_y;
   _R.diagonal()[2] = noise_ps_x * noise_ps_x;
-  _R.diagonal()[2] = noise_ps_y * noise_ps_y;
+  _R.diagonal()[3] = noise_ps_y * noise_ps_y;
 }
 
 Eigen::MatrixXd ParkingSlotMea::GetMeasurementNosise() { return _R; }

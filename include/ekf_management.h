@@ -15,6 +15,7 @@
 
 #include "apa_parameters.h"
 #include "local_mapping_define.h"
+#include "matrix_plot.h"
 #include "semantic_map.h"
 
 struct CrossCorrelationId {
@@ -86,6 +87,8 @@ class EKFManagement {
               const double timestamp);
   void ClearList();
 
+  bool GetLatestVechileState(Eigen::VectorXd &mean, Eigen::MatrixXd &cov);
+
  private:
   void state_augmentation(
       const std::map<SensorType, std::set<int>> &augmentation_list);
@@ -104,12 +107,16 @@ class EKFManagement {
       const CrossCorrelationId &id0,
       const CrossCorrelationId
           &id1);  // get a = 0  b = 1, P01 = E[(a - a_hat)*(b - b_hat)']
+
+  Eigen::MatrixXd get_cross_correlation(const CrossCorrelationId &id0,
+                                        const CrossCorrelationId &id1,
+                                        bool &transpose);
   void set_cross_correlation(const CrossCorrelationId &id0,
                              const CrossCorrelationId &id1,
                              const Eigen::MatrixXd &correlation);  // P01
-  void construct_x_and_P(Eigen::VectorXd &x, Eigen::MatrixXd &P,
-                         std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
-  int get_state_size();
+  void construct_x_and_P(Eigen::VectorXd &x, Eigen::MatrixXd &P, const int &state_size,
+                         const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
+  int get_state_size(std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
   int get_residual_size(const std::map<SensorType, std::set<int>> &update_list);
   void update_mean_and_cov(
       const Eigen::VectorXd &x, const Eigen::MatrixXd &P,

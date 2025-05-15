@@ -9,7 +9,6 @@
  */
 
 #include "visualization/pangolin_viewer.h"
-
 namespace apa_slam {
 PangolinViewer::PangolinViewer() {
   _drawer = std::make_shared<PangolinDrawer>();
@@ -35,6 +34,7 @@ void PangolinViewer::run() {
                               .SetBounds(0.0, 1.0, pangolin::Attach::Pix(175),
                                          1.0, -1024.0f / 768.0f)
                               .SetHandler(new pangolin::Handler3D(s_cam));
+
 
   while (!pangolin::ShouldQuit()) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

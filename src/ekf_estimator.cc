@@ -43,6 +43,9 @@ EkfEstimator &EkfEstimator::GetInstance() {
 
 void EkfEstimator::InputSemanticMea(
     const double ts, const std::vector<SemanticMea::Ptr> &semantic_meas) {
+  if (!this->Initialized()) {
+    return;
+  }
   std::unordered_map<SensorType, std::vector<SemanticMea::Ptr> > meas_sorted;
   sort_semantic_meas(semantic_meas, meas_sorted);
 
@@ -52,7 +55,14 @@ void EkfEstimator::InputSemanticMea(
   }
 
   EKFManagement::GetInstance().Update(_mean, _cov, ts);
+  Eigen::VectorXd latest_mean;
+  Eigen::MatrixXd latest_cov;
+  if (EKFManagement::GetInstance().GetLatestVechileState(latest_mean, latest_cov)) {
+    _mean = latest_mean;
+    _cov = latest_cov;
+  }
 }
+ 
 
 void EkfEstimator::process_semantic_meas(
     const SensorType &type, const double ts,

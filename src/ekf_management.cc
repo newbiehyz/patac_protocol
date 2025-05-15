@@ -31,6 +31,17 @@ EKFManagement &EKFManagement::GetInstance() {
   return instance;
 }
 
+bool EKFManagement::GetLatestVechileState(Eigen::VectorXd &mean,
+                                          Eigen::MatrixXd &cov) {
+  if (!_initialized) {
+    return false;
+  }
+  mean = _vehicle_state;
+  cov = _vehicle_cov;
+
+  return true;
+}
+
 void EKFManagement::ClearList() { _lm_state_list.clear(); }
 
 void EKFManagement::Update(const Eigen::VectorXd &state_mean,
@@ -57,10 +68,15 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
 
 void EKFManagement::ekf_update(
     const std::map<SensorType, std::set<int>> &update_list) {
-  std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+  if (update_list.empty()) {
+    return;
+  }
+
   Eigen::MatrixXd P;
   Eigen::VectorXd x;
-  construct_x_and_P(x, P, ekf_lm_pos);
+  std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+  int n_state = get_state_size(ekf_lm_pos);
+  construct_x_and_P(x, P, n_state, ekf_lm_pos);
   const int state_size = P.rows();
   const int residual_size = get_residual_size(update_list);
 
@@ -69,11 +85,13 @@ void EKFManagement::ekf_update(
   Eigen::VectorXd residual = Eigen::VectorXd::Zero(residual_size);
 
   int pos = 0;
+  std::cout << "Update List: ";
   for (auto it_type = update_list.begin(); it_type != update_list.end();
        ++it_type) {
     const SensorType &semantic_type = it_type->first;
     for (auto it = it_type->second.begin(); it != it_type->second.end(); ++it) {
       const int &landmark_id = *it;
+      std::cout << landmark_id << " ";
       Eigen::VectorXd r;
       Eigen::MatrixXd Jacobian_vehicle, Jacobian_landmark;
       SemanticMap::GetInstance()
@@ -106,12 +124,29 @@ void EKFManagement::ekf_update(
     }
   }
 
+  // residual *= -1.0;
+  std::cout << std::endl;
+  std::cout << "Residual:\n" << residual.transpose() << std::endl;
+  std::cout << "#######################\n";
+  std::cout << "Hx\n" << Hx << std::endl;
+  std::cout << "#######################\n";
+  std::cout << "x----:\n" << x.transpose() << std::endl;
+  std::cout << "P-----\n";
+  std::cout << P << std::endl;
+  std::cout << "-----\n";
+
+  std::cout << R << std::endl;
   Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
   Eigen::MatrixXd Sinv = S.inverse();
+  std::cout << "Identity\n";
+  std::cout << S * Sinv << std::endl;
   Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
   x = x + K * residual;
   P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
   P = (P + P.transpose()) * 0.5;
+  std::cout << "x+++++++:\n" << x.transpose() << std::endl;
+  std::cout << "P+++++\n";
+  std::cout << P << std::endl;
 
   update_mean_and_cov(x, P, ekf_lm_pos);
 }
@@ -209,7 +244,8 @@ void EKFManagement::update_mean_and_cov(
             CrossCorrelationId correlation_id0(type0, id0);
             CrossCorrelationId correlation_id1(type1, id1);
 
-            set_cross_correlation(correlation_id0, correlation_id1, correlation);
+            set_cross_correlation(correlation_id0, correlation_id1,
+                                  correlation);
           }
         }
       }
@@ -217,16 +253,23 @@ void EKFManagement::update_mean_and_cov(
   }
 }
 
-int EKFManagement::get_state_size() {
+int EKFManagement::get_state_size(
+    std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
+  ekf_lm_pos.clear();
   int n_state_size = STATE_VEHICLE_SIZE;
   for (auto it = _lm_state_list.begin(); it != _lm_state_list.end(); ++it) {
-    switch (it->first) {
-      case SEMANTIC_TYPE_PARKING_SLOT:
-        n_state_size += STATE_PARKING_SLOT_SIZE;
-        break;
+    for (auto itt = it->second.begin(); itt != it->second.end(); ++itt) {
+      switch (it->first) {
+        case SEMANTIC_TYPE_PARKING_SLOT: {
+          const int id = *itt;
+          ekf_lm_pos[it->first].insert({id, n_state_size});
+          n_state_size += STATE_PARKING_SLOT_SIZE;
+          break;
+        }
 
-      default:
-        break;
+        default:
+          break;
+      }
     }
   }
 
@@ -234,14 +277,16 @@ int EKFManagement::get_state_size() {
 }
 
 void EKFManagement::construct_x_and_P(
-    Eigen::VectorXd &x, Eigen::MatrixXd &P,
-    std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
-  int n_state_size = get_state_size();
+    Eigen::VectorXd &x, Eigen::MatrixXd &P, const int &state_size,
+    const std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
+  int n_state_size = state_size;
+  std::cout << "landmark size: " << _lm_state_list.size() << std::endl;
+  x = Eigen::VectorXd::Zero(n_state_size);
+  x.head(3) = _vehicle_state;
 
   P = Eigen::MatrixXd::Zero(n_state_size, n_state_size);
   P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = _vehicle_cov;
 
-  int pos0 = STATE_VEHICLE_SIZE;
   for (auto it_type0 = _lm_state_list.begin(); it_type0 != _lm_state_list.end();
        ++it_type0) {
     const auto &type0 = it_type0->first;
@@ -250,7 +295,7 @@ void EKFManagement::construct_x_and_P(
     for (auto it_i = set0.begin(); it_i != set0.end(); ++it_i) {
       const int &id0 = *it_i;
       auto it_type1 = it_type0;
-
+      int pos0 = ekf_lm_pos.at(type0).at(id0);
       // initialize auto-correlation
       Eigen::MatrixXd auto_correlation =
           SemanticMap::GetInstance().GetLandmarkCov(type0, id0);
@@ -263,17 +308,10 @@ void EKFManagement::construct_x_and_P(
         default:
           break;
       }
-      P.block(pos0, pos0, size0, size0) = auto_correlation;
 
       // cross_correlation with vehicle
       CrossCorrelationId correlation_id0(type0, id0);
 
-      P.block(0, pos0, STATE_VEHICLE_SIZE, size0) =
-          _state_lm_cross_correlation.at(correlation_id0);
-      P.block(pos0, 0, size0, STATE_VEHICLE_SIZE) =
-          P.block(0, 0, STATE_VEHICLE_SIZE, size0).transpose();
-
-      int pos1 = pos0;
       for (; it_type1 != _lm_state_list.end(); ++it_type1) {
         const auto &type1 = it_type1->first;
         const auto &set1 = it_type1->second;
@@ -287,18 +325,39 @@ void EKFManagement::construct_x_and_P(
           default:
             break;
         }
-        pos1 += size1;
+
         auto j_start = (it_type0 == it_type1) ? it_i : set1.begin();
         for (auto it_j = j_start; it_j != set1.end(); ++it_j) {
           const int &id1 = *it_j;
+          int pos1 = ekf_lm_pos.at(type1).at(id1);
+
           CrossCorrelationId correlation_id1(type1, id1);
+
+          if (it_type0 == it_type1 && it_i == it_j) {
+            P.block(pos0, pos0, size0, size0) = auto_correlation;
+            x.segment(pos0, size0) = SemanticMap::GetInstance()
+                                         .GetLandmark(type0, id0)
+                                         ->GetVectorizedData();
+            P.block(0, pos0, STATE_VEHICLE_SIZE, size0) =
+                _state_lm_cross_correlation.at(correlation_id0);
+            P.block(pos0, 0, size0, STATE_VEHICLE_SIZE) =
+                P.block(0, pos0, STATE_VEHICLE_SIZE, size0).transpose();
+          }
 
           if (it_type0 != it_type1 || it_i != it_j) {
             // initialize cross-correlation
-            P.block(pos0, pos1, size0, size1) =
-                get_cross_correlation(correlation_id0, correlation_id1);
+            // std::cout << "cross correlation: " << id0 << " " << id1
+            //           << std::endl;
+            bool transpose = false;
+            Eigen::MatrixXd correlation = get_cross_correlation(
+                correlation_id0, correlation_id1, transpose);
+            if (transpose) {
+              correlation = correlation.transpose();
+            }
+            P.block(pos0, pos1, size0, size1) = correlation;
             P.block(pos1, pos0, size1, size0) =
                 P.block(pos0, pos1, size0, size1).transpose();
+            // std::cout << P.block(pos0, pos1, size0, size1) << std::endl;
           }
         }
       }
@@ -310,10 +369,13 @@ void EKFManagement::construct_x_and_P(
 
 void EKFManagement::aug_update_covariance(const SensorType &type, const int &id,
                                           const Eigen::MatrixXd &Jx) {
-  std::map<SensorType, std::map<int, int>> ekf_lm_pos;
   Eigen::MatrixXd P;
   Eigen::VectorXd x;
-  construct_x_and_P(x, P, ekf_lm_pos);
+  std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+  int n_state_size = get_state_size(ekf_lm_pos);
+  construct_x_and_P(x, P, n_state_size, ekf_lm_pos);
+  MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
+  // std::cout << P << std::endl;
   int size;
   switch (type) {
     case SEMANTIC_TYPE_PARKING_SLOT:
@@ -327,19 +389,12 @@ void EKFManagement::aug_update_covariance(const SensorType &type, const int &id,
   int cols = P.cols();
   P.conservativeResize(rows + size, cols + size);
 
-  P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
+  P.topRightCorner(rows, size) =
+      P.topLeftCorner(rows, STATE_VEHICLE_SIZE) * Jx.transpose();
+  P.bottomLeftCorner(size, rows) = P.topRightCorner(rows, size).transpose();
+
+  P.bottomRightCorner(size, size) =
       Jx * P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) *
-      Jx.transpose();
-
-  P.topRightCorner(STATE_VEHICLE_SIZE, size) =
-      P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) * Jx.transpose();
-  P.bottomLeftCorner(size, STATE_VEHICLE_SIZE) =
-      P.topRightCorner(STATE_VEHICLE_SIZE, size).transpose();
-
-  P.block(STATE_VEHICLE_SIZE, cols, cols - STATE_VEHICLE_SIZE, size) =
-      P.block(0, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE,
-              cols - STATE_VEHICLE_SIZE)
-          .transpose() *
       Jx.transpose();
 
   CrossCorrelationId correlation_id(type, id);
@@ -372,6 +427,9 @@ void EKFManagement::aug_update_covariance(const SensorType &type, const int &id,
       pos += correlation_rows;
     }
   }
+  _state_lm_cross_correlation[correlation_id] =
+      P.topRightCorner(STATE_VEHICLE_SIZE, size);
+  _lm_state_list[type].insert(id);
 }
 
 void EKFManagement::state_augmentation(
@@ -401,8 +459,8 @@ void EKFManagement::state_augmentation(
           Eigen::MatrixXd Jx;
           SemanticMap::GetInstance().InitializeLandmark(
               semantic_type, landmark_id, _vehicle_state, _vehicle_cov, Jx);
+          std::cout << "Augmenting: id " << landmark_id << std::endl;
           aug_update_covariance(semantic_type, landmark_id, Jx);
-          _lm_state_list[semantic_type].insert(landmark_id);
           break;
         }
 
@@ -433,6 +491,19 @@ void EKFManagement::set_cross_correlation(const CrossCorrelationId &id0,
 }
 
 Eigen::MatrixXd EKFManagement::get_cross_correlation(
+    const CrossCorrelationId &id0, const CrossCorrelationId &id1,
+    bool &transpose) {
+  CrossCorrelationKey key = make_lm_cross_correlation_key(id0, id1);
+  if (id0.type == key.first.type && id0.id == key.first.id) {
+    transpose = false;
+    return _lm_cross_correlation.at(key);
+  } else {
+    transpose = true;
+    return _lm_cross_correlation.at(key).transpose();
+  }
+}
+
+Eigen::MatrixXd EKFManagement::get_cross_correlation(
     const CrossCorrelationId &id0, const CrossCorrelationId &id1) {
   CrossCorrelationKey key = make_lm_cross_correlation_key(id0, id1);
   if (id0.type == key.first.type && id0.id == key.first.id) {
@@ -455,6 +526,8 @@ void EKFManagement::Propagate(const double v, const double w, const double dt,
                               const Eigen::MatrixXd &P_vehicle0,
                               Eigen::VectorXd &x_vehicle1,
                               Eigen::MatrixXd &P_vehicle1) {
+  // std::cout << " -----Propagate dt:" << dt << "\n" << P_vehicle0 <<
+  // std::endl;
   x_vehicle1 = x_vehicle0;
   P_vehicle1 = P_vehicle0;
 
@@ -485,6 +558,9 @@ void EKFManagement::Propagate(const double v, const double w, const double dt,
   if (!_initialized) {
     _initialized = true;
   }
+
+  // std::cout << " ++++++Propagate: \n" << P_vehicle1 << std::endl;
+  // std::cout << "===================\n";
 }
 
 }  // namespace apa_slam
