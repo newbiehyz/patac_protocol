@@ -11,7 +11,9 @@
 #include "visualization/pangolin_drawer.h"
 
 namespace apa_slam {
-PangolinDrawer::PangolinDrawer() {}
+PangolinDrawer::PangolinDrawer() {
+  _font = std::make_shared<pangolin::GlFont>(font_ttf, 20);
+}
 
 void PangolinDrawer::draw_traj() {
   glColor3f(1.0, 1.0, 1.0);
@@ -23,7 +25,8 @@ void PangolinDrawer::draw_traj() {
   glEnd();
 }
 
-void PangolinDrawer::draw_parking_slot(const Eigen::MatrixXd& data) {
+void PangolinDrawer::draw_parking_slot(const int& id,
+                                       const Eigen::MatrixXd& data) {
   const double l = 5.0f;
 
   glPointSize(8.0);
@@ -39,6 +42,8 @@ void PangolinDrawer::draw_parking_slot(const Eigen::MatrixXd& data) {
   Eigen::Vector2d pt = (data.col(0).head(2) + data.col(1).head(2)) * .5f;
   glVertex3f(pt.x(), pt.y(), .0f);
   glEnd();
+
+  _font->Text(std::to_string(id)).Draw(0.5 + pt.x(), 0.5 + pt.y());
 }
 
 void PangolinDrawer::draw_vehicle_bbox() {
@@ -75,8 +80,11 @@ void PangolinDrawer::draw_vehicle_bbox() {
 void PangolinDrawer::DrawAPA() {
   if (EkfEstimator::GetInstance().Initialized()) {
     const Pose& latest_pose = EkfEstimator::GetInstance().GetLatestPose();
+    const Eigen::MatrixXd latest_cov =
+        EkfEstimator::GetInstance().GetLatestCovariance();
+
     double timestamp = EkfEstimator::GetInstance().GetLatestTimestamp();
-    this->draw_vehicle(latest_pose);
+    this->draw_vehicle(latest_pose, latest_cov);
     this->draw_traj();
     _traj.insert({timestamp, latest_pose});
 
@@ -98,12 +106,14 @@ void PangolinDrawer::draw_local_map() {
   for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
     if (it->second->Initialized()) {
       Eigen::MatrixXd data = it->second->GetLandmarkData();
-      draw_parking_slot(data);
+      int id = it->second->GetId();
+      draw_parking_slot(id, data);
     }
   }
 }
 
-void PangolinDrawer::draw_vehicle(const Pose& latest_pose) {
+void PangolinDrawer::draw_vehicle(const Pose& latest_pose,
+                                  const Eigen::MatrixXd& latest_cov) {
   Eigen::Vector3d twb(latest_pose.x, latest_pose.y, .0);
   Eigen::AngleAxisd axang(latest_pose.yaw, Eigen::Vector3d::UnitZ());
   Eigen::Matrix3d Rwb = axang.toRotationMatrix();
@@ -115,6 +125,31 @@ void PangolinDrawer::draw_vehicle(const Pose& latest_pose) {
   glMultMatrixd(Twb.data());
   this->draw_vehicle_bbox();
   glPopMatrix();
+
+//   Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> solver(
+//       latest_cov.topLeftCorner(2, 2));
+//   Eigen::Vector2d eigenvalues = solver.eigenvalues();
+//   Eigen::Matrix2d eigenvectors = solver.eigenvectors();
+
+//   double angle =
+//       std::atan2(eigenvectors(1, 1), eigenvectors(0, 1));  // 主方向角度
+
+//   const int segments = 40;
+//   double a = std::sqrt(eigenvalues(1));  // 长轴（大特征值）
+//   double b = std::sqrt(eigenvalues(0));
+//   glBegin(GL_LINE_LOOP);
+//   for (int i = 0; i < segments; ++i) {
+//     double theta = 2.0 * M_PI * double(i) / double(segments);
+//     double x = a * std::cos(theta);
+//     double y = b * std::sin(theta);
+
+//     // 旋转 + 平移
+//     double xr = std::cos(angle) * x - std::sin(angle) * y + twb(0);
+//     double yr = std::sin(angle) * x + std::cos(angle) * y + twb(1);
+
+//     glVertex2d(xr, yr);
+//   }
+//   glEnd();
 }
 
 }  // namespace apa_slam

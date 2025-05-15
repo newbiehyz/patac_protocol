@@ -43,6 +43,10 @@ struct SimulationParams {
 };
 
 struct EstimatorParams {
+  double slot_mea_noise_x;
+  double slot_mea_noise_y;
+  double odo_velocity_noise;
+  double odo_angular_velocity_noise;
   double slot_matching_dist_thresh;
   double slot_matching_angle_thresh;
   int slot_min_tracking_times;

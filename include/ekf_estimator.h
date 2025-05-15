@@ -40,6 +40,8 @@ class EkfEstimator {
 
   Pose GetLatestPose();
 
+  Eigen::MatrixXd GetLatestCovariance();
+
   bool Initialized() const;
 
   double GetLatestTimestamp();

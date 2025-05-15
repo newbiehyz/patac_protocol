@@ -85,7 +85,7 @@ void SimDataLoader::generate_semantic_meas() {
       SemanticMea::Ptr slot_mea =
           std::make_shared<ParkingSlotMea>(ts, mea.data());
 
-      // slot_mea->AddNoise();
+      slot_mea->AddNoise();
       _semantic_mea[ts].push_back(slot_mea);
     }
 
@@ -128,7 +128,7 @@ void SimDataLoader::load_dataset_pose(const std::string& pose_file) {
     KinematicMea::Ptr odo_mea =
         std::make_shared<OdoMea>(timestamp, odo_mea_data.data());
 
-    // odo_mea->AddNoise();
+    odo_mea->AddNoise();
 
     _mea_seq[timestamp].push_back(ReplaySensorType::REPLAY_TYPE_KINEMATIC);
     _kinematic_mea[timestamp].push_back(odo_mea);

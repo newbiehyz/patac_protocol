@@ -15,9 +15,9 @@ ParkingSlotMea::ParkingSlotMea(const double timestamp, double* data)
       _data(Eigen::Map<Eigen::MatrixXd, Eigen::ColMajor>(
           data, DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT)) {
   double noise_ps_x =
-      ApaParameters::GetInstance().GetSimulationParameters().slot_mea_noise_x;
+      ApaParameters::GetInstance().GetEstimatorParamters().slot_mea_noise_x;
   double noise_ps_y =
-      ApaParameters::GetInstance().GetSimulationParameters().slot_mea_noise_y;
+      ApaParameters::GetInstance().GetEstimatorParamters().slot_mea_noise_y;
   _R = Eigen::MatrixXd::Zero(NOISE_PARKING_SLOT, NOISE_PARKING_SLOT);
   _R.diagonal()[0] = noise_ps_x * noise_ps_x;
   _R.diagonal()[1] = noise_ps_y * noise_ps_y;
@@ -50,12 +50,12 @@ void ParkingSlotMea::AddNoise() {
   stdDev[1] =
       ApaParameters::GetInstance().GetSimulationParameters().slot_mea_noise_y;
 
-  for (int i = 0; i < _data.cols(); ++i) {
-    for (int j = 0; j < _data.rows(); ++j) {
+  for (int i = 0; i < _data.rows(); ++i) {
+    for (int j = 0; j < _data.cols(); ++j) {
       noise(i, j) = stdDev(j) * dist(generator);
     }
   }
-
+  // std::cout << "Noise Ps\n" << noise << std::endl;
   _data += noise;
 }
 }  // namespace apa_slam

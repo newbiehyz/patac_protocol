@@ -29,11 +29,20 @@ void ApaParameters::printout_parameters() {
   std::cout << "simulation.perception_sensing_range: "
             << _sim_params.perception_sensing_range << std::endl;
 
+  std::cout << "estimatora_noise_x: " << _est_params.slot_mea_noise_x
+            << std::endl;
+  std::cout << "estimatora_noise_y: " << _est_params.slot_mea_noise_y
+            << std::endl;
+  std::cout << "estimatorocity_noise: "
+            << _est_params.odo_velocity_noise << std::endl;
+  std::cout << "estimatorular_velocity_noise: "
+            << _est_params.odo_angular_velocity_noise << std::endl;
+
   std::cout << "estimator.slot_matching_dist_thresh: "
             << _est_params.slot_matching_dist_thresh << std::endl;
   std::cout << "estimator.slot_matching_angle_thresh: "
             << _est_params.slot_matching_angle_thresh << std::endl;
-    std::cout << "estimator.slot_min_tracking_times: "
+  std::cout << "estimator.slot_min_tracking_times: "
             << _est_params.slot_min_tracking_times << std::endl;
 }
 
@@ -58,11 +67,17 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _sim_params.perception_sensing_range =
         data["simulation"]["perception_sensing_range"];
 
+    _est_params.slot_mea_noise_x = data["estimator"]["slot_mea_noise_x"];
+    _est_params.slot_mea_noise_y = data["estimator"]["slot_mea_noise_y"];
+    _est_params.odo_velocity_noise = data["estimator"]["odo_velocity_noise"];
+    _est_params.odo_angular_velocity_noise =
+        data["estimator"]["odo_angular_velocity_noise"];
     _est_params.slot_matching_dist_thresh =
         data["estimator"]["slot_matching_dist_thresh"];
     _est_params.slot_matching_angle_thresh =
         data["estimator"]["slot_matching_angle_thresh"];
-    _est_params.slot_min_tracking_times = data["estimator"]["slot_min_tracking_times"];
+    _est_params.slot_min_tracking_times =
+        data["estimator"]["slot_min_tracking_times"];
 
     _est_params.max_tracking_time = data["estimator"]["max_tracking_time"];
 

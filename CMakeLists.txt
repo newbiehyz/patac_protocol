@@ -2,7 +2,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(parking_local_mapping)
 
 SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_BUILD_TYPE Debug)
+SET(CMAKE_BUILD_TYPE Release)
 
 
 SET(ENABLE_OPENGL 1)
@@ -41,7 +41,9 @@ FILE(GLOB SRC_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cc)
 ADD_LIBRARY(${PROJECT_NAME} SHARED ${SRC_FILES})
 IF(ENABLE_OPENGL)
   ADD_LIBRARY(viewer SHARED ${CMAKE_CURRENT_SOURCE_DIR}/src/visualization/pangolin_viewer.cc
-                            ${CMAKE_CURRENT_SOURCE_DIR}/src/visualization/pangolin_drawer.cc)
+                            ${CMAKE_CURRENT_SOURCE_DIR}/src/visualization/pangolin_drawer.cc
+                            
+                            )
   TARGET_LINK_LIBRARIES(viewer ${Pangolin_LIBRARIES} ${PROJECT_NAME} )
 ENDIF()
 

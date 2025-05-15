@@ -32,6 +32,7 @@ void OdoMea::AddNoise() {
     noise(i) = stdDev(i) * dist(generator);  // 直接用标准差缩放
   }
 
+  // std::cout << "Noise Odo\n" << noise.transpose() << std::endl;
   _data += noise;
 }
 }  // namespace apa_slam

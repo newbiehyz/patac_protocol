@@ -8,7 +8,7 @@ int main(int argc, char** argv) {
   X = X.array().abs();
   Eigen::MatrixXd cov = X * X.transpose();
 
-  apa_slam::MatrixPlot::GetInstance().PlotCovarianceMatrix(cov);
+  // apa_slam::MatrixPlot::GetInstance().PlotCovarianceMatrix(cov);
 
   // std::cout << cov << std::endl;
   return 0;

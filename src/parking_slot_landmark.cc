@@ -54,16 +54,16 @@ void ParkingSlotLandmark::AddSemanticMea(const double timestmap,
       !NeedInitialize() && Initialized()) {
     SetUpdateFlag(true);
 
-    double mea_t0 = _meas.begin()->first;
-    double mea_t1 = _meas.rbegin()->first;
-    double mea_duration = fabs(mea_t0 - mea_t1);
+    // double mea_t0 = _meas.begin()->first;
+    // double mea_t1 = _meas.rbegin()->first;
+    // double mea_duration = fabs(mea_t0 - mea_t1);
 
-    if (mea_duration > ApaParameters::GetInstance()
-                           .GetEstimatorParamters()
-                           .max_tracking_time) {
-      SetUpdateFlag(false);
-      SetMarginFlag(true);
-    }
+    // if (mea_duration > ApaParameters::GetInstance()
+    //                        .GetEstimatorParamters()
+    //                        .max_tracking_time) {
+    //   SetUpdateFlag(false);
+    //   SetMarginFlag(true);
+    // }
   }
 }
 
@@ -121,6 +121,11 @@ Eigen::VectorXd ParkingSlotLandmark::GetVectorizedData() {
   return vector_data;
 }
 
+void ParkingSlotLandmark::SetMean(const Eigen::VectorXd& mean) {
+  _data.col(0).head(2) = mean.head(2);
+  _data.col(1).head(2) = mean.tail(2);
+}
+
 void ParkingSlotLandmark::GetResidualAndJacobian(const SemanticMea::Ptr& mea,
                                                  const Eigen::VectorXd& v_state,
                                                  Eigen::VectorXd& residual,
@@ -143,6 +148,10 @@ void ParkingSlotLandmark::GetResidualAndJacobian(const SemanticMea::Ptr& mea,
 
   Eigen::Vector4d t = tbw.replicate(2, 1);
   residual = observation - (R * this->GetVectorizedData() + t);
+                                                  Eigen::VectorXd lm = this->GetVectorizedData();
+                                                  lm.head(2).swap(lm.tail(2));
+  auto r = observation - R * lm + t;
+  std::cout << "rrr: " << std::to_string(this->GetId())  << " "<< residual.transpose() << std::endl;
 
   J_lm = Eigen::MatrixXd::Zero(RESIDUAL_PARKING_SLOT_SIZE,
                                STATE_PARKING_SLOT_SIZE);

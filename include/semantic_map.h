@@ -27,7 +27,7 @@ class SemanticMap {
 
   void AddLandmark(const SensorType type, SemanticLandmark::Ptr landmark);
   bool HasMap(const SensorType type) const;
-  const std::unordered_map<int, SemanticLandmark::Ptr>& GetMap(
+  const std::map<int, SemanticLandmark::Ptr>& GetMap(
       const SensorType type);
   void ClearMap();
   int GetMapLandmarkNum(const SensorType& type);
@@ -50,11 +50,18 @@ class SemanticMap {
   void SetLandmarkCov(const SensorType& type, const int id,
                       const Eigen::MatrixXd& cov);
 
+  void SetLandmarkMean(const SensorType& type, const int id,
+                       const Eigen::VectorXd& mean);
+
   const SemanticLandmark::Ptr GetLandmark(const SensorType& type,
                                           const int& id);
 
+  void TagMarginalization(const double timestamp);
+
+  void MarginLandmark(const SensorType &type, const int &id);
+
  private:
-  std::unordered_map<SensorType, std::unordered_map<int, SemanticLandmark::Ptr>>
+  std::map<SensorType, std::map<int, SemanticLandmark::Ptr>>
       _map;
 
   std::mutex _data_mutex;

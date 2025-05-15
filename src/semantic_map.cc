@@ -42,7 +42,7 @@ bool SemanticMap::HasMap(const SensorType type) const {
   return _map.count(type);
 }
 
-const std::unordered_map<int, SemanticLandmark::Ptr>& SemanticMap::GetMap(
+const std::map<int, SemanticLandmark::Ptr>& SemanticMap::GetMap(
     const SensorType type) {
   std::lock_guard<std::mutex> lock(_data_mutex);
   return _map.at(type);
@@ -62,6 +62,26 @@ Eigen::MatrixXd SemanticMap::GetLandmarkCov(const SensorType& type,
 void SemanticMap::SetLandmarkCov(const SensorType& type, const int id,
                                  const Eigen::MatrixXd& cov) {
   _map.at(type).at(id)->SetCov(cov);
+}
+
+void SemanticMap::SetLandmarkMean(const SensorType& type, const int id,
+                                  const Eigen::VectorXd& mean) {
+  _map.at(type).at(id)->SetMean(mean);
+}
+
+void SemanticMap::TagMarginalization(const double timestamp) {
+  for (auto it_type = _map.begin(); it_type != _map.end(); ++it_type) {
+    const auto& type = it_type->first;
+    for (auto it_lm = it_type->second.begin(); it_lm != it_type->second.end();
+         ++it_lm) {
+      int lm_id = it_lm->first;
+      it_lm->second->TagMarginalization(timestamp);
+    }
+  }
+}
+
+void SemanticMap::MarginLandmark(const SensorType& type, const int& id) {
+  _map.at(type).erase(id);
 }
 
 const SemanticLandmark::Ptr SemanticMap::GetLandmark(const SensorType& type,
@@ -85,6 +105,7 @@ void SemanticMap::GetEKFDataList(
       if (it_lm->second->Initialized()) {
         if (it_lm->second->NeedUpdate()) {
           update_list[type].insert(lm_id);
+          it_lm->second->SetUpdateFlag(false);
         }
 
         if (it_lm->second->NeedMargin()) {
@@ -115,7 +136,7 @@ int SemanticMap::GetMapLandmarkNum(const SensorType& type) {
   if (!_map.count(type)) {
     num = 0;
   } else {
-    num = _map.at(type).size();
+    num = _map.at(type).rbegin()->first + 1;
   }
 
   return num;

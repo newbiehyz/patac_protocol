@@ -45,9 +45,13 @@ class SemanticLandmark {
 
   void SetCov(const Eigen::MatrixXd& cov);
 
+  virtual void SetMean(const Eigen::VectorXd& mean) = 0;
+
   Eigen::MatrixXd GetCov();
 
   const SemanticMea::Ptr GetLatestMea();
+
+  void TagMarginalization(const double timestamp);
 
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
                                   const Eigen::MatrixXd& P,

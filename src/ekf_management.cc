@@ -14,9 +14,9 @@ EKFManagement::EKFManagement() {}
 
 void EKFManagement::Init() {
   double noise_v =
-      ApaParameters::GetInstance().GetSimulationParameters().odo_velocity_noise;
+      ApaParameters::GetInstance().GetEstimatorParamters().odo_velocity_noise;
   double noise_w = ApaParameters::GetInstance()
-                       .GetSimulationParameters()
+                       .GetEstimatorParamters()
                        .odo_angular_velocity_noise;
 
   _N = Eigen::MatrixXd::Zero(NOISE_ODO_SIZE, NOISE_ODO_SIZE);
@@ -59,10 +59,11 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
     return;
   }
 
-  ekf_update(update_list);
-  state_augmentation(augmentation_list);
   state_marginalization(marginalization_list);
 
+  ekf_update(update_list);
+  state_augmentation(augmentation_list);
+  SemanticMap::GetInstance().TagMarginalization(timestamp);
   _ts = timestamp;
 }
 
@@ -124,29 +125,30 @@ void EKFManagement::ekf_update(
     }
   }
 
-  // residual *= -1.0;
+  residual *= -1.0;
   std::cout << std::endl;
-  std::cout << "Residual:\n" << residual.transpose() << std::endl;
-  std::cout << "#######################\n";
-  std::cout << "Hx\n" << Hx << std::endl;
-  std::cout << "#######################\n";
-  std::cout << "x----:\n" << x.transpose() << std::endl;
-  std::cout << "P-----\n";
-  std::cout << P << std::endl;
-  std::cout << "-----\n";
+  // std::cout << "Residual:\n" << residual.transpose() << std::endl;
+  // std::cout << "#######################\n";
+  // std::cout << "Hx\n" << Hx << std::endl;
+  // std::cout << "#######################\n";
+  // std::cout << "x----:\n" << x.transpose() << std::endl;
+  // std::cout << "P-----\n";
+  // std::cout << P << std::endl;
+  // std::cout << "-----\n";
 
-  std::cout << R << std::endl;
+  // std::cout << R << std::endl;
   Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
   Eigen::MatrixXd Sinv = S.inverse();
-  std::cout << "Identity\n";
-  std::cout << S * Sinv << std::endl;
+  // std::cout << "Identity\n";
+  // std::cout << S * Sinv << std::endl;
   Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
   x = x + K * residual;
   P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
   P = (P + P.transpose()) * 0.5;
-  std::cout << "x+++++++:\n" << x.transpose() << std::endl;
-  std::cout << "P+++++\n";
-  std::cout << P << std::endl;
+  // std::cout << "x+++++++:\n" << x.transpose() << std::endl;
+  // std::cout << "P+++++\n";
+  // std::cout << P << std::endl;
+  MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
 
   update_mean_and_cov(x, P, ekf_lm_pos);
 }
@@ -200,6 +202,8 @@ void EKFManagement::update_mean_and_cov(
 
       SemanticMap::GetInstance().SetLandmarkCov(semantic_type, semantic_id,
                                                 P.block(pos, pos, size, size));
+
+      SemanticMap::GetInstance().SetLandmarkMean(semantic_type, semantic_id, x.segment(pos, size));
     }
   }
 
@@ -280,7 +284,6 @@ void EKFManagement::construct_x_and_P(
     Eigen::VectorXd &x, Eigen::MatrixXd &P, const int &state_size,
     const std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
   int n_state_size = state_size;
-  std::cout << "landmark size: " << _lm_state_list.size() << std::endl;
   x = Eigen::VectorXd::Zero(n_state_size);
   x.head(3) = _vehicle_state;
 
@@ -374,7 +377,7 @@ void EKFManagement::aug_update_covariance(const SensorType &type, const int &id,
   std::map<SensorType, std::map<int, int>> ekf_lm_pos;
   int n_state_size = get_state_size(ekf_lm_pos);
   construct_x_and_P(x, P, n_state_size, ekf_lm_pos);
-  MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
+  // MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
   // std::cout << P << std::endl;
   int size;
   switch (type) {
@@ -471,7 +474,16 @@ void EKFManagement::state_augmentation(
   }
 }
 void EKFManagement::state_marginalization(
-    const std::map<SensorType, std::set<int>> &marginalization_list) {}
+    const std::map<SensorType, std::set<int>> &marginalization_list) {
+      for (auto it_type = marginalization_list.begin(); it_type != marginalization_list.end(); ++it_type) {
+        const auto& type = it_type->first;
+        for (auto it_id = it_type->second.begin(); it_id != it_type->second.end(); ++it_id) {
+          const int &id = *it_id;
+          _lm_state_list.at(type).erase(id);
+          SemanticMap::GetInstance().MarginLandmark(type, id);
+        }
+      }
+    }
 
 CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
     const CrossCorrelationId &id0, const CrossCorrelationId &id1) {

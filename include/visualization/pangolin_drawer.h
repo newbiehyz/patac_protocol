@@ -10,6 +10,7 @@
 #include <pangolin/pangolin.h>
 #include <ekf_estimator.h>
 namespace apa_slam {
+  static std::string font_ttf = "../Pangolin-Regular.ttf";
   class PangolinDrawer {
   public:
     typedef std::shared_ptr<PangolinDrawer> Ptr;
@@ -20,10 +21,12 @@ namespace apa_slam {
 
     void draw_local_map();
 
-    void draw_vehicle(const Pose& latest_pose);
+    void draw_vehicle(const Pose& latest_pose, const Eigen::MatrixXd &latest_cov);
     void draw_vehicle_bbox();
-    void draw_parking_slot(const Eigen::MatrixXd &data);
+    void draw_parking_slot(const int &id, const Eigen::MatrixXd& data);
     void draw_traj();
     std::map<double, Pose> _traj;
+
+    std::shared_ptr<pangolin::GlFont> _font;
   };
 }  // namespace apa_slam

@@ -9,13 +9,13 @@
 
 #include <iostream>
 #include <thread>
-#include "sim_data_loader.h"
+
 #include "apa_parameters.h"
 #include "ekf_estimator.h"
+#include "sim_data_loader.h"
 #ifdef ENABLE_OPENGL
 #include "visualization/pangolin_viewer.h"
 #endif
-
 
 using namespace apa_slam;
 
@@ -37,7 +37,6 @@ int main(int argc, char** argv) {
   auto& estimator = EkfEstimator::GetInstance();
   estimator.Init();
 
-
   ReplaySensorType type;
   double timestamp;
   while (loader->PopOutMea(type, timestamp)) {
@@ -45,18 +44,21 @@ int main(int argc, char** argv) {
       auto kinematic_meas = loader->GetKinematicMeas(timestamp);
 
       estimator.InputKinematicMea(timestamp, kinematic_meas);
-      
     }
 
     if (type == ReplaySensorType::REPLAY_TYPE_SEMANTIC) {
       auto semantic_meas = loader->GetSemanticMeas(timestamp);
       estimator.InputSemanticMea(timestamp, semantic_meas);
 
-      std::cout << "=============SEMANTIC================ " << timestamp << std::endl;;
-
+      std::cout << "=============SEMANTIC================ " << timestamp
+                << std::endl;
+      ;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+  }
+
+  while (true) {
   }
 
   return 0;

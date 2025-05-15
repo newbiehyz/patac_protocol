@@ -26,6 +26,10 @@ double EkfEstimator::GetLatestTimestamp() {
   return _ts;
 }
 
+Eigen::MatrixXd EkfEstimator::GetLatestCovariance() {
+  return _cov;
+}
+
 Pose EkfEstimator::GetLatestPose() {
   std::lock_guard<std::mutex> lock(_data_mutex);
   Pose latest_pose;
@@ -173,7 +177,7 @@ void EkfEstimator::process_odo_mea(const double ts,
   if (!_initialized) {
     _ts = ts;
     _mean = Eigen::VectorXd::Zero(3);
-    _cov = 1e-7 * Eigen::MatrixXd::Identity(3, 3);
+    _cov = 1e-2 * Eigen::MatrixXd::Identity(3, 3);
     _initialized = true;
     return;
   }

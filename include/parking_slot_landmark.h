@@ -33,6 +33,9 @@ class ParkingSlotLandmark : public SemanticLandmark {
                               Eigen::VectorXd& residual, Eigen::MatrixXd& J_v,
                               Eigen::MatrixXd& J_lm);
 
+  
+  void SetMean(const Eigen::VectorXd& mean);
+
  private:
   Eigen::MatrixXd _data;
 };
