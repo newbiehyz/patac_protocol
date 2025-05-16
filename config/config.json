@@ -3,14 +3,14 @@
     "slot_mea_noise_x": 0.05,
     "slot_mea_noise_y": 0.05,
     "odo_velocity_noise": 0.1,
-    "odo_angular_velocity_noise": 0.01,
+    "odo_angular_velocity_noise": 0.05,
     "perception_sensing_range": 10.0
   },
   "estimator": {
-    "slot_mea_noise_x": 20.0,
-    "slot_mea_noise_y": 20.0,
+    "slot_mea_noise_x": 10.0,
+    "slot_mea_noise_y": 10.0,
     "odo_velocity_noise": 1.0,
-    "odo_angular_velocity_noise": 0.1,
+    "odo_angular_velocity_noise": 0.5,
     "slot_matching_dist_thresh": 1.0,
     "slot_matching_angle_thresh": 0.174,
     "slot_min_tracking_times": 5,

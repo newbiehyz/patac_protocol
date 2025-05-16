@@ -203,7 +203,8 @@ void EKFManagement::update_mean_and_cov(
       SemanticMap::GetInstance().SetLandmarkCov(semantic_type, semantic_id,
                                                 P.block(pos, pos, size, size));
 
-      SemanticMap::GetInstance().SetLandmarkMean(semantic_type, semantic_id, x.segment(pos, size));
+      SemanticMap::GetInstance().SetLandmarkMean(semantic_type, semantic_id,
+                                                 x.segment(pos, size));
     }
   }
 
@@ -475,15 +476,17 @@ void EKFManagement::state_augmentation(
 }
 void EKFManagement::state_marginalization(
     const std::map<SensorType, std::set<int>> &marginalization_list) {
-      for (auto it_type = marginalization_list.begin(); it_type != marginalization_list.end(); ++it_type) {
-        const auto& type = it_type->first;
-        for (auto it_id = it_type->second.begin(); it_id != it_type->second.end(); ++it_id) {
-          const int &id = *it_id;
-          _lm_state_list.at(type).erase(id);
-          SemanticMap::GetInstance().MarginLandmark(type, id);
-        }
-      }
+  for (auto it_type = marginalization_list.begin();
+       it_type != marginalization_list.end(); ++it_type) {
+    const auto &type = it_type->first;
+    for (auto it_id = it_type->second.begin(); it_id != it_type->second.end();
+         ++it_id) {
+      const int &id = *it_id;
+      _lm_state_list.at(type).erase(id);
+      SemanticMap::GetInstance().MarginLandmark(type, id);
     }
+  }
+}
 
 CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
     const CrossCorrelationId &id0, const CrossCorrelationId &id1) {
@@ -540,11 +543,18 @@ void EKFManagement::Propagate(const double v, const double w, const double dt,
                               Eigen::MatrixXd &P_vehicle1) {
   // std::cout << " -----Propagate dt:" << dt << "\n" << P_vehicle0 <<
   // std::endl;
-  x_vehicle1 = x_vehicle0;
-  P_vehicle1 = P_vehicle0;
 
-  Eigen::Vector2d twb = x_vehicle1.head(2);
-  double yaw = x_vehicle1[2];
+  _vehicle_state = x_vehicle0;
+  _vehicle_cov = P_vehicle0;
+
+  Eigen::VectorXd x;
+  Eigen::MatrixXd P;
+  std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+  int n_state = get_state_size(ekf_lm_pos);
+  construct_x_and_P(x, P, n_state, ekf_lm_pos);
+
+  Eigen::Vector2d twb = x_vehicle0.head(2);
+  double yaw = x_vehicle0[2];
   Eigen::Rotation2Dd rot(yaw);
   Eigen::Matrix2d Rwb = rot.toRotationMatrix();
   Eigen::Vector2d dir = Rwb.col(0);
@@ -557,12 +567,25 @@ void EKFManagement::Propagate(const double v, const double w, const double dt,
   Fn.topLeftCorner(2, 1) = dir * dt;
   Fn(2, 1) = dt;
 
-  P_vehicle1 = Fx * P_vehicle0 * Fx.transpose() + Fn * _N * Fn.transpose();
-
   twb += dir * v * dt;
   yaw += dt * w;
+
+  P_vehicle1 = Fx * P_vehicle0 * Fx.transpose() + Fn * _N * Fn.transpose();
+  x_vehicle1 = Eigen::VectorXd::Zero(STATE_VEHICLE_SIZE);
   x_vehicle1.head(2) = twb;
   x_vehicle1[2] = yaw;
+
+  P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = P_vehicle1;
+
+  if (n_state > STATE_VEHICLE_SIZE) {
+    P.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE) =
+        Fx * P.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE);
+    P.bottomLeftCorner(n_state - STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
+        P.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE)
+            .transpose();
+  }
+
+  update_mean_and_cov(x, P, ekf_lm_pos);
 
   _vehicle_cov = P_vehicle1;
   _vehicle_state = x_vehicle1;
