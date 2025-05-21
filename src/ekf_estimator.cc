@@ -26,7 +26,16 @@ double EkfEstimator::GetLatestTimestamp() {
   return _ts;
 }
 
-Eigen::MatrixXd EkfEstimator::GetLatestCovariance() { return _cov; }
+const std::map<SensorType, std::vector<int>>
+    &EkfEstimator::GetLatestMatching() {
+  std::lock_guard<std::mutex> lock(_data_mutex);
+  return _last_matching;
+}
+
+Eigen::MatrixXd EkfEstimator::GetLatestCovariance() {
+  std::lock_guard<std::mutex> lock(_data_mutex);
+  return _cov;
+}
 
 Pose EkfEstimator::GetLatestPose() {
   std::lock_guard<std::mutex> lock(_data_mutex);
@@ -45,15 +54,22 @@ EkfEstimator &EkfEstimator::GetInstance() {
 
 void EkfEstimator::InputSemanticMea(
     const double ts, const std::vector<SemanticMea::Ptr> &semantic_meas) {
+  auto start = std::chrono::steady_clock::now();
+
+
   if (!this->Initialized()) {
     return;
   }
-  std::unordered_map<SensorType, std::vector<SemanticMea::Ptr> > meas_sorted;
+  std::unordered_map<SensorType, std::vector<SemanticMea::Ptr>> meas_sorted;
   sort_semantic_meas(semantic_meas, meas_sorted);
 
-  for (auto it = meas_sorted.begin(); it != meas_sorted.end(); ++it) {
-    const SensorType mea_type = it->first;
-    process_semantic_meas(mea_type, ts, it->second);
+  std::lock_guard<std::mutex> lock(_data_mutex);
+  {
+    _last_matching.clear();
+    for (auto it = meas_sorted.begin(); it != meas_sorted.end(); ++it) {
+      const SensorType mea_type = it->first;
+      process_semantic_meas(mea_type, ts, it->second);
+    }
   }
 
   EKFManagement::GetInstance().Update(_mean, _cov, ts);
@@ -64,6 +80,13 @@ void EkfEstimator::InputSemanticMea(
     _mean = latest_mean;
     _cov = latest_cov;
   }
+
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+          .count();
+
+  std::cout << "Update Duration: " << duration << " MicroSeconds" << std::endl;
 }
 
 void EkfEstimator::process_semantic_meas(
@@ -83,6 +106,7 @@ void EkfEstimator::process_semantic_meas(
               << std::endl;
     fout_pose.close();
   }
+  _last_matching[type] = matching_rs;
 
   for (size_t i = 0; i < parking_slot_meas.size(); ++i) {
     Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
@@ -171,25 +195,43 @@ bool EkfEstimator::get_pose(const double ts, Pose &pose) {
 
 void EkfEstimator::sort_semantic_meas(
     const std::vector<SemanticMea::Ptr> &semantic_meas,
-    std::unordered_map<SensorType, std::vector<SemanticMea::Ptr> >
+    std::unordered_map<SensorType, std::vector<SemanticMea::Ptr>>
         &sorted_meas) {
   for (size_t i = 0; i < semantic_meas.size(); ++i) {
     sorted_meas[semantic_meas.at(i)->GetSemanticMeaType()].push_back(
         semantic_meas.at(i));
   }
 
-  sorted_meas[SensorType::SEMANTIC_TYPE_PARKING_SLOT] =
-      remove_duplicate_parkingslot_meas(
-          sorted_meas[SensorType::SEMANTIC_TYPE_PARKING_SLOT]);
+  for (auto it = sorted_meas.begin(); it != sorted_meas.end(); ++it) {
+    const auto &type = it->first;
+    it->second = MeaPreprocessor::GetInstance().Preprocess(type, it->second);
+  }
 }
 
 void EkfEstimator::InputKinematicMea(
     const double ts, const std::vector<KinematicMea::Ptr> &kinetic_meas) {
+  auto start = std::chrono::steady_clock::now();
+
   for (size_t i = 0; i < kinetic_meas.size(); ++i) {
     if (kinetic_meas.at(i)->GetKineticMeaType() == KINEMATIC_TYPE_ODO) {
       process_odo_mea(ts, kinetic_meas.at(i));
     }
   }
+  Eigen::VectorXd latest_mean;
+  Eigen::MatrixXd latest_cov;
+  if (EKFManagement::GetInstance().GetLatestVechileState(latest_mean,
+                                                         latest_cov)) {
+    _mean = latest_mean;
+    _cov = latest_cov;
+  }
+
+  auto end = std::chrono::steady_clock::now();
+  auto duration =
+      std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+          .count();
+
+  std::cout << "Propagation Duration: " << duration << " MicroSeconds"
+            << std::endl;
 }
 
 bool EkfEstimator::Initialized() const { return _initialized; }
@@ -204,39 +246,6 @@ double EkfEstimator::interpolate_angle(const double angle0, const double angle1,
 Eigen::Vector2d EkfEstimator::interpolate_translation(
     const Eigen::Vector2d &twb0, const Eigen::Vector2d &twb1, const double t) {
   return twb0 + t * (twb1 - twb0);
-}
-
-std::vector<SemanticMea::Ptr> EkfEstimator::remove_duplicate_parkingslot_meas(
-    const std::vector<SemanticMea::Ptr> &meas) {
-  std::vector<int> unique_id;
-  const double thresh = 0.1f;
-  for (size_t i = 0; i < meas.size(); ++i) {
-    Eigen::Vector2d center0 = (meas.at(i)->GetMeaData().col(0).head(2) +
-                               meas.at(i)->GetMeaData().col(1).head(2)) *
-                              .5f;
-    bool duplicate = false;
-    for (size_t j = 0; j < unique_id.size(); ++j) {
-      int id = unique_id.at(j);
-      Eigen::Vector2d center1 = (meas.at(id)->GetMeaData().col(0).head(2) +
-                                 meas.at(id)->GetMeaData().col(1).head(2)) *
-                                .5f;
-      if ((center0 - center1).norm() < thresh) {
-        duplicate = true;
-        break;
-      }
-    }
-
-    if (!duplicate) {
-      unique_id.push_back(i);
-    }
-  }
-
-  std::vector<SemanticMea::Ptr> unique_meas;
-  for (size_t i = 0; i < unique_id.size(); ++i) {
-    unique_meas.push_back(meas.at(i));
-  }
-
-  return unique_meas;
 }
 
 void EkfEstimator::process_odo_mea(const double ts,
@@ -258,9 +267,9 @@ void EkfEstimator::process_odo_mea(const double ts,
 
   {
     std::lock_guard<std::mutex> lock(_data_mutex);
-    std::cout << "=========== " << dt << " " << v << " " << w << std::endl;
-    EKFManagement::GetInstance().Propagate(v, w, dt, _mean, _cov, mean_new,
-                                           cov_new);
+    // std::cout << "=========== " << dt << " " << v << " " << w << std::endl;
+    EKFManagement::GetInstance().Propagate(v, w, _mean, _cov, _ts, mean_new,
+                                           cov_new, ts);
     _mean = mean_new;
     _cov = cov_new;
   }

@@ -52,10 +52,9 @@ int main(int argc, char** argv) {
 
       std::cout << "=============SEMANTIC================ " << timestamp
                 << std::endl;
-      ;
     }
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
   while (true) {

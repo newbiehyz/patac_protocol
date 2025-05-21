@@ -248,6 +248,7 @@ void FillbackDataLoader::load_pose_odo_meas(const std::string& pose_file,
     double diff = angle_diff(yaw1, yaw0);
     double w = diff / (ts1 - ts0);
     double v = (twb0 - twb1).norm() / (ts1 - ts0);
+    // v *= 0.95;
 
     Eigen::Vector2d dir0 = Rwb0.col(0).head(2);
     Eigen::Vector2d dir = (twb1 - twb0).normalized();
@@ -382,8 +383,8 @@ void FillbackDataLoader::load_semantic_meas(
         }
         int id = 0;
         for (const auto& slot : quadParkingSlotList) {
-          Eigen::Vector2d corner_l_uv(slot["bl"]["x"], slot["bl"]["y"]);
-          Eigen::Vector2d corner_r_uv(slot["br"]["x"], slot["br"]["y"]);
+          Eigen::Vector2d corner_l_uv(slot["tl"]["x"], slot["tl"]["y"]);
+          Eigen::Vector2d corner_r_uv(slot["tr"]["x"], slot["tr"]["y"]);
           Eigen::Vector2d corner_l = conver_uv_to_vehicle(corner_l_uv);
           Eigen::Vector2d corner_r = conver_uv_to_vehicle(corner_r_uv);
 

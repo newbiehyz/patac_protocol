@@ -60,7 +60,7 @@ void ParkingSlotLandmark::AddSemanticMea(const double timestmap,
 
     // if (mea_duration > ApaParameters::GetInstance()
     //                        .GetEstimatorParamters()
-    //                        .max_tracking_time) {
+    //                        .margin_tracking_time) {
     //   SetUpdateFlag(false);
     //   SetMarginFlag(true);
     // }

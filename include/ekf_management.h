@@ -78,10 +78,11 @@ class EKFManagement {
   EKFManagement();
   void Init();
   static EKFManagement &GetInstance();
-  void Propagate(const double v, const double w, const double dt,
+  void Propagate(const double v, const double w,
                  const Eigen::VectorXd &x_vehicle0,
-                 const Eigen::MatrixXd &P_vehicle0, Eigen::VectorXd &x_vehicle1,
-                 Eigen::MatrixXd &P_vehicle1);
+                 const Eigen::MatrixXd &P_vehicle0, const double t0,
+                 Eigen::VectorXd &x_vehicle1, Eigen::MatrixXd &P_vehicle1,
+                 const double t1);
 
   void Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P,
               const double timestamp);
@@ -114,8 +115,9 @@ class EKFManagement {
   void set_cross_correlation(const CrossCorrelationId &id0,
                              const CrossCorrelationId &id1,
                              const Eigen::MatrixXd &correlation);  // P01
-  void construct_x_and_P(Eigen::VectorXd &x, Eigen::MatrixXd &P, const int &state_size,
-                         const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
+  void construct_x_and_P(
+      Eigen::VectorXd &x, Eigen::MatrixXd &P, const int &state_size,
+      const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
   int get_state_size(std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
   int get_residual_size(const std::map<SensorType, std::set<int>> &update_list);
   void update_mean_and_cov(

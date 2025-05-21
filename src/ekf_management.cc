@@ -47,6 +47,7 @@ void EKFManagement::ClearList() { _lm_state_list.clear(); }
 void EKFManagement::Update(const Eigen::VectorXd &state_mean,
                            const Eigen::MatrixXd &state_P,
                            const double timestamp) {
+  std::cout << "Update At: " << timestamp << std::endl;
   _vehicle_state = state_mean;
   _vehicle_cov = state_P;
   std::map<SensorType, std::set<int>> augmentation_list;
@@ -63,13 +64,13 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
   if (!marginalization_list.empty()) {
     for (auto it_type = marginalization_list.begin();
          it_type != marginalization_list.end(); ++it_type) {
-          const auto type = it_type->first;
+      const auto type = it_type->first;
       for (auto it = it_type->second.begin(); it != it_type->second.end();
            ++it) {
-          int id = *it;
-          if (update_list.count(type) && update_list.at(type).count(id)) {
-            update_list.at(type).erase(id);
-          }
+        int id = *it;
+        if (update_list.count(type) && update_list.at(type).count(id)) {
+          update_list.at(type).erase(id);
+        }
       }
     }
   }
@@ -150,20 +151,22 @@ void EKFManagement::ekf_update(
   // std::cout << "-----\n";
 
   // std::cout << R << std::endl;
-  Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
-  Eigen::MatrixXd Sinv = S.inverse();
-  // std::cout << "Identity\n";
-  // std::cout << S * Sinv << std::endl;
-  Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
-  x = x + K * residual;
-  P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
-  P = (P + P.transpose()) * 0.5;
-  // std::cout << "x+++++++:\n" << x.transpose() << std::endl;
-  // std::cout << "P+++++\n";
-  // std::cout << P << std::endl;
-  // MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
+  if (residual.size() > 0) {
+    Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
+    Eigen::MatrixXd Sinv = S.inverse();
+    // std::cout << "Identity\n";
+    // std::cout << S * Sinv << std::endl;
+    Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
+    x = x + K * residual;
+    P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
+    P = (P + P.transpose()) * 0.5;
+    // std::cout << "x+++++++:\n" << x.transpose() << std::endl;
+    // std::cout << "P+++++\n";
+    // std::cout << P << std::endl;
+    // MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
 
-  update_mean_and_cov(x, P, ekf_lm_pos);
+    update_mean_and_cov(x, P, ekf_lm_pos);
+  }
 }
 
 int EKFManagement::get_residual_size(
@@ -549,16 +552,21 @@ CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
   return CrossCorrelationKey{id_a, id_b};
 }
 
-void EKFManagement::Propagate(const double v, const double w, const double dt,
+void EKFManagement::Propagate(const double v, const double w,
                               const Eigen::VectorXd &x_vehicle0,
                               const Eigen::MatrixXd &P_vehicle0,
-                              Eigen::VectorXd &x_vehicle1,
-                              Eigen::MatrixXd &P_vehicle1) {
-  // std::cout << " -----Propagate dt:" << dt << "\n" << P_vehicle0 <<
-  // std::endl;
-
+                              const double t0, Eigen::VectorXd &x_vehicle1,
+                              Eigen::MatrixXd &P_vehicle1, const double t1) {
+  // std::cout << " -----Propagate to " << std::setprecision(20) << t1 << " " <<
+  // v << " " << w << std::endl;
   _vehicle_state = x_vehicle0;
   _vehicle_cov = P_vehicle0;
+  _ts = t0;
+
+  double dt = t1 - t0;
+
+  std::cout << " -----Propagate to " << std::setprecision(20) << t1 << " " << v
+            << " " << w << " " << dt << std::endl;
 
   Eigen::VectorXd x;
   Eigen::MatrixXd P;
@@ -602,6 +610,7 @@ void EKFManagement::Propagate(const double v, const double w, const double dt,
 
   _vehicle_cov = P_vehicle1;
   _vehicle_state = x_vehicle1;
+  _ts = t1;
 
   if (!_initialized) {
     _initialized = true;

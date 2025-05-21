@@ -46,8 +46,11 @@ void ApaParameters::printout_parameters() {
             << _est_params.slot_min_tracking_times << std::endl;
   std::cout << "estimator.slot_local_map_range: "
             << _est_params.slot_local_map_range << std::endl;
-  std::cout << "estimator.export_debug_file: "
-            << _est_params.export_debug_file << std::endl;
+  std::cout << "estimator.export_debug_file: " << _est_params.export_debug_file
+            << std::endl;
+  std::cout << "estimator.duplicate_slot_thresh: " << _est_params.duplicate_slot_thresh
+            << std::endl;
+
 }
 
 const SimulationParams &ApaParameters::GetSimulationParameters() {
@@ -83,10 +86,12 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.slot_min_tracking_times =
         data["estimator"]["slot_min_tracking_times"];
 
-    _est_params.max_tracking_time = data["estimator"]["max_tracking_time"];
+    _est_params.margin_tracking_time = data["estimator"]["margin_tracking_time"];
     _est_params.slot_local_map_range =
         data["estimator"]["slot_local_map_range"];
     _est_params.export_debug_file = data["estimator"]["export_debug_file"];
+    _est_params.duplicate_slot_thresh =
+        data["estimator"]["duplicate_slot_thresh"];
 
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;

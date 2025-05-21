@@ -45,7 +45,7 @@ void SemanticLandmark::SetCov(const Eigen::MatrixXd& cov) { _cov = cov; }
 
 void SemanticLandmark::TagMarginalization(const double timestamp) {
   if (fabs(_meas.rbegin()->first - timestamp) >
-      ApaParameters::GetInstance().GetEstimatorParamters().max_tracking_time) {
+      ApaParameters::GetInstance().GetEstimatorParamters().margin_tracking_time) {
     SetMarginFlag(true);
   }
 }

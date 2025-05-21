@@ -13,14 +13,14 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-
+#include <chrono>
 #include "ekf_management.h"
 #include "kinematic_measurement.h"
 #include "map_management.h"
 #include "parking_slot_tracker.h"
-// #include "semantic_map.h"
 #include "semantic_measurement.h"
 #include "tracker_base.h"
+#include "mea_preprocessor.h"
 namespace apa_slam {
 class EkfEstimator {
  public:
@@ -46,6 +46,8 @@ class EkfEstimator {
 
   double GetLatestTimestamp();
 
+  const std::map<SensorType, std::vector<int>>& GetLatestMatching();
+
  private:
   void process_odo_mea(const double ts, const KinematicMea::Ptr odo_mea);
 
@@ -66,9 +68,6 @@ class EkfEstimator {
                                           const Eigen::Vector2d& twb1,
                                           const double t);
 
-  std::vector<SemanticMea::Ptr> remove_duplicate_parkingslot_meas(
-      const std::vector<SemanticMea::Ptr>& meas);
-
   double _ts;
   Eigen::VectorXd _mean;
   Eigen::MatrixXd _cov;
@@ -78,5 +77,7 @@ class EkfEstimator {
   std::unordered_map<SensorType, TrackerBase::Ptr> _tracker_pools;
 
   std::map<double, DrInfo> _dr_buf;
+
+  std::map<SensorType, std::vector<int>> _last_matching;
 };
 }  // namespace apa_slam

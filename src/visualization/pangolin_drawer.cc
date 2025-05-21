@@ -78,6 +78,8 @@ void PangolinDrawer::draw_vehicle_bbox() {
 }
 
 void PangolinDrawer::DrawAPA() {
+  std::map<SensorType, std::vector<SemanticMea::Ptr>> cur_meas;
+  std::map<SensorType, std::vector<int>> cur_matching;
   if (EkfEstimator::GetInstance().Initialized()) {
     const Pose& latest_pose = EkfEstimator::GetInstance().GetLatestPose();
     const Eigen::MatrixXd latest_cov =
@@ -87,28 +89,77 @@ void PangolinDrawer::DrawAPA() {
     this->draw_vehicle(latest_pose, latest_cov);
     this->draw_traj();
     _traj.insert({timestamp, latest_pose});
-
-    // if (_traj.size() > 1 &&
-    //     fabs(_traj.begin()->first - _traj.rbegin()->first) > 5.0) {
-    //   _traj.erase(_traj.begin());
-    // }
+    draw_local_map(latest_pose);
   }
-
-  draw_local_map();
 }
 
-void PangolinDrawer::draw_local_map() {
+void PangolinDrawer::draw_parking_slot_matching(
+    const Pose& pose, const std::map<int, SemanticLandmark::Ptr>& map,
+    const std::vector<int>& matching) {
+  Eigen::Vector2d twb(pose.x, pose.y);
+  Eigen::Rotation2Dd rot(pose.yaw);
+  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+  for (int i = 0; i < matching.size(); ++i) {
+    int id = matching.at(i);
+    if (id == -2) {
+      continue;
+    }
+    if (map.at(id)->Initialized()) {
+      auto latest_mea = map.at(id)->GetLatestMea();
+      Eigen::Vector2d pt0 = latest_mea->GetMeaData().col(0).head(2);
+      Eigen::Vector2d pt1 = latest_mea->GetMeaData().col(1).head(2);
+      Eigen::Vector2d pt0_w = Rwb * pt0 + twb;
+      Eigen::Vector2d pt1_w = Rwb * pt1 + twb;
+      glColor3f(.0f, .0f, 1.0f);
+      pangolin::glDrawCirclePerimeter(pt0_w.x(), pt0_w.y(), 0.5);
+      pangolin::glDrawCirclePerimeter(pt1_w.x(), pt1_w.y(), 0.5);
+
+    }
+  }
+}
+
+void PangolinDrawer::draw_matching(
+    const SensorType& type, const Pose& pose,
+    const std::map<int, SemanticLandmark::Ptr>& map,
+    const std::vector<int>& matching) {
+  Eigen::Vector2d twb(pose.x, pose.y);
+  Eigen::Rotation2Dd rot(pose.yaw);
+  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+
+  switch (type) {
+    case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+      // draw_parking_slot_matching(pose, map, matching);
+      break;
+
+    default:
+      break;
+  }
+}
+
+void PangolinDrawer::draw_local_map(const Pose& pose) {
   if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
     return;
   }
-  const auto slot_map =
+  const auto& slot_map =
       SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
   for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
     if (it->second->Initialized()) {
-
       Eigen::MatrixXd data = it->second->GetLandmarkData();
       int id = it->second->GetId();
       draw_parking_slot(id, data);
+    }
+  }
+
+  const auto& matching = EkfEstimator::GetInstance().GetLatestMatching();
+  for (auto it = matching.begin(); it != matching.end(); ++it) {
+    switch (it->first) {
+      case SensorType::SEMANTIC_TYPE_PARKING_SLOT: {
+        draw_matching(it->first, pose, slot_map, matching.at(it->first));
+        break;
+      }
+
+      default:
+        break;
     }
   }
 }
@@ -127,30 +178,30 @@ void PangolinDrawer::draw_vehicle(const Pose& latest_pose,
   this->draw_vehicle_bbox();
   glPopMatrix();
 
-//   Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> solver(
-//       latest_cov.topLeftCorner(2, 2));
-//   Eigen::Vector2d eigenvalues = solver.eigenvalues();
-//   Eigen::Matrix2d eigenvectors = solver.eigenvectors();
+  //   Eigen::SelfAdjointEigenSolver<Eigen::Matrix2d> solver(
+  //       latest_cov.topLeftCorner(2, 2));
+  //   Eigen::Vector2d eigenvalues = solver.eigenvalues();
+  //   Eigen::Matrix2d eigenvectors = solver.eigenvectors();
 
-//   double angle =
-//       std::atan2(eigenvectors(1, 1), eigenvectors(0, 1));  // 主方向角度
+  //   double angle =
+  //       std::atan2(eigenvectors(1, 1), eigenvectors(0, 1));  // 主方向角度
 
-//   const int segments = 40;
-//   double a = std::sqrt(eigenvalues(1));  // 长轴（大特征值）
-//   double b = std::sqrt(eigenvalues(0));
-//   glBegin(GL_LINE_LOOP);
-//   for (int i = 0; i < segments; ++i) {
-//     double theta = 2.0 * M_PI * double(i) / double(segments);
-//     double x = a * std::cos(theta);
-//     double y = b * std::sin(theta);
+  //   const int segments = 40;
+  //   double a = std::sqrt(eigenvalues(1));  // 长轴（大特征值）
+  //   double b = std::sqrt(eigenvalues(0));
+  //   glBegin(GL_LINE_LOOP);
+  //   for (int i = 0; i < segments; ++i) {
+  //     double theta = 2.0 * M_PI * double(i) / double(segments);
+  //     double x = a * std::cos(theta);
+  //     double y = b * std::sin(theta);
 
-//     // 旋转 + 平移
-//     double xr = std::cos(angle) * x - std::sin(angle) * y + twb(0);
-//     double yr = std::sin(angle) * x + std::cos(angle) * y + twb(1);
+  //     // 旋转 + 平移
+  //     double xr = std::cos(angle) * x - std::sin(angle) * y + twb(0);
+  //     double yr = std::sin(angle) * x + std::cos(angle) * y + twb(1);
 
-//     glVertex2d(xr, yr);
-//   }
-//   glEnd();
+  //     glVertex2d(xr, yr);
+  //   }
+  //   glEnd();
 }
 
 }  // namespace apa_slam
