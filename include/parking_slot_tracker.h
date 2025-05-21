@@ -7,11 +7,11 @@
  * Copyright (c) 2025 PATAC
  */
 
-#include "tracker_base.h"
-#include "local_mapping_define.h"
 #include "apa_parameters.h"
 #include "hungarian.h"
+#include "local_mapping_define.h"
 #include "semantic_map.h"
+#include "tracker_base.h"
 namespace apa_slam {
 class ParkingSlotTracker : public TrackerBase {
  public:
@@ -21,9 +21,20 @@ class ParkingSlotTracker : public TrackerBase {
                                      const Pose& pose);
 
  private:
+  std::vector<int> matching_with_last_mea(
+      const std::vector<SemanticMea::Ptr>& meas, const Pose& pose);
+  std::vector<int> matching_with_local_map(
+      const std::vector<SemanticMea::Ptr>& meas, const Pose& pose);
   Eigen::VectorXd compute_matching_distance(const SemanticMea::Ptr mea0,
                                             const Pose& pose0,
                                             const SemanticMea::Ptr mea1,
                                             const Pose& pose1);
+  std::vector<int> get_consist_matching(
+      const std::vector<int>& matching_mea,
+      const std::vector<int>& matching_map = {});
+
+  std::pair<double, double> get_two_smallest(const std::vector<double>& vec);
+
+  std::vector<int> fill_matching(const std::vector<int>& matching);
 };
 }  // namespace apa_slam

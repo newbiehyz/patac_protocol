@@ -126,6 +126,32 @@ void ParkingSlotLandmark::SetMean(const Eigen::VectorXd& mean) {
   _data.col(1).head(2) = mean.tail(2);
 }
 
+Eigen::VectorXd ParkingSlotLandmark::ComputeMatchingResidual(
+    const Eigen::VectorXd& pose, const SemanticMea::Ptr& mea) {
+  Eigen::VectorXd matching_residual = Eigen::VectorXd::Zero(2);
+
+  Eigen::MatrixXd lm_data = this->GetLandmarkData();
+  Eigen::Vector2d twb(pose.x(), pose.y());
+  Eigen::Rotation2Dd rot(pose.z());
+  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+
+  Eigen::Matrix2d pt_w =
+      Rwb * mea->GetMeaData().topLeftCorner(2, 2) + twb.replicate(1, 2);
+
+  matching_residual[0] =
+      ((pt_w.col(0) + pt_w.col(1) - lm_data.col(0) - lm_data.col(1)) * .5)
+          .norm();
+
+  Eigen::Vector2d dir0 = (pt_w.col(0) - pt_w.col(1)).normalized();
+  Eigen::Vector2d dir1 =
+      (lm_data.col(0).head(2) - lm_data.col(1).head(2)).normalized();
+
+  double angular_distance = std::acos(fabs(dir0.dot(dir1)));
+
+  matching_residual[1] = angular_distance;  // ra
+  return matching_residual;
+}
+
 void ParkingSlotLandmark::GetResidualAndJacobian(const SemanticMea::Ptr& mea,
                                                  const Eigen::VectorXd& v_state,
                                                  Eigen::VectorXd& residual,
@@ -147,11 +173,12 @@ void ParkingSlotLandmark::GetResidualAndJacobian(const SemanticMea::Ptr& mea,
   R.bottomRightCorner(2, 2) = Rbw;
 
   Eigen::Vector4d t = tbw.replicate(2, 1);
-  residual = observation - (R * this->GetVectorizedData() + t);
-                                                  Eigen::VectorXd lm = this->GetVectorizedData();
-                                                  lm.head(2).swap(lm.tail(2));
-  auto r = observation - R * lm + t;
-  std::cout << "rrr: " << std::to_string(this->GetId())  << " "<< residual.transpose() << std::endl;
+  residual = R * this->GetVectorizedData() + t - observation;
+  Eigen::VectorXd lm = this->GetVectorizedData();
+  lm.head(2).swap(lm.tail(2));
+  // auto r = observation - R * lm + t;
+  // std::cout << "rrr: " << std::to_string(this->GetId()) << " "
+  // << residual.transpose() << std::endl;
 
   J_lm = Eigen::MatrixXd::Zero(RESIDUAL_PARKING_SLOT_SIZE,
                                STATE_PARKING_SLOT_SIZE);

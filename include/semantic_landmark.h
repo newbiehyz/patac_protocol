@@ -70,6 +70,9 @@ class SemanticLandmark {
                                     Eigen::MatrixXd& J_v,
                                     Eigen::MatrixXd& J_lm);
 
+  virtual Eigen::VectorXd ComputeMatchingResidual(const Eigen::VectorXd& pose,
+                                                  const SemanticMea::Ptr& mea) = 0;
+
  protected:
   std::map<double, std::pair<Pose, SemanticMea::Ptr>> _meas;
 

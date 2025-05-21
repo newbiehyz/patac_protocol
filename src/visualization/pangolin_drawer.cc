@@ -88,10 +88,10 @@ void PangolinDrawer::DrawAPA() {
     this->draw_traj();
     _traj.insert({timestamp, latest_pose});
 
-    if (_traj.size() > 1 &&
-        fabs(_traj.begin()->first - _traj.rbegin()->first) > 5.0) {
-      _traj.erase(_traj.begin());
-    }
+    // if (_traj.size() > 1 &&
+    //     fabs(_traj.begin()->first - _traj.rbegin()->first) > 5.0) {
+    //   _traj.erase(_traj.begin());
+    // }
   }
 
   draw_local_map();
@@ -105,6 +105,7 @@ void PangolinDrawer::draw_local_map() {
       SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
   for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
     if (it->second->Initialized()) {
+
       Eigen::MatrixXd data = it->second->GetLandmarkData();
       int id = it->second->GetId();
       draw_parking_slot(id, data);

@@ -60,6 +60,19 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
   }
 
   state_marginalization(marginalization_list);
+  if (!marginalization_list.empty()) {
+    for (auto it_type = marginalization_list.begin();
+         it_type != marginalization_list.end(); ++it_type) {
+          const auto type = it_type->first;
+      for (auto it = it_type->second.begin(); it != it_type->second.end();
+           ++it) {
+          int id = *it;
+          if (update_list.count(type) && update_list.at(type).count(id)) {
+            update_list.at(type).erase(id);
+          }
+      }
+    }
+  }
 
   ekf_update(update_list);
   state_augmentation(augmentation_list);
@@ -125,7 +138,7 @@ void EKFManagement::ekf_update(
     }
   }
 
-  residual *= -1.0;
+  // residual *= -1.0;
   std::cout << std::endl;
   // std::cout << "Residual:\n" << residual.transpose() << std::endl;
   // std::cout << "#######################\n";
@@ -148,7 +161,7 @@ void EKFManagement::ekf_update(
   // std::cout << "x+++++++:\n" << x.transpose() << std::endl;
   // std::cout << "P+++++\n";
   // std::cout << P << std::endl;
-  MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
+  // MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
 
   update_mean_and_cov(x, P, ekf_lm_pos);
 }

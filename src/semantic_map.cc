@@ -80,6 +80,38 @@ void SemanticMap::TagMarginalization(const double timestamp) {
   }
 }
 
+bool SemanticMap::GetFullLocalMap(
+    const SensorType& type, const Pose& pose,
+    std::vector<SemanticLandmark::Ptr>& local_map) {
+  if (!SemanticMap::GetInstance().HasMap(type)) {
+    return false;
+  }
+  double range;
+  switch (type) {
+    case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+      range = ApaParameters::GetInstance()
+                  .GetEstimatorParamters()
+                  .slot_local_map_range;
+      break;
+
+    default:
+      break;
+  }
+
+  for (auto it_lm = _map.at(type).begin(); it_lm != _map.at(type).end();
+       ++it_lm) {
+    Eigen::MatrixXd lm_data = it_lm->second->GetLandmarkData();
+    Eigen::Vector2d corner =
+        (lm_data.col(0).head(2) + lm_data.col(1).head(2)) * .5f;
+    double distance = (Eigen::Vector2d(pose.x, pose.y) - corner).norm();
+    if (distance < range) {
+      local_map.push_back(it_lm->second);
+    }
+  }
+
+  return true;
+}
+
 void SemanticMap::MarginLandmark(const SensorType& type, const int& id) {
   _map.at(type).erase(id);
 }

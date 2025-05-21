@@ -33,8 +33,10 @@ class ParkingSlotLandmark : public SemanticLandmark {
                               Eigen::VectorXd& residual, Eigen::MatrixXd& J_v,
                               Eigen::MatrixXd& J_lm);
 
-  
   void SetMean(const Eigen::VectorXd& mean);
+
+  Eigen::VectorXd ComputeMatchingResidual(const Eigen::VectorXd& pose,
+                                          const SemanticMea::Ptr& mea);
 
  private:
   Eigen::MatrixXd _data;

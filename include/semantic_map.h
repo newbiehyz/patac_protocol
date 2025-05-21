@@ -27,8 +27,7 @@ class SemanticMap {
 
   void AddLandmark(const SensorType type, SemanticLandmark::Ptr landmark);
   bool HasMap(const SensorType type) const;
-  const std::map<int, SemanticLandmark::Ptr>& GetMap(
-      const SensorType type);
+  const std::map<int, SemanticLandmark::Ptr>& GetMap(const SensorType type);
   void ClearMap();
   int GetMapLandmarkNum(const SensorType& type);
   int GetMapInitializedLandmarkNum(const SensorType& type);
@@ -58,11 +57,13 @@ class SemanticMap {
 
   void TagMarginalization(const double timestamp);
 
-  void MarginLandmark(const SensorType &type, const int &id);
+  void MarginLandmark(const SensorType& type, const int& id);
+
+  bool GetFullLocalMap(const SensorType& type, const Pose& pose,
+                       std::vector<SemanticLandmark::Ptr>& local_map);
 
  private:
-  std::map<SensorType, std::map<int, SemanticLandmark::Ptr>>
-      _map;
+  std::map<SensorType, std::map<int, SemanticLandmark::Ptr>> _map;
 
   std::mutex _data_mutex;
 };

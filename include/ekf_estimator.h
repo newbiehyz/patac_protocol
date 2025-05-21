@@ -46,8 +46,6 @@ class EkfEstimator {
 
   double GetLatestTimestamp();
 
-
-
  private:
   void process_odo_mea(const double ts, const KinematicMea::Ptr odo_mea);
 
@@ -67,6 +65,9 @@ class EkfEstimator {
   Eigen::Vector2d interpolate_translation(const Eigen::Vector2d& twb0,
                                           const Eigen::Vector2d& twb1,
                                           const double t);
+
+  std::vector<SemanticMea::Ptr> remove_duplicate_parkingslot_meas(
+      const std::vector<SemanticMea::Ptr>& meas);
 
   double _ts;
   Eigen::VectorXd _mean;

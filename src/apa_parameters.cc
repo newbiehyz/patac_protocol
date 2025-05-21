@@ -33,8 +33,8 @@ void ApaParameters::printout_parameters() {
             << std::endl;
   std::cout << "estimatora_noise_y: " << _est_params.slot_mea_noise_y
             << std::endl;
-  std::cout << "estimatorocity_noise: "
-            << _est_params.odo_velocity_noise << std::endl;
+  std::cout << "estimatorocity_noise: " << _est_params.odo_velocity_noise
+            << std::endl;
   std::cout << "estimatorular_velocity_noise: "
             << _est_params.odo_angular_velocity_noise << std::endl;
 
@@ -44,6 +44,10 @@ void ApaParameters::printout_parameters() {
             << _est_params.slot_matching_angle_thresh << std::endl;
   std::cout << "estimator.slot_min_tracking_times: "
             << _est_params.slot_min_tracking_times << std::endl;
+  std::cout << "estimator.slot_local_map_range: "
+            << _est_params.slot_local_map_range << std::endl;
+  std::cout << "estimator.export_debug_file: "
+            << _est_params.export_debug_file << std::endl;
 }
 
 const SimulationParams &ApaParameters::GetSimulationParameters() {
@@ -80,6 +84,9 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
         data["estimator"]["slot_min_tracking_times"];
 
     _est_params.max_tracking_time = data["estimator"]["max_tracking_time"];
+    _est_params.slot_local_map_range =
+        data["estimator"]["slot_local_map_range"];
+    _est_params.export_debug_file = data["estimator"]["export_debug_file"];
 
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;

@@ -49,8 +49,10 @@ struct EstimatorParams {
   double odo_angular_velocity_noise;
   double slot_matching_dist_thresh;
   double slot_matching_angle_thresh;
+  double slot_local_map_range;
   int slot_min_tracking_times;
   double max_tracking_time;
+  bool export_debug_file;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };

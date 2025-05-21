@@ -35,6 +35,9 @@ void MapManagement::process_slot_matching(
     const std::vector<int>& map_matching, const Pose& mea_pose) {
   for (size_t i = 0; i < map_matching.size(); ++i) {
     int map_id = map_matching.at(i);
+    if (map_id == -2) {
+      continue;
+    }
 
     if (SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,
                                                map_id)) {

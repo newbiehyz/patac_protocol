@@ -7,3 +7,6 @@ TARGET_LINK_LIBRARIES(test_heatmap ${PROJECT_NAME})
 
 
 ADD_EXECUTABLE(test_noise ${CMAKE_CURRENT_SOURCE_DIR}/test_noise.cc)
+
+ADD_EXECUTABLE(test_steering_angle ${CMAKE_CURRENT_SOURCE_DIR}/test_steering_angle.cc)
+
