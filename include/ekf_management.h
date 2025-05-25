@@ -78,11 +78,7 @@ class EKFManagement {
   EKFManagement();
   void Init();
   static EKFManagement &GetInstance();
-  void Propagate(const double v, const double w,
-                 const Eigen::VectorXd &x_vehicle0,
-                 const Eigen::MatrixXd &P_vehicle0, const double t0,
-                 Eigen::VectorXd &x_vehicle1, Eigen::MatrixXd &P_vehicle1,
-                 const double t1);
+  void Propagate(const double timestamp_d, const double v, const double w);
 
   void Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P,
               const double timestamp);
@@ -91,6 +87,7 @@ class EKFManagement {
   bool GetLatestVechileState(double &timestamp, Eigen::VectorXd &mean,
                              Eigen::MatrixXd &cov);
 
+  bool Initialized();
  private:
   void state_augmentation(
       const std::map<SensorType, std::set<int>> &augmentation_list);
@@ -133,8 +130,12 @@ class EKFManagement {
 
   std::unordered_map<SensorType, std::set<int>> _lm_state_list;  // full state
 
-  Eigen::VectorXd _vehicle_state;
-  Eigen::MatrixXd _vehicle_cov;
+
+
+  Eigen::VectorXd _vehicle_x;
+  Eigen::MatrixXd _vehicle_P;
+  double _vehicle_v;
+  double _vehicle_w;
   double _ts;
 
   bool _initialized{false};

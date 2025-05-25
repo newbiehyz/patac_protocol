@@ -23,6 +23,10 @@ void EKFManagement::Init() {
   _N.diagonal()[0] = noise_v * noise_v;
   _N.diagonal()[1] = noise_w * noise_w;
 
+  _vehicle_x = Eigen::VectorXd::Zero(3);
+  _vehicle_P = Eigen::MatrixXd::Identity(3, 3) * 0.001;
+
+  _initialized = false;
   this->ClearList();
 }
 
@@ -31,17 +35,20 @@ EKFManagement &EKFManagement::GetInstance() {
   return instance;
 }
 
-bool EKFManagement::GetLatestVechileState(double &timestamp, Eigen::VectorXd &mean,
-                             Eigen::MatrixXd &cov) {
+bool EKFManagement::GetLatestVechileState(double &timestamp,
+                                          Eigen::VectorXd &mean,
+                                          Eigen::MatrixXd &cov) {
   if (!_initialized) {
     return false;
   }
   timestamp = _ts;
-  mean = _vehicle_state;
-  cov = _vehicle_cov;
+  mean = _vehicle_x;
+  cov = _vehicle_P;
 
   return true;
 }
+
+bool EKFManagement::Initialized() { return _initialized; }
 
 void EKFManagement::ClearList() { _lm_state_list.clear(); }
 
@@ -49,8 +56,8 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
                            const Eigen::MatrixXd &state_P,
                            const double timestamp) {
   std::cout << "Update At: " << timestamp << std::endl;
-  _vehicle_state = state_mean;
-  _vehicle_cov = state_P;
+  _vehicle_x = state_mean;
+  _vehicle_P = state_P;
   std::map<SensorType, std::set<int>> augmentation_list;
   std::map<SensorType, std::set<int>> update_list;
   std::map<SensorType, std::set<int>> marginalization_list;
@@ -79,7 +86,7 @@ void EKFManagement::Update(const Eigen::VectorXd &state_mean,
   ekf_update(update_list);
   state_augmentation(augmentation_list);
   SemanticMap::GetInstance().TagMarginalization(timestamp);
-  _ts = timestamp;
+  // _ts = timestamp;
 }
 
 void EKFManagement::ekf_update(
@@ -112,7 +119,7 @@ void EKFManagement::ekf_update(
       Eigen::MatrixXd Jacobian_vehicle, Jacobian_landmark;
       SemanticMap::GetInstance()
           .GetLandmark(semantic_type, landmark_id)
-          ->GetLatestResidualAndJacobian(_vehicle_state, r, Jacobian_vehicle,
+          ->GetLatestResidualAndJacobian(_vehicle_x, r, Jacobian_vehicle,
                                          Jacobian_landmark);
       int residual_size, landmark_size;
       switch (semantic_type) {
@@ -194,9 +201,6 @@ int EKFManagement::get_residual_size(
 void EKFManagement::update_mean_and_cov(
     const Eigen::VectorXd &x, const Eigen::MatrixXd &P,
     const std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
-  _vehicle_state = x.head(3);
-  _vehicle_cov = P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
-
   for (auto it_type = ekf_lm_pos.begin(); it_type != ekf_lm_pos.end();
        ++it_type) {
     const auto &semantic_type = it_type->first;
@@ -303,10 +307,10 @@ void EKFManagement::construct_x_and_P(
     const std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
   int n_state_size = state_size;
   x = Eigen::VectorXd::Zero(n_state_size);
-  x.head(3) = _vehicle_state;
+  x.head(3) = _vehicle_x;
 
   P = Eigen::MatrixXd::Zero(n_state_size, n_state_size);
-  P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = _vehicle_cov;
+  P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = _vehicle_P;
 
   for (auto it_type0 = _lm_state_list.begin(); it_type0 != _lm_state_list.end();
        ++it_type0) {
@@ -479,7 +483,7 @@ void EKFManagement::state_augmentation(
         case SEMANTIC_TYPE_PARKING_SLOT: {
           Eigen::MatrixXd Jx;
           SemanticMap::GetInstance().InitializeLandmark(
-              semantic_type, landmark_id, _vehicle_state, _vehicle_cov, Jx);
+              semantic_type, landmark_id, _vehicle_x, _vehicle_P, Jx);
           std::cout << "Augmenting: id " << landmark_id << std::endl;
           aug_update_covariance(semantic_type, landmark_id, Jx);
           break;
@@ -553,30 +557,30 @@ CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
   return CrossCorrelationKey{id_a, id_b};
 }
 
-void EKFManagement::Propagate(const double v, const double w,
-                              const Eigen::VectorXd &x_vehicle0,
-                              const Eigen::MatrixXd &P_vehicle0,
-                              const double t0, Eigen::VectorXd &x_vehicle1,
-                              Eigen::MatrixXd &P_vehicle1, const double t1) {
-  // std::cout << " -----Propagate to " << std::setprecision(20) << t1 << " " <<
-  // v << " " << w << std::endl;
-  _vehicle_state = x_vehicle0;
-  _vehicle_cov = P_vehicle0;
-  _ts = t0;
+void EKFManagement::Propagate(const double timestamp_d, const double v,
+                              const double w) {
+  _vehicle_w = w;
+  _vehicle_v = v;
 
-  double dt = t1 - t0;
+  if (!_initialized) {
+    _initialized = true;
+    _ts = timestamp_d;
+    return;
+  }
 
-  std::cout << " -----Propagate to " << std::setprecision(20) << t1 << " " << v
-            << " " << w << " " << dt << std::endl;
+  double dt = timestamp_d - _ts;
 
-  Eigen::VectorXd x;
-  Eigen::MatrixXd P;
+  std::cout << " -----Propagate to " << std::setprecision(20) << timestamp_d
+            << " " << v << " " << w << " " << dt << std::endl;
+
+  Eigen::VectorXd x_full;
+  Eigen::MatrixXd P_full;
   std::map<SensorType, std::map<int, int>> ekf_lm_pos;
   int n_state = get_state_size(ekf_lm_pos);
-  construct_x_and_P(x, P, n_state, ekf_lm_pos);
+  construct_x_and_P(x_full, P_full, n_state, ekf_lm_pos);
 
-  Eigen::Vector2d twb = x_vehicle0.head(2);
-  double yaw = x_vehicle0[2];
+  Eigen::Vector2d twb = _vehicle_x.head(2);
+  double yaw = _vehicle_x[2];
   Eigen::Rotation2Dd rot(yaw);
   Eigen::Matrix2d Rwb = rot.toRotationMatrix();
   Eigen::Vector2d dir = Rwb.col(0);
@@ -592,31 +596,29 @@ void EKFManagement::Propagate(const double v, const double w,
   twb += dir * v * dt;
   yaw += dt * w;
 
-  P_vehicle1 = Fx * P_vehicle0 * Fx.transpose() + Fn * _N * Fn.transpose();
-  x_vehicle1 = Eigen::VectorXd::Zero(STATE_VEHICLE_SIZE);
-  x_vehicle1.head(2) = twb;
-  x_vehicle1[2] = yaw;
+  Eigen::MatrixXd P =
+      Fx * _vehicle_P * Fx.transpose() + Fn * _N * Fn.transpose();
+  Eigen::VectorXd x = Eigen::VectorXd::Zero(STATE_VEHICLE_SIZE);
+  x.head(2) = twb;
+  x[2] = yaw;
 
-  P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = P_vehicle1;
+  x_full.head(3) = x;
+  P_full.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = P;
 
   if (n_state > STATE_VEHICLE_SIZE) {
-    P.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE) =
-        Fx * P.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE);
-    P.bottomLeftCorner(n_state - STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
-        P.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE)
+    P_full.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE) =
+        Fx *
+        P_full.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE);
+    P_full.bottomLeftCorner(n_state - STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
+        P_full.topRightCorner(STATE_VEHICLE_SIZE, n_state - STATE_VEHICLE_SIZE)
             .transpose();
   }
 
-  update_mean_and_cov(x, P, ekf_lm_pos);
+  update_mean_and_cov(x_full, P_full, ekf_lm_pos);
 
-  _vehicle_cov = P_vehicle1;
-  _vehicle_state = x_vehicle1;
-  _ts = t1;
-
-  if (!_initialized) {
-    _initialized = true;
-  }
-
+  _vehicle_x = x;
+  _vehicle_P = P;
+  _ts = timestamp_d;
   // std::cout << " ++++++Propagate: \n" << P_vehicle1 << std::endl;
   // std::cout << "===================\n";
 }

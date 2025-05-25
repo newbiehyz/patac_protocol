@@ -127,22 +127,25 @@ void EkfEstimator::InputSemanticMea(
     }
   }
 
-  EKFManagement::GetInstance().Update(_mean, _cov, ts);
   Eigen::VectorXd latest_mean;
   Eigen::MatrixXd latest_cov;
   double latest_timestamp;
-  if (EKFManagement::GetInstance().GetLatestVechileState(latest_timestamp, latest_mean,
-                                                         latest_cov)) {
+  if (EKFManagement::GetInstance().GetLatestVechileState(
+          latest_timestamp, latest_mean, latest_cov)) {
     _mean = latest_mean;
     _cov = latest_cov;
+    EKFManagement::GetInstance().Update(_mean, _cov, ts);
+
+    auto end = std::chrono::steady_clock::now();
+    auto duration =
+        std::chrono::duration_cast<std::chrono::microseconds>(end - start)
+            .count();
+
+    std::cout << "Update Duration: " << duration << " MicroSeconds"
+              << std::endl;
+  } else {
+    return;
   }
-
-  auto end = std::chrono::steady_clock::now();
-  auto duration =
-      std::chrono::duration_cast<std::chrono::microseconds>(end - start)
-          .count();
-
-  std::cout << "Update Duration: " << duration << " MicroSeconds" << std::endl;
 }
 
 void EkfEstimator::process_semantic_meas(
@@ -276,8 +279,8 @@ void EkfEstimator::InputKinematicMea(
   Eigen::VectorXd latest_mean;
   Eigen::MatrixXd latest_cov;
   double latest_timestamp;
-  if (EKFManagement::GetInstance().GetLatestVechileState(latest_timestamp, latest_mean,
-                                                         latest_cov)) {
+  if (EKFManagement::GetInstance().GetLatestVechileState(
+          latest_timestamp, latest_mean, latest_cov)) {
     _mean = latest_mean;
     _cov = latest_cov;
   }
@@ -291,7 +294,9 @@ void EkfEstimator::InputKinematicMea(
   // << std::endl;
 }
 
-bool EkfEstimator::Initialized() const { return _initialized; }
+bool EkfEstimator::Initialized() const {
+  return EKFManagement::GetInstance().Initialized();
+}
 
 double EkfEstimator::interpolate_angle(const double angle0, const double angle1,
                                        const double t) {
@@ -307,39 +312,29 @@ Eigen::Vector2d EkfEstimator::interpolate_translation(
 
 void EkfEstimator::process_odo_mea(const double ts,
                                    const KinematicMea::Ptr odo_mea) {
-  if (!_initialized) {
-    _ts = ts;
-    _mean = Eigen::VectorXd::Zero(3);
-    _cov = 1e-2 * Eigen::MatrixXd::Identity(3, 3);
-    _initialized = true;
-    return;
-  }
   const Eigen::VectorXd &odo_data = odo_mea->GetMeaData();
   double v = odo_data[0];
   double w = odo_data[1];
-  double dt = ts - _ts;
-
-  Eigen::VectorXd mean_new;
-  Eigen::MatrixXd cov_new;
 
   {
     std::lock_guard<std::mutex> lock(_data_mutex);
     // std::cout << "=========== " << dt << " " << v << " " << w << std::endl;
-    EKFManagement::GetInstance().Propagate(v, w, _mean, _cov, _ts, mean_new,
-                                           cov_new, ts);
-    _mean = mean_new;
-    _cov = cov_new;
+    EKFManagement::GetInstance().Propagate(ts, v, w);
   }
-
-  Pose dr_pose;
-  dr_pose.x = mean_new[0];
-  dr_pose.y = mean_new[1];
-  dr_pose.yaw = mean_new[2];
-  DrInfo dr_info;
-  dr_info.pose = dr_pose;
-  dr_info.angular_velocity = w;
-  dr_info.velocity = v;
-  _dr_buf.insert({ts, dr_info});
-  _ts = ts;
+  double latest_ts;
+  Eigen::VectorXd latest_x;
+  Eigen::MatrixXd latest_P;
+  if (EKFManagement::GetInstance().GetLatestVechileState(latest_ts, latest_x,
+                                                         latest_P)) {
+    Pose dr_pose;
+    dr_pose.x = latest_x[0];
+    dr_pose.y = latest_x[1];
+    dr_pose.yaw = latest_x[2];
+    DrInfo dr_info;
+    dr_info.pose = dr_pose;
+    dr_info.angular_velocity = w;
+    dr_info.velocity = v;
+    _dr_buf.insert({ts, dr_info});
+  }
 }
 }  // namespace apa_slam
