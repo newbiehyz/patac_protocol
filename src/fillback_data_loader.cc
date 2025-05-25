@@ -16,11 +16,13 @@ void FillbackDataLoader::LoadDataSet(const std::string& dataset_path) {
   // load_odo_meas(odo_file);
 
   const std::string pose_file = dataset_path + "/DR_POSE.json";
-  load_pose_odo_meas(pose_file, odo_file);
-
+  // load_pose_odo_meas(pose_file, odo_file);
+  load_pose_odo_meas2(pose_file);
+  std::cout << "load odo done\n";
   const std::string semantci_mea_file = dataset_path + "/RDinfo.json";
   load_semantic_meas(semantci_mea_file);
   // double start_ts = _semantic_mea.begin()->first - 5.0;
+
   _mea_it = _mea_seq.begin();
 }
 bool FillbackDataLoader::PopOutMea(ReplaySensorType& type, double& ts) {
@@ -28,8 +30,8 @@ bool FillbackDataLoader::PopOutMea(ReplaySensorType& type, double& ts) {
     return false;
   }
 
-  type = _mea_it->second.at(_mea_id);
-  ts = _mea_it->first;
+  type = _mea_it->second.at(_mea_id).first;
+  ts = _mea_it->second.at(_mea_id).second;
   if (_mea_id == _mea_it->second.size() - 1) {
     _mea_id = 0;
     ++_mea_it;
@@ -150,6 +152,136 @@ double FillbackDataLoader::get_angular_velocity(const double velocity,
   return w;
 }  // namespace apa_slam
 
+void FillbackDataLoader::load_pose_odo_meas2(const std::string& pose_file) {
+  std::ifstream file(pose_file);
+  json j;
+  file >> j;  // Parse JSON
+  std::map<double, Eigen::Vector3d> pose_data;
+  double last_ts = -1.0;
+  for (const auto& item : j) {
+    double x = item["x"];
+    double y = item["y"];
+    long long timestamp = item["timeStamp"];
+
+    double xx = y;
+    double yy = -x;
+    xx /= 1000.0f;
+    yy /= 1000.0f;
+    double yaw = item["canAng"];
+    yaw = -yaw;
+    yaw = yaw / 180.0 * M_PI;
+
+    double timestamp_d =
+        static_cast<double>(timestamp) * static_cast<double>(1e-3);
+    if (timestamp_d <= 1e-4) {
+      continue;
+    }
+    if (timestamp_d <= last_ts) {
+      continue;
+    }
+
+    if (timestamp_d < ApaParameters::GetInstance()
+                          .GetDatasetParameters()
+                          .min_dataset_timestamp ||
+        timestamp_d > ApaParameters::GetInstance()
+                          .GetDatasetParameters()
+                          .max_dataset_timestamp) {
+      continue;
+    }
+    last_ts = timestamp_d;
+    pose_data[timestamp_d] = Eigen::Vector3d(xx, yy, yaw);
+  }
+  file.close();
+  _pose_data = pose_data;
+  std::set<double> can_timestamp;
+
+  auto it0 = pose_data.begin();
+  auto it1 = it0;
+  ++it1;
+  while (it1 != pose_data.end()) {
+    double t0 = it0->first;
+    double t1 = it1->first;
+    double dt = 0.01;
+    while ((t0 + dt) < t1) {
+      can_timestamp.insert(t0 + dt);
+      dt += 0.01;
+    }
+
+    ++it0;
+    ++it1;
+  }
+  std::cout << "generating v and w\n";
+  std::vector<std::pair<double, Eigen::Vector3d>> pose_can;
+  for (auto it_ts = can_timestamp.begin(); it_ts != can_timestamp.end();
+       ++it_ts) {
+    double timestamp = *it_ts;
+    auto it_upper = pose_data.lower_bound(timestamp);
+    auto it_lower = it_upper;
+    --it_lower;
+
+    Eigen::Vector2d twb0 = it_lower->second.head(2);
+    Eigen::Vector2d twb1 = it_upper->second.head(2);
+    Eigen::Matrix3d Rwb0 =
+        Eigen::AngleAxisd(it_lower->second.z(), Eigen::Vector3d::UnitZ())
+            .toRotationMatrix();
+    Eigen::Matrix3d Rwb1 =
+        Eigen::AngleAxisd(it_upper->second.z(), Eigen::Vector3d::UnitZ())
+            .toRotationMatrix();
+    Eigen::Quaterniond qwb0(Rwb0);
+    Eigen::Quaterniond qwb1(Rwb1);
+
+    double ratio =
+        (timestamp - it_lower->first) / (it_upper->first - it_lower->first);
+    Eigen::Vector2d twb = twb0 + ratio * (twb1 - twb0);
+    Eigen::Quaterniond qwb = qwb0.slerp(ratio, qwb1);
+
+    Eigen::AngleAxisd axang;
+    axang.fromRotationMatrix(qwb.toRotationMatrix());
+    double yaw = axang.axis().z() > 0 ? axang.angle() : -axang.angle();
+    pose_can.push_back({timestamp, Eigen::Vector3d(twb.x(), twb.y(), yaw)});
+  }
+
+  for (size_t i = 1; i < pose_can.size() - 2; ++i) {
+    int j0 = i - 1;
+    int j1 = i + 1;
+    double ts0 = pose_can.at(j0).first;
+    double ts1 = pose_can.at(j1).first;
+
+    Eigen::Vector2d twb0 = pose_can.at(j0).second.head(2);
+    Eigen::Vector2d twb1 = pose_can.at(j1).second.head(2);
+
+    double yaw0 = pose_can.at(j0).second.z();
+    double yaw1 = pose_can.at(j1).second.z();
+
+    Eigen::Matrix3d Rwb0 =
+        Eigen::AngleAxisd(yaw0, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+    Eigen::Matrix3d Rwb1 =
+        Eigen::AngleAxisd(yaw1, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+
+    double diff = angle_diff(yaw1, yaw0);
+    double w = diff / (ts1 - ts0);
+    double v = (twb0 - twb1).norm() / (ts1 - ts0);
+    // v *= 0.95;
+
+    Eigen::Vector2d dir0 = Rwb0.col(0).head(2);
+    Eigen::Vector2d dir = (twb1 - twb0).normalized();
+    if (dir.dot(dir0) < 0) {
+      v *= -1;
+    }
+
+    Eigen::VectorXd odo_mea_data = Eigen::VectorXd::Zero(DATA_ROWS_ODO);
+    odo_mea_data[0] = v;
+    odo_mea_data[1] = w;
+    KinematicMea::Ptr odo_mea =
+        std::make_shared<OdoMea>(pose_can.at(i).first, odo_mea_data.data());
+    _mea_seq[pose_can.at(i).first].push_back(
+        {ReplaySensorType::REPLAY_TYPE_KINEMATIC, pose_can.at(i).first});
+    _kinematic_mea[pose_can.at(i).first].push_back(odo_mea);
+  }
+
+  std::cout << "========\n";
+}
+
 void FillbackDataLoader::load_pose_odo_meas(const std::string& pose_file,
                                             const std::string& can_file) {
   std::ifstream file(pose_file);
@@ -262,7 +394,7 @@ void FillbackDataLoader::load_pose_odo_meas(const std::string& pose_file,
     KinematicMea::Ptr odo_mea =
         std::make_shared<OdoMea>(pose_can.at(i).first, odo_mea_data.data());
     _mea_seq[pose_can.at(i).first].push_back(
-        ReplaySensorType::REPLAY_TYPE_KINEMATIC);
+        {ReplaySensorType::REPLAY_TYPE_KINEMATIC, pose_can.at(i).first});
     _kinematic_mea[pose_can.at(i).first].push_back(odo_mea);
   }
 
@@ -311,7 +443,8 @@ void FillbackDataLoader::load_odo_meas(const std::string& odo_mea_file) {
       KinematicMea::Ptr odo_mea =
           std::make_shared<OdoMea>(timestamp_d, odo_mea_data.data());
 
-      _mea_seq[timestamp_d].push_back(ReplaySensorType::REPLAY_TYPE_KINEMATIC);
+      _mea_seq[timestamp_d].push_back(
+          {ReplaySensorType::REPLAY_TYPE_KINEMATIC, timestamp_d});
       _kinematic_mea[timestamp_d].push_back(odo_mea);
     }
   }
@@ -364,6 +497,10 @@ void FillbackDataLoader::load_semantic_meas(
     long long timestamp = item["frameTimeStampNs"];
     double timestamp_d =
         static_cast<double>(timestamp) * static_cast<double>(1e-3);
+    if (timestamp_d < _kinematic_mea.begin()->first ||
+        timestamp_d > _kinematic_mea.rbegin()->first) {
+      continue;
+    }
     if (timestamp > 0) {
       auto quadParkingSlotList = item["quadParkingSlotList"];
       Eigen::VectorXd pose = interpolate_pose(timestamp_d, _pose_data);
@@ -387,6 +524,13 @@ void FillbackDataLoader::load_semantic_meas(
           Eigen::Vector2d corner_r_uv(slot["tr"]["x"], slot["tr"]["y"]);
           Eigen::Vector2d corner_l = conver_uv_to_vehicle(corner_l_uv);
           Eigen::Vector2d corner_r = conver_uv_to_vehicle(corner_r_uv);
+          Eigen::Vector2d dir = corner_r - corner_l;
+          dir.normalize();
+          corner_l += dir * 0.12;
+          corner_r -= dir * 0.12;
+
+          // std::cout << "slot width: " << (corner_l - corner_r).norm() <<
+          // std::endl;
 
           Eigen::MatrixXd mea = Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT,
                                                       DATA_COLS_PARKING_SLOT);
@@ -406,24 +550,27 @@ void FillbackDataLoader::load_semantic_meas(
                       << corner_r_w.x() << " " << corner_r_w.y();
               if (id = quadParkingSlotList.size() - 1) {
                 fout_lm << " ";
-              }
-              else {
+              } else {
                 fout_lm << std::endl;
               }
-              
+
               fout_lm.close();
             }
           }
 
-          SemanticMea::Ptr slot_mea =
-              std::make_shared<ParkingSlotMea>(timestamp_d, mea.data());
+          SemanticMea::Ptr slot_mea = std::make_shared<ParkingSlotMea>(
+              timestamp_d +
+                  ApaParameters::GetInstance().GetDatasetParameters().timedelay,
+              mea.data());
           _semantic_mea[timestamp_d].push_back(slot_mea);
           ++id;
         }
 
         if (_semantic_mea.count(timestamp_d)) {
-          _mea_seq[timestamp_d].push_back(
-              ReplaySensorType::REPLAY_TYPE_SEMANTIC);
+          _mea_seq[timestamp_d + ApaParameters::GetInstance()
+                                     .GetDatasetParameters()
+                                     .timedelay]
+              .push_back({ReplaySensorType::REPLAY_TYPE_SEMANTIC, timestamp_d});
         }
       }
     }

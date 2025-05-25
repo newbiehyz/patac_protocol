@@ -7,15 +7,25 @@
     "perception_sensing_range": 10.0
   },
   "estimator": {
-    "slot_mea_noise_x": 100.0,
-    "slot_mea_noise_y": 100.0,
+    "slot_mea_noise_x": 20.0,
+    "slot_mea_noise_y": 20.0,
     "odo_velocity_noise": 1.0,
     "odo_angular_velocity_noise": 0.5,
     "slot_matching_dist_thresh": 1.5,
     "slot_matching_angle_thresh": 0.3,
     "slot_min_tracking_times": 3,
-    "max_tracking_time": 2.0,
-    "slot_local_map_range": 40.0,
-    "export_debug_file": false
+    "margin_tracking_time": 20.0,
+    "slot_local_map_range": 10.0,
+    "duplicate_slot_thresh": 1.0,
+    "export_debug_file": false,
+    "use_time_compensate": false
+  },
+  "fillback": {
+    "pose_min_timestamp": 1746770825.0,
+    "pose_max_timestamp": 1746770858.0,
+    "timedelay": 0.0
   }
+
+
+
 }

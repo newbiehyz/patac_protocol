@@ -43,9 +43,9 @@ int main(int argc, char** argv) {
     if (type == ReplaySensorType::REPLAY_TYPE_KINEMATIC) {
       auto kinematic_meas = loader->GetKinematicMeas(timestamp);
 
-      // std::cout << "=============KINAMATIC================ " <<
-      // std::setprecision(20) << timestamp
-      // << std::endl;
+      std::cout << "=============KINAMATIC================ " <<
+      std::setprecision(20) <<  " " << timestamp << " " <<  kinematic_meas.at(0)->GetMeaData().transpose()
+      << std::endl;
       estimator.InputKinematicMea(timestamp, kinematic_meas);
       std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
@@ -57,7 +57,6 @@ int main(int argc, char** argv) {
                 << semantic_meas.size() << " ----- " << std::setprecision(20)
                 << timestamp << std::endl;
       estimator.InputSemanticMea(timestamp, semantic_meas);
-      // getchar();
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 

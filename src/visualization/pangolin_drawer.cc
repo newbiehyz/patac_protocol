@@ -151,17 +151,17 @@ void PangolinDrawer::draw_local_map(const Pose& pose) {
   }
 
   const auto& matching = EkfEstimator::GetInstance().GetLatestMatching();
-  for (auto it = matching.begin(); it != matching.end(); ++it) {
-    switch (it->first) {
-      case SensorType::SEMANTIC_TYPE_PARKING_SLOT: {
-        draw_matching(it->first, pose, slot_map, matching.at(it->first));
-        break;
-      }
+  // for (auto it = matching.begin(); it != matching.end(); ++it) {
+  //   switch (it->first) {
+  //     case SensorType::SEMANTIC_TYPE_PARKING_SLOT: {
+  //       draw_matching(it->first, pose, slot_map, matching.at(it->first));
+  //       break;
+  //     }
 
-      default:
-        break;
-    }
-  }
+  //     default:
+  //       break;
+  //   }
+  // }
 }
 
 void PangolinDrawer::draw_vehicle(const Pose& latest_pose,

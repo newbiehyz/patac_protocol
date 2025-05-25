@@ -42,6 +42,12 @@ struct SimulationParams {
   double perception_sensing_range;
 };
 
+struct DatasetParams {
+  double min_dataset_timestamp;
+  double max_dataset_timestamp;
+  double timedelay;
+};
+
 struct EstimatorParams {
   double slot_mea_noise_x;
   double slot_mea_noise_y;
@@ -54,6 +60,7 @@ struct EstimatorParams {
   int slot_min_tracking_times;
   double margin_tracking_time;
   bool export_debug_file;
+  bool use_time_compensate;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };

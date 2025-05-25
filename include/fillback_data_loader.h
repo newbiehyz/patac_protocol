@@ -61,6 +61,7 @@ class FillbackDataLoader {
   void load_odo_meas(const std::string& odo_mea_file);
   void load_pose_odo_meas(const std::string& pose_file,
                           const std::string& can_file);
+  void load_pose_odo_meas2(const std::string& pose_file);
   double get_angular_velocity(const double velocity,
                               const double steering_angle, const int gear);
   Eigen::Vector2d conver_uv_to_vehicle(const Eigen::Vector2d& uv);
@@ -69,8 +70,8 @@ class FillbackDataLoader {
   Eigen::VectorXd interpolate_pose(const double timestamp, const std::map<double, Eigen::Vector3d> &pose_data);
   std::map<double, std::vector<SemanticMea::Ptr>> _semantic_mea;
   std::map<double, std::vector<KinematicMea::Ptr>> _kinematic_mea;
-  std::map<double, std::vector<ReplaySensorType>> _mea_seq;
-  std::map<double, std::vector<ReplaySensorType>>::iterator _mea_it;
+  std::map<double, std::vector<std::pair<ReplaySensorType, double>>> _mea_seq;
+  std::map<double, std::vector<std::pair<ReplaySensorType, double>>>::iterator _mea_it;
 
   std::map<double, Eigen::Vector3d> _pose_data;
   int _mea_id{0};

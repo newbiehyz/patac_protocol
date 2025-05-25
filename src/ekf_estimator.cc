@@ -21,6 +21,55 @@ void EkfEstimator::Init() {
   EKFManagement::GetInstance().Init();
 }
 
+bool EkfEstimator::ProcDrPose(double ts, const Pose &pose, double &ts_out,
+                              double &v_out, double &w_out) {
+  if (_dr_pose.size() < 3) {
+    _dr_pose.push_back(pose);
+    _dr_timestamp.push_back(ts);
+    return false;
+  } else {
+    double ts0 = _dr_timestamp[0];
+    double ts1 = _dr_timestamp[2];
+
+    Eigen::Vector2d twb0(_dr_pose[0].x, _dr_pose[0].y);
+    Eigen::Vector2d twb1(_dr_pose[2].x, _dr_pose[2].y);
+    Eigen::Matrix3d Rwb0 =
+        Eigen::AngleAxisd(_dr_pose[0].yaw, Eigen::Vector3d::UnitZ())
+            .toRotationMatrix();
+    Eigen::Matrix3d Rwb1 =
+        Eigen::AngleAxisd(_dr_pose[2].yaw, Eigen::Vector3d::UnitZ())
+            .toRotationMatrix();
+
+    double diff = angle_diff(_dr_pose[0].yaw, _dr_pose[2].yaw);
+
+    w_out = diff / (ts1 - ts0);
+    v_out = (twb0 - twb1).norm() / (ts1 - ts0);
+    ts_out = _dr_timestamp[1];
+
+    Eigen::Vector2d dir0 = Rwb0.col(0).head(2);
+    Eigen::Vector2d dir = (twb1 - twb0).normalized();
+    if (dir.dot(dir0) < 0) {
+      v_out *= -1;
+    }
+
+    std::swap(_dr_timestamp[0], _dr_timestamp[1]);
+    std::swap(_dr_timestamp[1], _dr_timestamp[2]);
+
+    std::swap(_dr_pose[0], _dr_pose[1]);
+    std::swap(_dr_pose[1], _dr_pose[2]);
+
+    _dr_pose[2] = pose;
+    _dr_timestamp[2] = ts;
+
+    return true;
+  }
+}
+
+void EkfEstimator::Reset() {
+  // clear map
+  SemanticMap::GetInstance().ClearMap();
+}
+
 double EkfEstimator::GetLatestTimestamp() {
   std::lock_guard<std::mutex> lock(_data_mutex);
   return _ts;
@@ -35,6 +84,13 @@ const std::map<SensorType, std::vector<int>>
 Eigen::MatrixXd EkfEstimator::GetLatestCovariance() {
   std::lock_guard<std::mutex> lock(_data_mutex);
   return _cov;
+}
+
+double EkfEstimator::angle_diff(double angle1, double angle2) {
+  double diff = angle1 - angle2;
+  while (diff > M_PI) diff -= 2 * M_PI;
+  while (diff < -M_PI) diff += 2 * M_PI;
+  return diff;
 }
 
 Pose EkfEstimator::GetLatestPose() {
@@ -55,7 +111,6 @@ EkfEstimator &EkfEstimator::GetInstance() {
 void EkfEstimator::InputSemanticMea(
     const double ts, const std::vector<SemanticMea::Ptr> &semantic_meas) {
   auto start = std::chrono::steady_clock::now();
-
 
   if (!this->Initialized()) {
     return;
@@ -230,8 +285,8 @@ void EkfEstimator::InputKinematicMea(
       std::chrono::duration_cast<std::chrono::microseconds>(end - start)
           .count();
 
-  std::cout << "Propagation Duration: " << duration << " MicroSeconds"
-            << std::endl;
+  // std::cout << "Propagation Duration: " << duration << " MicroSeconds"
+  // << std::endl;
 }
 
 bool EkfEstimator::Initialized() const { return _initialized; }

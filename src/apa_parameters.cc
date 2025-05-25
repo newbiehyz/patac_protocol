@@ -48,9 +48,8 @@ void ApaParameters::printout_parameters() {
             << _est_params.slot_local_map_range << std::endl;
   std::cout << "estimator.export_debug_file: " << _est_params.export_debug_file
             << std::endl;
-  std::cout << "estimator.duplicate_slot_thresh: " << _est_params.duplicate_slot_thresh
-            << std::endl;
-
+  std::cout << "estimator.duplicate_slot_thresh: "
+            << _est_params.duplicate_slot_thresh << std::endl;
 }
 
 const SimulationParams &ApaParameters::GetSimulationParameters() {
@@ -59,6 +58,10 @@ const SimulationParams &ApaParameters::GetSimulationParameters() {
 
 const EstimatorParams &ApaParameters::GetEstimatorParamters() {
   return _est_params;
+}
+
+const DatasetParams &ApaParameters::GetDatasetParameters() {
+  return _dataset_params;
 }
 
 bool ApaParameters::LoadParameters(const std::string &json_file) {
@@ -86,12 +89,23 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.slot_min_tracking_times =
         data["estimator"]["slot_min_tracking_times"];
 
-    _est_params.margin_tracking_time = data["estimator"]["margin_tracking_time"];
+    _est_params.margin_tracking_time =
+        data["estimator"]["margin_tracking_time"];
     _est_params.slot_local_map_range =
         data["estimator"]["slot_local_map_range"];
     _est_params.export_debug_file = data["estimator"]["export_debug_file"];
+    _est_params.use_time_compensate =
+        data["estimator"]["use_time_compensate"];
+
     _est_params.duplicate_slot_thresh =
         data["estimator"]["duplicate_slot_thresh"];
+
+    _dataset_params.min_dataset_timestamp =
+        data["fillback"]["pose_min_timestamp"];
+    _dataset_params.max_dataset_timestamp =
+        data["fillback"]["pose_max_timestamp"];
+
+    _dataset_params.timedelay = data["fillback"]["timedelay"];
 
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;
