@@ -106,11 +106,11 @@ bool SemanticMap::GetFullLocalMap(
     double distance = (Eigen::Vector2d(pose.x, pose.y) - corner).norm();
     if (distance < range) {
       local_map.push_back(it_lm->second);
-      std::cout << "local map id: " << it_lm->first << " |||| \n"
-                << it_lm->second->GetLandmarkData().col(0).head(2).transpose()
-                << std::endl
-                << it_lm->second->GetLandmarkData().col(1).head(2).transpose()
-                << std::endl;
+      // std::cout << "local map id: " << it_lm->first << " |||| \n"
+      //           << it_lm->second->GetLandmarkData().col(0).head(2).transpose()
+      //           << std::endl
+      //           << it_lm->second->GetLandmarkData().col(1).head(2).transpose()
+      //           << std::endl;
     }
   }
 

@@ -14,4 +14,6 @@ KinematicMea::KinematicMea(const SensorType &type, const double timestamp)
 
 SensorType KinematicMea::GetKineticMeaType() { return _type; }
 
+double KinematicMea::GetMeaTimestamp() { return _timestamp; }
+
 }  // namespace apa_slam

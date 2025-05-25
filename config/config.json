@@ -23,7 +23,7 @@
   "fillback": {
     "pose_min_timestamp": 1746770825.0,
     "pose_max_timestamp": 1746770858.0,
-    "timedelay": 0.0
+    "timedelay": 0.2
   }
 
 

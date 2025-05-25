@@ -25,13 +25,13 @@ void FillbackDataLoader::LoadDataSet(const std::string& dataset_path) {
 
   _mea_it = _mea_seq.begin();
 }
-bool FillbackDataLoader::PopOutMea(ReplaySensorType& type, double& ts) {
+bool FillbackDataLoader::PopOutMea(ReplaySensorType& type, double& arriving_ts, double &sensor_ts) {
   if (_mea_it == _mea_seq.end()) {
     return false;
   }
-
+  arriving_ts = _mea_it->first;
   type = _mea_it->second.at(_mea_id).first;
-  ts = _mea_it->second.at(_mea_id).second;
+  sensor_ts = _mea_it->second.at(_mea_id).second;
   if (_mea_id == _mea_it->second.size() - 1) {
     _mea_id = 0;
     ++_mea_it;
@@ -492,7 +492,7 @@ void FillbackDataLoader::load_semantic_meas(
   std::ifstream file(semantic_mea_file);
   json j;
   file >> j;  // Parse JSON
-
+  long long last_timestamp = -1;
   for (const auto& item : j) {
     long long timestamp = item["frameTimeStampNs"];
     double timestamp_d =
@@ -501,6 +501,12 @@ void FillbackDataLoader::load_semantic_meas(
         timestamp_d > _kinematic_mea.rbegin()->first) {
       continue;
     }
+
+    if (timestamp == last_timestamp) {
+      last_timestamp = timestamp;
+      continue;
+    }
+
     if (timestamp > 0) {
       auto quadParkingSlotList = item["quadParkingSlotList"];
       Eigen::VectorXd pose = interpolate_pose(timestamp_d, _pose_data);
@@ -559,8 +565,7 @@ void FillbackDataLoader::load_semantic_meas(
           }
 
           SemanticMea::Ptr slot_mea = std::make_shared<ParkingSlotMea>(
-              timestamp_d +
-                  ApaParameters::GetInstance().GetDatasetParameters().timedelay,
+              timestamp_d,
               mea.data());
           _semantic_mea[timestamp_d].push_back(slot_mea);
           ++id;
@@ -574,6 +579,7 @@ void FillbackDataLoader::load_semantic_meas(
         }
       }
     }
+    last_timestamp = timestamp;
   }
 }
 }  // namespace apa_slam

@@ -53,7 +53,7 @@ class FillbackDataLoader {
   typedef std::shared_ptr<FillbackDataLoader> Ptr;
   FillbackDataLoader();
   void LoadDataSet(const std::string& dataset_path);
-  bool PopOutMea(ReplaySensorType& type, double& ts);
+  bool PopOutMea(ReplaySensorType& type, double& arriving_ts, double &sensor_ts);
   std::vector<SemanticMea::Ptr> GetSemanticMeas(const double timestamp);
   std::vector<KinematicMea::Ptr> GetKinematicMeas(const double timestamp);
 

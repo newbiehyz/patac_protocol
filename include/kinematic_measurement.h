@@ -19,6 +19,7 @@ class KinematicMea {
   typedef std::shared_ptr<KinematicMea> Ptr;
   KinematicMea(const SensorType &type, const double timestamp);
   SensorType GetKineticMeaType();
+  double GetMeaTimestamp();
   virtual ~KinematicMea() = default;
   virtual Eigen::VectorXd GetMeaData() = 0;
   virtual void AddNoise() = 0;
