@@ -109,7 +109,7 @@ void EkfEstimator::udp() {
     net_data.pose[0] = latest_x.x();
     net_data.pose[1] = latest_x.y();
     net_data.pose[2] = latest_x.z();
-
+    net_data.slot_num = 0;
     int max_slot_num = sizeof(net_data.slot_corners);
     int num = 0;
 
@@ -121,16 +121,16 @@ void EkfEstimator::udp() {
         auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
         Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
         int id = it->second->GetId();
-        net_data.slot_corners[8 * num] = slot_data(0, 0);
-        net_data.slot_corners[8 * num + 1] = slot_data(1, 0);
-        net_data.slot_corners[8 * num + 2] = slot_data(0, 1);
-        net_data.slot_corners[8 * num + 3] = slot_data(1, 1);
-        net_data.slot_corners[8 * num + 4] = slot_data(0, 2);
-        net_data.slot_corners[8 * num + 5] = slot_data(1, 2);
-        net_data.slot_corners[8 * num + 6] = slot_data(0, 3);
-        net_data.slot_corners[8 * num + 6] = slot_data(1, 3);
-        ++num;
-        if (num == max_slot_num - 1) {
+        net_data.slot_corners[8 * net_data.slot_num] = slot_data(0, 0);
+        net_data.slot_corners[8 * net_data.slot_num + 1] = slot_data(1, 0);
+        net_data.slot_corners[8 * net_data.slot_num + 2] = slot_data(0, 1);
+        net_data.slot_corners[8 * net_data.slot_num + 3] = slot_data(1, 1);
+        net_data.slot_corners[8 * net_data.slot_num + 4] = slot_data(0, 2);
+        net_data.slot_corners[8 * net_data.slot_num + 5] = slot_data(1, 2);
+        net_data.slot_corners[8 * net_data.slot_num + 6] = slot_data(0, 3);
+        net_data.slot_corners[8 * net_data.slot_num + 7] = slot_data(1, 3);
+        ++net_data.slot_num;
+        if (net_data.slot_num == max_slot_num - 1) {
           break;
         }
       }
