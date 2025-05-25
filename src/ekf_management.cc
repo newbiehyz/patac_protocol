@@ -31,11 +31,12 @@ EKFManagement &EKFManagement::GetInstance() {
   return instance;
 }
 
-bool EKFManagement::GetLatestVechileState(Eigen::VectorXd &mean,
-                                          Eigen::MatrixXd &cov) {
+bool EKFManagement::GetLatestVechileState(double &timestamp, Eigen::VectorXd &mean,
+                             Eigen::MatrixXd &cov) {
   if (!_initialized) {
     return false;
   }
+  timestamp = _ts;
   mean = _vehicle_state;
   cov = _vehicle_cov;
 

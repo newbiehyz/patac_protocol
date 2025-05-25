@@ -130,7 +130,8 @@ void EkfEstimator::InputSemanticMea(
   EKFManagement::GetInstance().Update(_mean, _cov, ts);
   Eigen::VectorXd latest_mean;
   Eigen::MatrixXd latest_cov;
-  if (EKFManagement::GetInstance().GetLatestVechileState(latest_mean,
+  double latest_timestamp;
+  if (EKFManagement::GetInstance().GetLatestVechileState(latest_timestamp, latest_mean,
                                                          latest_cov)) {
     _mean = latest_mean;
     _cov = latest_cov;
@@ -274,7 +275,8 @@ void EkfEstimator::InputKinematicMea(
   }
   Eigen::VectorXd latest_mean;
   Eigen::MatrixXd latest_cov;
-  if (EKFManagement::GetInstance().GetLatestVechileState(latest_mean,
+  double latest_timestamp;
+  if (EKFManagement::GetInstance().GetLatestVechileState(latest_timestamp, latest_mean,
                                                          latest_cov)) {
     _mean = latest_mean;
     _cov = latest_cov;

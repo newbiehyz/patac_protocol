@@ -88,7 +88,8 @@ class EKFManagement {
               const double timestamp);
   void ClearList();
 
-  bool GetLatestVechileState(Eigen::VectorXd &mean, Eigen::MatrixXd &cov);
+  bool GetLatestVechileState(double &timestamp, Eigen::VectorXd &mean,
+                             Eigen::MatrixXd &cov);
 
  private:
   void state_augmentation(
