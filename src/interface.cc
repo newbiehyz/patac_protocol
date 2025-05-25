@@ -48,13 +48,15 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
     return false;
   }
 
-  auto vehicle_pose =EkfEstimator::GetInstance().GetLatestPose();
-  pose = Eigen::VectorXd::Zero(3);
-  pose[0] = vehicle_pose.x;
-  pose[1] = vehicle_pose.y;
-  pose[2] = vehicle_pose.yaw;
+  Eigen::VectorXd x;
+  Eigen::MatrixXd P;
+  double timestamp;
+  if (EkfEstimator::GetInstance().GetLatestVechileState(timestamp, x, P)) {
+    pose = x;
+    return true;
+  }
 
-  return true;
+  return false;
 }
 
 }  // namespace apa_slam

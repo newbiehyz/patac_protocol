@@ -19,6 +19,17 @@ void EkfEstimator::Init() {
   SemanticMap::GetInstance().ClearMap();
 
   EKFManagement::GetInstance().Init();
+
+  if (ApaParameters::GetInstance().GetDatasetParameters().use_udp) {
+    _socket = socket(AF_INET, SOCK_DGRAM, 0);
+    _server_addr.sin_family = AF_INET;
+    _server_addr.sin_port =
+        htons(ApaParameters::GetInstance().GetDatasetParameters().udp_port);
+    inet_pton(
+        AF_INET,
+        ApaParameters::GetInstance().GetDatasetParameters().udp_ip.c_str(),
+        &_server_addr.sin_addr);
+  }
 }
 
 bool EkfEstimator::GetLatestVechileState(double &timestamp,
@@ -82,6 +93,22 @@ double EkfEstimator::angle_diff(double angle1, double angle2) {
   while (diff > M_PI) diff -= 2 * M_PI;
   while (diff < -M_PI) diff += 2 * M_PI;
   return diff;
+}
+
+void EkfEstimator::udp() {
+  double latest_ts;
+  Eigen::VectorXd latest_x;
+  Eigen::MatrixXd latest_P;
+  if (EKFManagement::GetInstance().GetLatestVechileState(latest_ts, latest_x,
+                                                         latest_P)) {
+    UdpData net_data;
+    net_data.pose[0] = latest_x.x();
+    net_data.pose[1] = latest_x.y();
+    net_data.pose[2] = latest_x.z();
+
+    
+
+  }
 }
 
 EkfEstimator &EkfEstimator::GetInstance() {
@@ -297,6 +324,9 @@ void EkfEstimator::process_odo_mea(const double ts,
     if (fabs(_dr_buf.begin()->first - _dr_buf.rbegin()->first) >
         ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
       _dr_buf.erase(_dr_buf.begin());
+    }
+    if (ApaParameters::GetInstance().GetDatasetParameters().use_udp) {
+      udp();
     }
   }
 }

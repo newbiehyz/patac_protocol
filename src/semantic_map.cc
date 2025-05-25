@@ -33,11 +33,6 @@ bool SemanticMap::HasLandmark(const SensorType type, const int id) {
   return true;
 }
 
-// const SemanticLandmark::Ptr SemanticMap::GetLandmark(const SensorType& type,
-//                                                      const int& id) {
-//                                                       return _map
-//                                                      }
-
 bool SemanticMap::HasMap(const SensorType type) const {
   return _map.count(type);
 }

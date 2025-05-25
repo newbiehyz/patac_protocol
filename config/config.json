@@ -19,12 +19,16 @@
     "duplicate_slot_thresh": 1.0,
     "export_debug_file": false,
     "use_time_compensate": true,
-    "buf_len": 5.0
+    "buf_len": 5.0,
+    "slot_length": 5.0
   },
   "fillback": {
     "pose_min_timestamp": 1746770825.0,
     "pose_max_timestamp": 1746770858.0,
-    "timedelay": 0.8
+    "timedelay": 0.5,
+    "use_udp:": true,
+    "network_ip": "192.168.1.102",
+    "port": 8888
   }
 
 

@@ -106,8 +106,11 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
         data["fillback"]["pose_min_timestamp"];
     _dataset_params.max_dataset_timestamp =
         data["fillback"]["pose_max_timestamp"];
-
     _dataset_params.timedelay = data["fillback"]["timedelay"];
+    _dataset_params.use_udp = data["fillback"]["use_udp"];
+    _dataset_params.udp_ip = data["fillback"]["network_ip"];
+    _dataset_params.udp_port = data["fillback"]["port"];
+
 
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;

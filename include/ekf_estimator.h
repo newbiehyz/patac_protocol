@@ -15,6 +15,9 @@
 #include <mutex>
 #include <unordered_map>
 
+#include <arpa/inet.h>
+#include <unistd.h>
+
 #include "ekf_management.h"
 #include "kinematic_measurement.h"
 #include "map_management.h"
@@ -71,6 +74,8 @@ class EkfEstimator {
 
   double angle_diff(double angle1, double angle2);
 
+  void udp();
+
   std::mutex _data_mutex;
 
   std::unordered_map<SensorType, TrackerBase::Ptr> _tracker_pools;
@@ -79,5 +84,11 @@ class EkfEstimator {
 
   std::vector<Pose> _dr_pose;
   std::vector<double> _dr_timestamp;
+
+
+  // socket debug
+  int _socket;
+  sockaddr_in _server_addr;
+
 };
 }  // namespace apa_slam

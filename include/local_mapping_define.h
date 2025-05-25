@@ -48,6 +48,9 @@ struct DatasetParams {
   double min_dataset_timestamp;
   double max_dataset_timestamp;
   double timedelay;
+  bool use_udp;
+  std::string udp_ip;
+  int udp_port;
 };
 
 struct EstimatorParams {
@@ -88,7 +91,14 @@ struct DrInfo {
   double angular_velocity;
 };
 
-
+struct UdpData {
+  float pose[3];
+  float timestamp;
+  float slot_corners[200];
+  char status[50];
+  int32_t char_num;
+  int8_t slot_num;
+};
 
 struct FilterInfo {
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
