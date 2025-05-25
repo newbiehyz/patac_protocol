@@ -81,15 +81,19 @@ void PangolinDrawer::DrawAPA() {
   std::map<SensorType, std::vector<SemanticMea::Ptr>> cur_meas;
   std::map<SensorType, std::vector<int>> cur_matching;
   if (EkfEstimator::GetInstance().Initialized()) {
-    const Pose& latest_pose = EkfEstimator::GetInstance().GetLatestPose();
-    const Eigen::MatrixXd latest_cov =
-        EkfEstimator::GetInstance().GetLatestCovariance();
+    Eigen::VectorXd x;
+    Eigen::MatrixXd P;
+    double ts;
+    EkfEstimator::GetInstance().GetLatestVechileState(ts, x, P);
+    Pose pose;
+    pose.x = x.x();
+    pose.y = x.y();
+    pose.yaw = x.z();
 
-    double timestamp = EkfEstimator::GetInstance().GetLatestTimestamp();
-    this->draw_vehicle(latest_pose, latest_cov);
+    this->draw_vehicle(pose, P);
     this->draw_traj();
-    _traj.insert({timestamp, latest_pose});
-    draw_local_map(latest_pose);
+    _traj.insert({ts, pose});
+    draw_local_map(pose);
   }
 }
 
@@ -150,18 +154,7 @@ void PangolinDrawer::draw_local_map(const Pose& pose) {
     }
   }
 
-  const auto& matching = EkfEstimator::GetInstance().GetLatestMatching();
-  // for (auto it = matching.begin(); it != matching.end(); ++it) {
-  //   switch (it->first) {
-  //     case SensorType::SEMANTIC_TYPE_PARKING_SLOT: {
-  //       draw_matching(it->first, pose, slot_map, matching.at(it->first));
-  //       break;
-  //     }
 
-  //     default:
-  //       break;
-  //   }
-  // }
 }
 
 void PangolinDrawer::draw_vehicle(const Pose& latest_pose,

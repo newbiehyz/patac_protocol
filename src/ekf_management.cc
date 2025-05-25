@@ -52,12 +52,9 @@ bool EKFManagement::Initialized() { return _initialized; }
 
 void EKFManagement::ClearList() { _lm_state_list.clear(); }
 
-void EKFManagement::Update(const Eigen::VectorXd &state_mean,
-                           const Eigen::MatrixXd &state_P,
-                           const double timestamp) {
+void EKFManagement::Update(const double timestamp) {
   std::cout << "Update At: " << timestamp << std::endl;
-  _vehicle_x = state_mean;
-  _vehicle_P = state_P;
+  
   std::map<SensorType, std::set<int>> augmentation_list;
   std::map<SensorType, std::set<int>> update_list;
   std::map<SensorType, std::set<int>> marginalization_list;

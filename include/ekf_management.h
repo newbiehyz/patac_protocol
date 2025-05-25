@@ -80,14 +80,15 @@ class EKFManagement {
   static EKFManagement &GetInstance();
   void Propagate(const double timestamp_d, const double v, const double w);
 
-  void Update(const Eigen::VectorXd &state_mean, const Eigen::MatrixXd &state_P,
-              const double timestamp);
+  void Update(const double timestamp);
+  
   void ClearList();
 
   bool GetLatestVechileState(double &timestamp, Eigen::VectorXd &mean,
                              Eigen::MatrixXd &cov);
 
   bool Initialized();
+
  private:
   void state_augmentation(
       const std::map<SensorType, std::set<int>> &augmentation_list);
@@ -129,8 +130,6 @@ class EKFManagement {
   Eigen::MatrixXd _N;  // odo measurement
 
   std::unordered_map<SensorType, std::set<int>> _lm_state_list;  // full state
-
-
 
   Eigen::VectorXd _vehicle_x;
   Eigen::MatrixXd _vehicle_P;

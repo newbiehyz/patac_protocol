@@ -33,21 +33,16 @@ class EkfEstimator {
 
   void Init();
 
+  bool GetLatestVechileState(double& timestamp, Eigen::VectorXd& mean,
+                             Eigen::MatrixXd& cov);
+
   void InputSemanticMea(const double ts,
                         const std::vector<SemanticMea::Ptr>& semantic_meas);
 
   void InputKinematicMea(const double ts,
                          const std::vector<KinematicMea::Ptr>& kinetic_meas);
 
-  Pose GetLatestPose();
-
-  Eigen::MatrixXd GetLatestCovariance();
-
   bool Initialized() const;
-
-  double GetLatestTimestamp();
-
-  const std::map<SensorType, std::vector<int>>& GetLatestMatching();
 
   void Reset();
 
@@ -76,17 +71,11 @@ class EkfEstimator {
 
   double angle_diff(double angle1, double angle2);
 
-  double _ts;
-  Eigen::VectorXd _mean;
-  Eigen::MatrixXd _cov;
-  bool _initialized{false};
   std::mutex _data_mutex;
 
   std::unordered_map<SensorType, TrackerBase::Ptr> _tracker_pools;
 
   std::map<double, DrInfo> _dr_buf;
-
-  std::map<SensorType, std::vector<int>> _last_matching;
 
   std::vector<Pose> _dr_pose;
   std::vector<double> _dr_timestamp;
