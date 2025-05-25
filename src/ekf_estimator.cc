@@ -99,6 +99,10 @@ void EkfEstimator::udp() {
   double latest_ts;
   Eigen::VectorXd latest_x;
   Eigen::MatrixXd latest_P;
+
+  if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
+    return;
+  }
   if (EKFManagement::GetInstance().GetLatestVechileState(latest_ts, latest_x,
                                                          latest_P)) {
     UdpData net_data;
@@ -106,8 +110,33 @@ void EkfEstimator::udp() {
     net_data.pose[1] = latest_x.y();
     net_data.pose[2] = latest_x.z();
 
-    
+    int max_slot_num = sizeof(net_data.slot_corners);
+    int num = 0;
 
+    const auto &slot_map =
+        SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
+    for (auto it = slot_map.rbegin(); it != slot_map.rend(); ++it) {
+      if (it->second->Initialized()) {
+        // Eigen::MatrixXd data = it->second->GetLandmarkData();
+        auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
+        Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
+        int id = it->second->GetId();
+        net_data.slot_corners[8 * num] = slot_data(0, 0);
+        net_data.slot_corners[8 * num + 1] = slot_data(1, 0);
+        net_data.slot_corners[8 * num + 2] = slot_data(0, 1);
+        net_data.slot_corners[8 * num + 3] = slot_data(1, 1);
+        net_data.slot_corners[8 * num + 4] = slot_data(0, 2);
+        net_data.slot_corners[8 * num + 5] = slot_data(1, 2);
+        net_data.slot_corners[8 * num + 6] = slot_data(0, 3);
+        net_data.slot_corners[8 * num + 6] = slot_data(1, 3);
+        ++num;
+        if (num == max_slot_num - 1) {
+          break;
+        }
+      }
+    }
+    sendto(_socket, reinterpret_cast<char *>(&net_data), sizeof(net_data), 0,
+           (sockaddr *)&_server_addr, sizeof(_server_addr));
   }
 }
 

@@ -35,6 +35,8 @@ void PangolinDrawer::draw_parking_slot(const int& id,
   glColor3f(.0f, 1.0f, 0.0f);
   glVertex3f(data.col(0).x(), data.col(0).y(), .0f);
   glVertex3f(data.col(1).x(), data.col(1).y(), .0f);
+  glVertex3f(data.col(2).x(), data.col(2).y(), .0f);
+  glVertex3f(data.col(3).x(), data.col(3).y(), .0f);
   glEnd();
 
   glBegin(GL_POINTS);
@@ -43,6 +45,19 @@ void PangolinDrawer::draw_parking_slot(const int& id,
   glVertex3f(pt.x(), pt.y(), .0f);
   glEnd();
 
+  glColor3f(.0f, .0f, 1.0f);
+  glLineWidth(2.0);
+  glBegin(GL_LINE_STRIP);
+  
+  glVertex3f(data.col(1).x(), data.col(1).y(), .0f);
+  glVertex3f(data.col(2).x(), data.col(2).y(), .0f);
+  glVertex3f(data.col(3).x(), data.col(3).y(), .0f);
+  glVertex3f(data.col(0).x(), data.col(0).y(), .0f);
+
+  glEnd();
+
+
+  glColor3f(1.0f, 1.0f, 1.0f);
   _font->Text(std::to_string(id)).Draw(0.5 + pt.x(), 0.5 + pt.y());
 }
 
@@ -117,7 +132,6 @@ void PangolinDrawer::draw_parking_slot_matching(
       glColor3f(.0f, .0f, 1.0f);
       pangolin::glDrawCirclePerimeter(pt0_w.x(), pt0_w.y(), 0.5);
       pangolin::glDrawCirclePerimeter(pt1_w.x(), pt1_w.y(), 0.5);
-
     }
   }
 }
@@ -148,13 +162,13 @@ void PangolinDrawer::draw_local_map(const Pose& pose) {
       SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
   for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
     if (it->second->Initialized()) {
-      Eigen::MatrixXd data = it->second->GetLandmarkData();
+      // Eigen::MatrixXd data = it->second->GetLandmarkData();
+      auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
+      Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
       int id = it->second->GetId();
-      draw_parking_slot(id, data);
+      draw_parking_slot(id, slot_data);
     }
   }
-
-
 }
 
 void PangolinDrawer::draw_vehicle(const Pose& latest_pose,

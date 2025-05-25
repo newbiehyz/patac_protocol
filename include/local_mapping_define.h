@@ -67,6 +67,7 @@ struct EstimatorParams {
   bool export_debug_file;
   bool use_time_compensate;
   double buf_len;
+  double slot_len;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };
@@ -94,9 +95,7 @@ struct DrInfo {
 struct UdpData {
   float pose[3];
   float timestamp;
-  float slot_corners[200];
-  char status[50];
-  int32_t char_num;
+  float slot_corners[320];
   int8_t slot_num;
 };
 

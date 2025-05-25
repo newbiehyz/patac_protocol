@@ -38,6 +38,8 @@ class ParkingSlotLandmark : public SemanticLandmark {
   Eigen::VectorXd ComputeMatchingResidual(const Eigen::VectorXd& pose,
                                           const SemanticMea::Ptr& mea);
 
+  Eigen::MatrixXd ConstructFullSlot();
+
  private:
   Eigen::MatrixXd _data;
 };

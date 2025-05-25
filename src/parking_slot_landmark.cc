@@ -126,6 +126,22 @@ void ParkingSlotLandmark::SetMean(const Eigen::VectorXd& mean) {
   _data.col(1).head(2) = mean.tail(2);
 }
 
+Eigen::MatrixXd ParkingSlotLandmark::ConstructFullSlot() {
+  Eigen::Vector2d dir =
+      (_data.col(0).head(2) - _data.col(1).head(2)).normalized();
+  Eigen::Vector2d dir_inner(-dir.y(), dir.x());
+  Eigen::MatrixXd data_slot = Eigen::MatrixXd::Zero(2, 4);
+  data_slot.leftCols(2) = _data;
+  data_slot.col(2) =
+      _data.col(1).head(2) +
+      dir_inner * ApaParameters::GetInstance().GetEstimatorParamters().slot_len;
+  data_slot.col(3) =
+      _data.col(0).head(2) +
+      dir_inner * ApaParameters::GetInstance().GetEstimatorParamters().slot_len;
+
+  return data_slot;
+}
+
 Eigen::VectorXd ParkingSlotLandmark::ComputeMatchingResidual(
     const Eigen::VectorXd& pose, const SemanticMea::Ptr& mea) {
   Eigen::VectorXd matching_residual = Eigen::VectorXd::Zero(2);
