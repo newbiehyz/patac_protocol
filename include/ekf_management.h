@@ -18,58 +18,6 @@
 #include "matrix_plot.h"
 #include "semantic_map.h"
 
-struct CrossCorrelationId {
-  apa_slam::SensorType type;
-  int id;
-  CrossCorrelationId() = default;
-  CrossCorrelationId(apa_slam::SensorType t, int i) : type(t), id(i) {}
-
-  bool operator==(const CrossCorrelationId &other) const {
-    return type == other.type && id == other.id;
-  }
-  bool operator<(const CrossCorrelationId &other) const {
-    return std::tie(type, id) < std::tie(other.type, other.id);
-  }
-};
-
-struct CrossCorrelationKey {
-  CrossCorrelationId first;
-  CrossCorrelationId second;
-  CrossCorrelationKey() = default;
-  CrossCorrelationKey(CrossCorrelationId f, CrossCorrelationId s) {
-    if (std::tie(f.type, f.id) < std::tie(s.type, s.id)) {
-      first = f;
-      second = s;
-    } else {
-      first = s;
-      second = f;
-    }
-  }
-
-  bool operator==(const CrossCorrelationKey &other) const {
-    auto [a1, b1] = std::minmax(first, second);
-    auto [a2, b2] = std::minmax(other.first, other.second);
-    return a1 == a2 && b1 == b2;
-  }
-};
-
-namespace std {
-template <>
-struct hash<CrossCorrelationId> {
-  size_t operator()(const CrossCorrelationId &k) const {
-    return hash<int>()(static_cast<int>(k.type)) ^ hash<int>()(k.id);
-  }
-};
-
-template <>
-struct hash<CrossCorrelationKey> {
-  size_t operator()(const CrossCorrelationKey &k) const {
-    return hash<CrossCorrelationId>()(k.first) ^
-           hash<CrossCorrelationId>()(k.second);
-  }
-};
-}  // namespace std
-
 namespace apa_slam {
 
 class EKFManagement {
@@ -81,7 +29,7 @@ class EKFManagement {
   void Propagate(const double timestamp_d, const double v, const double w);
 
   void Update(const double timestamp);
-  
+
   void ClearList();
 
   bool GetLatestVechileState(double &timestamp, Eigen::VectorXd &mean,
@@ -122,6 +70,9 @@ class EKFManagement {
   void update_mean_and_cov(
       const Eigen::VectorXd &x, const Eigen::MatrixXd &P,
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
+
+  void update_filter_info();
+
   std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
       _lm_cross_correlation;  // P_a_b  a=first b=second
   std::unordered_map<CrossCorrelationId, Eigen::MatrixXd>
@@ -138,5 +89,12 @@ class EKFManagement {
   double _ts;
 
   bool _initialized{false};
+
+  std::map<double, FilterInfo> _filter_infos;
+
+  std::map<double, Eigen::VectorXd> _odo_meas;
+
+
+  std::mutex _data_mutex;
 };
 }  // namespace apa_slam

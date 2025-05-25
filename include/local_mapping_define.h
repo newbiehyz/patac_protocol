@@ -10,7 +10,9 @@
 #pragma once
 
 #include <Eigen/Eigen>
-
+#include <set>
+#include <cstdint> 
+#include "cross_correlation_id.h"
 // x0 x1 x2 x3
 // y0 y1 y2 y3
 #define DATA_COLS_PARKING_SLOT 2
@@ -61,11 +63,12 @@ struct EstimatorParams {
   double margin_tracking_time;
   bool export_debug_file;
   bool use_time_compensate;
+  double buf_len;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };
 
-enum SensorType {
+enum SensorType : std::uint8_t {
   KINEMATIC_TYPE_ODO = 0,
   KINEMATIC_TYPE_IMU = 1,
   SEMANTIC_TYPE_PARKING_SLOT = 2,
@@ -83,6 +86,25 @@ struct DrInfo {
   Pose pose;
   double velocity;
   double angular_velocity;
+};
+
+
+
+struct FilterInfo {
+  std::unordered_map<CrossCorrelationKey, Eigen::MatrixXd>
+      lm_cross_correlation;  // P_a_b  a=first b=second
+  std::unordered_map<CrossCorrelationId, Eigen::MatrixXd>
+      state_lm_cross_correlation;  // P_state_lm
+
+  Eigen::MatrixXd N;  // odo measurement
+
+  std::unordered_map<SensorType, std::set<int>> lm_state_list;  // full state
+
+  Eigen::VectorXd vehicle_x;
+  Eigen::MatrixXd vehicle_P;
+  double vehicle_v;
+  double vehicle_w;
+  double ts;
 };
 
 }  // namespace apa_slam

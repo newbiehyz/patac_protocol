@@ -96,6 +96,8 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.export_debug_file = data["estimator"]["export_debug_file"];
     _est_params.use_time_compensate =
         data["estimator"]["use_time_compensate"];
+    _est_params.buf_len = data["estimator"]["buf_len"];
+    
 
     _est_params.duplicate_slot_thresh =
         data["estimator"]["duplicate_slot_thresh"];

@@ -43,7 +43,7 @@ void PangolinViewer::run() {
 
     _drawer->DrawAPA();
 
-    // std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     pangolin::FinishFrame();
   }
 }

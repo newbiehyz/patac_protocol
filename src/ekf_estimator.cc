@@ -132,7 +132,6 @@ void EkfEstimator::process_semantic_meas(
     fout_pose.close();
   }
 
-
   for (size_t i = 0; i < parking_slot_meas.size(); ++i) {
     Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
     Eigen::Rotation2Dd rot(mea_pose.yaw);
@@ -293,6 +292,12 @@ void EkfEstimator::process_odo_mea(const double ts,
     dr_info.angular_velocity = w;
     dr_info.velocity = v;
     _dr_buf.insert({ts, dr_info});
+    std::cout << "Pose: " << dr_pose.x << " " << dr_pose.y << " " << dr_pose.yaw
+              << std::endl;
+    if (fabs(_dr_buf.begin()->first - _dr_buf.rbegin()->first) >
+        ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
+      _dr_buf.erase(_dr_buf.begin());
+    }
   }
 }
 }  // namespace apa_slam

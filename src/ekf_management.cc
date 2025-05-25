@@ -41,9 +41,13 @@ bool EKFManagement::GetLatestVechileState(double &timestamp,
   if (!_initialized) {
     return false;
   }
-  timestamp = _ts;
-  mean = _vehicle_x;
-  cov = _vehicle_P;
+
+  {
+    std::lock_guard<std::mutex> lck(_data_mutex);
+    timestamp = _ts;
+    mean = _vehicle_x;
+    cov = _vehicle_P;
+  }
 
   return true;
 }
@@ -54,7 +58,7 @@ void EKFManagement::ClearList() { _lm_state_list.clear(); }
 
 void EKFManagement::Update(const double timestamp) {
   std::cout << "Update At: " << timestamp << std::endl;
-  
+
   std::map<SensorType, std::set<int>> augmentation_list;
   std::map<SensorType, std::set<int>> update_list;
   std::map<SensorType, std::set<int>> marginalization_list;
@@ -64,26 +68,57 @@ void EKFManagement::Update(const double timestamp) {
   if (!_initialized) {
     return;
   }
+  {
+    std::lock_guard<std::mutex> lck(_data_mutex);
 
-  state_marginalization(marginalization_list);
-  if (!marginalization_list.empty()) {
-    for (auto it_type = marginalization_list.begin();
-         it_type != marginalization_list.end(); ++it_type) {
-      const auto type = it_type->first;
-      for (auto it = it_type->second.begin(); it != it_type->second.end();
-           ++it) {
-        int id = *it;
-        if (update_list.count(type) && update_list.at(type).count(id)) {
-          update_list.at(type).erase(id);
+    state_marginalization(marginalization_list);
+    if (!marginalization_list.empty()) {
+      for (auto it_type = marginalization_list.begin();
+           it_type != marginalization_list.end(); ++it_type) {
+        const auto type = it_type->first;
+        for (auto it = it_type->second.begin(); it != it_type->second.end();
+             ++it) {
+          int id = *it;
+          if (update_list.count(type) && update_list.at(type).count(id)) {
+            update_list.at(type).erase(id);
+          }
         }
       }
     }
-  }
 
-  ekf_update(update_list);
-  state_augmentation(augmentation_list);
-  SemanticMap::GetInstance().TagMarginalization(timestamp);
-  // _ts = timestamp;
+    if (ApaParameters::GetInstance()
+            .GetEstimatorParamters()
+            .use_time_compensate) {
+      auto it = _filter_infos.lower_bound(timestamp);
+      if (it != _filter_infos.end()) {
+        _ts = timestamp;
+        _lm_cross_correlation = it->second.lm_cross_correlation;
+        _lm_state_list = it->second.lm_state_list;
+        _N = it->second.N;
+        _state_lm_cross_correlation = it->second.state_lm_cross_correlation;
+        _vehicle_P = it->second.vehicle_P;
+        _vehicle_x = it->second.vehicle_x;
+        _vehicle_v = it->second.vehicle_v;
+        _vehicle_w = it->second.vehicle_w;
+      }
+    }
+
+    ekf_update(update_list);
+    state_augmentation(augmentation_list);
+    SemanticMap::GetInstance().TagMarginalization(timestamp);
+
+    _ts = timestamp;
+    if (ApaParameters::GetInstance()
+            .GetEstimatorParamters()
+            .use_time_compensate) {
+      auto it_odo = _odo_meas.lower_bound(timestamp);
+      while (it_odo != _odo_meas.end()) {
+        this->Propagate(it_odo->first, it_odo->second.x(), it_odo->second.y());
+        ++it_odo;
+      }
+      std::cout << "Compensation Processing Done\n";
+    }
+  }
 }
 
 void EKFManagement::ekf_update(
@@ -171,6 +206,8 @@ void EKFManagement::ekf_update(
     // MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
 
     update_mean_and_cov(x, P, ekf_lm_pos);
+
+    update_filter_info();
   }
 }
 
@@ -193,6 +230,26 @@ int EKFManagement::get_residual_size(
   }
 
   return residual_size;
+}
+
+void EKFManagement::update_filter_info() {
+  FilterInfo info;
+  info.lm_cross_correlation = _lm_cross_correlation;
+  info.lm_state_list = _lm_state_list;
+  info.N = _N;
+  info.state_lm_cross_correlation = _state_lm_cross_correlation;
+  info.ts = _ts;
+  info.vehicle_P = _vehicle_P;
+  info.vehicle_x = _vehicle_x;
+  info.vehicle_v = _vehicle_v;
+  info.vehicle_w = _vehicle_w;
+
+  _filter_infos[_ts] = info;
+
+  if (std::abs(_filter_infos.begin()->first - _filter_infos.rbegin()->first) >
+      ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
+    _filter_infos.erase(_filter_infos.begin());
+  }
 }
 
 void EKFManagement::update_mean_and_cov(
@@ -567,8 +624,8 @@ void EKFManagement::Propagate(const double timestamp_d, const double v,
 
   double dt = timestamp_d - _ts;
 
-  std::cout << " -----Propagate to " << std::setprecision(20) << timestamp_d
-            << " " << v << " " << w << " " << dt << std::endl;
+  // std::cout << " -----Propagate to " << std::setprecision(20) << timestamp_d
+  //           << " " << v << " " << w << " " << dt << std::endl;
 
   Eigen::VectorXd x_full;
   Eigen::MatrixXd P_full;
@@ -616,6 +673,18 @@ void EKFManagement::Propagate(const double timestamp_d, const double v,
   _vehicle_x = x;
   _vehicle_P = P;
   _ts = timestamp_d;
+
+  Eigen::VectorXd odo_mea = Eigen::VectorXd::Zero(2);
+  odo_mea.x() = v;
+  odo_mea.y() = w;
+  _odo_meas[timestamp_d] = odo_mea;
+
+  if (fabs(_odo_meas.begin()->first - _odo_meas.rbegin()->first) >
+      ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
+    _odo_meas.erase(_odo_meas.begin());
+  }
+
+  update_filter_info();
   // std::cout << " ++++++Propagate: \n" << P_vehicle1 << std::endl;
   // std::cout << "===================\n";
 }

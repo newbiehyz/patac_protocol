@@ -97,7 +97,7 @@ bool SemanticMap::GetFullLocalMap(
     default:
       break;
   }
-  std::cout << "Pose: " << pose.x << " " << pose.y << " " << pose.yaw << std::endl; 
+  // std::cout << "Pose: " << pose.x << " " << pose.y << " " << pose.yaw << std::endl; 
   for (auto it_lm = _map.at(type).begin(); it_lm != _map.at(type).end();
        ++it_lm) {
     Eigen::MatrixXd lm_data = it_lm->second->GetLandmarkData();
