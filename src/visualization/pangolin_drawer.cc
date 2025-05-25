@@ -27,7 +27,7 @@ void PangolinDrawer::draw_traj() {
 
 void PangolinDrawer::draw_parking_slot(const int& id,
                                        const Eigen::MatrixXd& data) {
-  const double l = 5.0f;
+
 
   glPointSize(8.0);
 

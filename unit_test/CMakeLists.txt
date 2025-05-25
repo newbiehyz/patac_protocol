@@ -12,3 +12,11 @@ ADD_EXECUTABLE(test_steering_angle ${CMAKE_CURRENT_SOURCE_DIR}/test_steering_ang
 
 ADD_EXECUTABLE(test_udp_send ${CMAKE_CURRENT_SOURCE_DIR}/test_udp_send.cc)
 
+IF(ENABLE_OPENGL) 
+
+  ADD_EXECUTABLE(test_udp_recv ${CMAKE_CURRENT_SOURCE_DIR}/test_udp_recv.cc)
+  TARGET_LINK_LIBRARIES(test_udp_recv  ${PROJECT_NAME} ${Pangolin_LIBRARIES})
+
+ENDIF()
+
+
