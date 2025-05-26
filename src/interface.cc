@@ -59,4 +59,6 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
   return false;
 }
 
+void LocalMappingInterface::Reset() {}
+
 }  // namespace apa_slam
