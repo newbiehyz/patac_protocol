@@ -54,10 +54,10 @@ class FillbackDataLoader {
   typedef std::shared_ptr<FillbackDataLoader> Ptr;
   FillbackDataLoader();
   void LoadDataSet(const std::string& dataset_path);
-  bool PopOutMea(ReplaySensorType& type, double& arriving_ts,
-                 double& sensor_ts);
-  std::vector<SemanticMea::Ptr> GetSemanticMeas(const double timestamp);
-  std::vector<KinematicMea::Ptr> GetKinematicMeas(const double timestamp);
+  bool PopOutMea(ReplaySensorType& type, long long& arriving_ts,
+                 long long& sensor_ts);
+  std::vector<SemanticMea::Ptr> GetSemanticMeas(const long long timestamp);
+  std::vector<KinematicMea::Ptr> GetKinematicMeas(const long long timestamp);
   Eigen::Vector2d ConvertUvToVehicle(const Eigen::Vector2d& uv);
 
   static FillbackDataLoader& GetInstance();
@@ -73,15 +73,15 @@ class FillbackDataLoader {
   void load_semantic_meas(const std::string& semantic_mea_file);
   double angle_diff(double angle1, double angle2);
   Eigen::VectorXd interpolate_pose(
-      const double timestamp,
-      const std::map<double, Eigen::Vector3d>& pose_data);
-  std::map<double, std::vector<SemanticMea::Ptr>> _semantic_mea;
-  std::map<double, std::vector<KinematicMea::Ptr>> _kinematic_mea;
-  std::map<double, std::vector<std::pair<ReplaySensorType, double>>> _mea_seq;
-  std::map<double, std::vector<std::pair<ReplaySensorType, double>>>::iterator
+      const long long timestamp,
+      const std::map<long long, Eigen::Vector3d>& pose_data);
+  std::map<long long, std::vector<SemanticMea::Ptr>> _semantic_mea;
+  std::map<long long, std::vector<KinematicMea::Ptr>> _kinematic_mea;
+  std::map<long long, std::vector<std::pair<ReplaySensorType, long long>>> _mea_seq;
+  std::map<long long, std::vector<std::pair<ReplaySensorType, long long>>>::iterator
       _mea_it;
 
-  std::map<double, Eigen::Vector3d> _pose_data;
+  std::map<long long, Eigen::Vector3d> _pose_data;
   int _mea_id{0};
 };
 }  // namespace apa_slam

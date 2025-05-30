@@ -35,7 +35,7 @@ EKFManagement &EKFManagement::GetInstance() {
   return instance;
 }
 
-bool EKFManagement::GetLatestVechileState(double &timestamp,
+bool EKFManagement::GetLatestVechileState(long long &timestamp,
                                           Eigen::VectorXd &mean,
                                           Eigen::MatrixXd &cov) {
   if (!_initialized) {
@@ -56,7 +56,7 @@ bool EKFManagement::Initialized() { return _initialized; }
 
 void EKFManagement::ClearList() { _lm_state_list.clear(); }
 
-void EKFManagement::Update(const double timestamp) {
+void EKFManagement::Update(const long long timestamp) {
   std::cout << "Update At: " << std::to_string(timestamp) << std::endl;
 
   std::map<SensorType, std::set<int>> augmentation_list;
@@ -161,7 +161,7 @@ void EKFManagement::ekf_update(
           .GetLandmark(semantic_type, landmark_id)
           ->GetLatestResidualAndJacobian(_vehicle_x, r, Jacobian_vehicle,
                                          Jacobian_landmark);
-      std::cout << " r: " << r.transpose() << std::endl;
+      std::cout << " residual: " << r.transpose() << std::endl;
 
 #ifdef ENABLE_OPENGL
       {
@@ -183,13 +183,6 @@ void EKFManagement::ekf_update(
       }
 #endif
 
-      // if (r.head(2).norm() > 2.0 || r.tail(2).norm() > 2.0) {
-      //   continue;
-      // }
-      // double scale = 1.0;
-      // if (r.head(2).norm() > 0.5 || r.tail(2).norm() > 0.5) {
-      //   scale = 10.0;
-      // }
       int residual_size, landmark_size;
       switch (semantic_type) {
         case SEMANTIC_TYPE_PARKING_SLOT:
@@ -283,9 +276,13 @@ void EKFManagement::update_filter_info() {
   info.vehicle_w = _vehicle_w;
 
   _filter_infos[_ts] = info;
+  double timescale =
+      ApaParameters::GetInstance().GetEstimatorParamters().time_scale;
+  double buf_len =
+      fabs(_filter_infos.begin()->first - _filter_infos.rbegin()->first) *
+      timescale;
 
-  if (std::abs(_filter_infos.begin()->first - _filter_infos.rbegin()->first) >
-      ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
+  if (buf_len > ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
     _filter_infos.erase(_filter_infos.begin());
   }
 }
@@ -649,18 +646,19 @@ CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
   return CrossCorrelationKey{id_a, id_b};
 }
 
-void EKFManagement::Propagate(const double timestamp_d, const double v,
+void EKFManagement::Propagate(const long long timestamp, const double v,
                               const double w) {
   _vehicle_w = w;
   _vehicle_v = v;
 
   if (!_initialized) {
     _initialized = true;
-    _ts = timestamp_d;
+    _ts = timestamp;
     return;
   }
-
-  double dt = timestamp_d - _ts;
+  double timescale =
+      ApaParameters::GetInstance().GetEstimatorParamters().time_scale;
+  double dt = static_cast<double>(timestamp - _ts) * timescale;
 
   // std::cout << " -----Propagate to " << std::setprecision(20) << timestamp_d
   //           << " " << v << " " << w << " " << dt << std::endl;
@@ -710,15 +708,17 @@ void EKFManagement::Propagate(const double timestamp_d, const double v,
 
   _vehicle_x = x;
   _vehicle_P = P;
-  _ts = timestamp_d;
+  _ts = timestamp;
 
   Eigen::VectorXd odo_mea = Eigen::VectorXd::Zero(2);
   odo_mea.x() = v;
   odo_mea.y() = w;
-  _odo_meas[timestamp_d] = odo_mea;
+  _odo_meas[timestamp] = odo_mea;
 
-  if (fabs(_odo_meas.begin()->first - _odo_meas.rbegin()->first) >
-      ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
+  double buf_len =
+      fabs(_odo_meas.begin()->first - _odo_meas.rbegin()->first) * timescale;
+
+  if (buf_len > ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
     _odo_meas.erase(_odo_meas.begin());
   }
 

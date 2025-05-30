@@ -17,7 +17,7 @@ ParkingSlotLandmark::ParkingSlotLandmark(const int id, double* data)
 
 Eigen::MatrixXd ParkingSlotLandmark::GetLandmarkData() { return _data; }
 
-void ParkingSlotLandmark::AddSemanticMea(const double timestmap,
+void ParkingSlotLandmark::AddSemanticMea(const long long timestmap,
                                          const Pose& mea_pose,
                                          const SemanticMea::Ptr mea) {
   Eigen::Matrix2d mea_data = mea->GetMeaData().topLeftCorner(2, 2);
@@ -53,17 +53,6 @@ void ParkingSlotLandmark::AddSemanticMea(const double timestmap,
                          .slot_min_tracking_times &&
       !NeedInitialize() && Initialized()) {
     SetUpdateFlag(true);
-
-    // double mea_t0 = _meas.begin()->first;
-    // double mea_t1 = _meas.rbegin()->first;
-    // double mea_duration = fabs(mea_t0 - mea_t1);
-
-    // if (mea_duration > ApaParameters::GetInstance()
-    //                        .GetEstimatorParamters()
-    //                        .margin_tracking_time) {
-    //   SetUpdateFlag(false);
-    //   SetMarginFlag(true);
-    // }
   }
 }
 

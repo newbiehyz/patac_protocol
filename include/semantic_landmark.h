@@ -24,7 +24,7 @@ class SemanticLandmark {
 
   virtual Eigen::MatrixXd GetLandmarkData() = 0;
 
-  virtual void AddSemanticMea(const double timestmap, const Pose& mea_pose,
+  virtual void AddSemanticMea(const long long timestmap, const Pose& mea_pose,
                               const SemanticMea::Ptr mea) = 0;
 
   bool Initialized();
@@ -74,7 +74,7 @@ class SemanticLandmark {
                                                   const SemanticMea::Ptr& mea) = 0;
 
  protected:
-  std::map<double, std::pair<Pose, SemanticMea::Ptr>> _meas;
+  std::map<long long, std::pair<Pose, SemanticMea::Ptr>> _meas;
 
  private:
   SensorType _type;

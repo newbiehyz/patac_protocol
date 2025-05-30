@@ -17,15 +17,15 @@ namespace apa_slam {
 class KinematicMea {
  public:
   typedef std::shared_ptr<KinematicMea> Ptr;
-  KinematicMea(const SensorType &type, const double timestamp);
+  KinematicMea(const SensorType &type, const long long timestamp);
   SensorType GetKineticMeaType();
-  double GetMeaTimestamp();
+  long long GetMeaTimestamp();
   virtual ~KinematicMea() = default;
   virtual Eigen::VectorXd GetMeaData() = 0;
   virtual void AddNoise() = 0;
 
  private:
   SensorType _type;
-  double _timestamp;
+  long long _timestamp;
 };
 }  // namespace apa_slam

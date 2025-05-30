@@ -12,15 +12,15 @@ namespace apa_slam {
 SimDataLoader::SimDataLoader() {}
 
 std::vector<SemanticMea::Ptr> SimDataLoader::GetSemanticMeas(
-    const double timestamp) {
+    const long long timestamp) {
   return _semantic_mea.at(timestamp);
 }
 std::vector<KinematicMea::Ptr> SimDataLoader::GetKinematicMeas(
-    const double timestamp) {
+    const long long timestamp) {
   return _kinematic_mea.at(timestamp);
 }
 
-bool SimDataLoader::PopOutMea(ReplaySensorType& type, double& ts) {
+bool SimDataLoader::PopOutMea(ReplaySensorType& type, long long& ts) {
   if (_mea_it == _mea_seq.end()) {
     return false;
   }
@@ -54,8 +54,8 @@ void SimDataLoader::generate_semantic_meas() {
   auto slot_map = semantic_map.GetMap(SEMANTIC_TYPE_PARKING_SLOT);
   auto& params = ApaParameters::GetInstance().GetSimulationParameters();
   while (it != _kinematic_mea.end()) {
-    double ts = it->first;
-    Pose pose = _gt_pose.at(ts);
+    long long tsll = it->first;
+    Pose pose = _gt_pose.at(tsll);
     Eigen::Vector2d twb(pose.x, pose.y);
     Eigen::Rotation2Dd rot(pose.yaw);
     Eigen::Matrix2d Rwb = rot.toRotationMatrix();
@@ -83,14 +83,14 @@ void SimDataLoader::generate_semantic_meas() {
       }
 
       SemanticMea::Ptr slot_mea =
-          std::make_shared<ParkingSlotMea>(ts, mea.data());
+          std::make_shared<ParkingSlotMea>(tsll, mea.data());
 
       slot_mea->AddNoise();
-      _semantic_mea[ts].push_back(slot_mea);
+      _semantic_mea[tsll].push_back(slot_mea);
     }
 
-    if (_semantic_mea.count(ts)) {
-      _mea_seq[ts].push_back(ReplaySensorType::REPLAY_TYPE_SEMANTIC);
+    if (_semantic_mea.count(tsll)) {
+      _mea_seq[tsll].push_back(ReplaySensorType::REPLAY_TYPE_SEMANTIC);
     }
 
     bool come_end = false;
@@ -121,18 +121,21 @@ void SimDataLoader::load_dataset_pose(const std::string& pose_file) {
     double angular_velocity;
     ss >> timestamp >> pose.x >> pose.y >> pose.yaw >> velocity_x >>
         velocity_y >> angular_velocity;
-    _gt_pose[timestamp] = pose;
+    long long tsll = static_cast<long long>(
+        timestamp /
+        ApaParameters::GetInstance().GetEstimatorParamters().time_scale);
+    _gt_pose[tsll] = pose;
     Eigen::VectorXd odo_mea_data = Eigen::VectorXd::Zero(DATA_ROWS_ODO);
     odo_mea_data[0] = std::hypotf(velocity_x, velocity_y);
     odo_mea_data[1] = angular_velocity;
     KinematicMea::Ptr odo_mea =
-        std::make_shared<OdoMea>(timestamp, odo_mea_data.data());
+        std::make_shared<OdoMea>(tsll, odo_mea_data.data());
 
     odo_mea->AddNoise();
 
-    _mea_seq[timestamp].push_back(ReplaySensorType::REPLAY_TYPE_KINEMATIC);
-    _kinematic_mea[timestamp].push_back(odo_mea);
-    _gt_pose[timestamp] = pose;
+    _mea_seq[tsll].push_back(ReplaySensorType::REPLAY_TYPE_KINEMATIC);
+    _kinematic_mea[tsll].push_back(odo_mea);
+    _gt_pose[tsll] = pose;
   }
   fpose.close();
 }

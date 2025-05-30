@@ -10,12 +10,12 @@
 #include "semantic_measurement.h"
 
 namespace apa_slam {
-SemanticMea::SemanticMea(const SensorType& type, const double timestamp)
+SemanticMea::SemanticMea(const SensorType& type, const long long timestamp)
     : _type(type), _timestamp(timestamp) {}
 
 SensorType SemanticMea::GetSemanticMeaType() { return _type; }
 
-double SemanticMea::GetMeaTimestamp() {
+long long SemanticMea::GetMeaTimestamp() {
   return _timestamp;
 }
 

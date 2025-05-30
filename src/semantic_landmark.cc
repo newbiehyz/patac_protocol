@@ -44,8 +44,11 @@ void SemanticLandmark::SetInitializeFlag(const bool& flag) {
 void SemanticLandmark::SetCov(const Eigen::MatrixXd& cov) { _cov = cov; }
 
 void SemanticLandmark::TagMarginalization(const double timestamp) {
-  if (fabs(_meas.rbegin()->first - timestamp) >
-      ApaParameters::GetInstance().GetEstimatorParamters().margin_tracking_time) {
+  if (ApaParameters::GetInstance().GetEstimatorParamters().time_scale *
+          fabs(_meas.rbegin()->first - timestamp) >
+      ApaParameters::GetInstance()
+          .GetEstimatorParamters()
+          .margin_tracking_time) {
     SetMarginFlag(true);
   }
 }
@@ -56,7 +59,8 @@ void SemanticLandmark::GetLatestResidualAndJacobian(
     const Eigen::VectorXd& v_state, Eigen::VectorXd& residual,
     Eigen::MatrixXd& J_v, Eigen::MatrixXd& J_lm) {
   auto latest_mea = _meas.rbegin()->second.second;
-  std::cout << "mea time: " << std::to_string(_meas.rbegin()->first) << std::endl;
+  std::cout << "mea time: " << std::to_string(_meas.rbegin()->first)
+            << std::endl;
   GetResidualAndJacobian(latest_mea, v_state, residual, J_v, J_lm);
 }
 

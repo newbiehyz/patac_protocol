@@ -26,13 +26,13 @@ class EKFManagement {
   EKFManagement();
   void Init();
   static EKFManagement &GetInstance();
-  void Propagate(const double timestamp_d, const double v, const double w);
+  void Propagate(const long long timestamp, const double v, const double w);
 
-  void Update(const double timestamp);
+  void Update(const long long timestamp);
 
   void ClearList();
 
-  bool GetLatestVechileState(double &timestamp, Eigen::VectorXd &mean,
+  bool GetLatestVechileState(long long &timestamp, Eigen::VectorXd &mean,
                              Eigen::MatrixXd &cov);
 
   bool Initialized();
@@ -86,13 +86,13 @@ class EKFManagement {
   Eigen::MatrixXd _vehicle_P;
   double _vehicle_v;
   double _vehicle_w;
-  double _ts;
+  long long _ts;
 
   bool _initialized{false};
 
-  std::map<double, FilterInfo> _filter_infos;
+  std::map<long long, FilterInfo> _filter_infos;
 
-  std::map<double, Eigen::VectorXd> _odo_meas;
+  std::map<long long, Eigen::VectorXd> _odo_meas;
 
 
   std::mutex _data_mutex;

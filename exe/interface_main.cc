@@ -42,7 +42,8 @@ int main(int argc, char** argv) {
       Eigen::VectorXd pose = Eigen::VectorXd::Zero(3);
       double ts;
       ss >> ts >> pose[0] >> pose[1] >> pose[2];
-      LocalMappingInterface::GetInstance().ProcDrPose(ts, pose);
+      long long tsll = static_cast<long long>(ts * 1000);
+      LocalMappingInterface::GetInstance().ProcDrPose(tsll, pose);
 
       std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
@@ -51,6 +52,7 @@ int main(int argc, char** argv) {
       double ts;
       int n;
       ss >> ts >> n;
+      long long tsll = static_cast<long long>(ts * 1000);
       std::vector<SemanticMea::Ptr> mea_vector;
       for (int i = 0; i < n; ++i) {
         Eigen::MatrixXd mea_data = Eigen::MatrixXd::Zero(2, 2);
@@ -58,12 +60,11 @@ int main(int argc, char** argv) {
         ss >> x0 >> y0 >> x1 >> y1;
         Eigen::Vector2d pt0(x0, y0);
         Eigen::Vector2d pt1(x1, y1);
-        
+
         Eigen::Vector2d dir = pt1 - pt0;
         dir.normalize();
         pt0 += 0.12 * dir;
         pt1 -= 0.12 * dir;
-
 
         mea_data.col(0) = pt0;
         mea_data.col(1) = pt1;
@@ -78,11 +79,11 @@ int main(int argc, char** argv) {
         }
 
         SemanticMea::Ptr mea =
-            std::make_shared<ParkingSlotMea>(ts, mea_data.data());
+            std::make_shared<ParkingSlotMea>(tsll, mea_data.data());
         mea_vector.push_back(mea);
       }
 
-      EkfEstimator::GetInstance().InputSemanticMea(ts, mea_vector);
+      EkfEstimator::GetInstance().InputSemanticMea(tsll, mea_vector);
       std::cout << "Update Size: " << mea_vector.size() << std::endl;
 
       std::this_thread::sleep_for(std::chrono::milliseconds(10));

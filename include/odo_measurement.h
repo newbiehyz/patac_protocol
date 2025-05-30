@@ -13,7 +13,7 @@
 namespace apa_slam {
 class OdoMea : public KinematicMea {
  public:
-  OdoMea(const double timestamp, double* data);
+  OdoMea(const long long timestamp, double* data);
   Eigen::VectorXd GetMeaData();
   void AddNoise();
 

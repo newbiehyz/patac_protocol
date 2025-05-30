@@ -46,8 +46,8 @@ struct SimulationParams {
 };
 
 struct DatasetParams {
-  double min_dataset_timestamp;
-  double max_dataset_timestamp;
+  long long min_dataset_timestamp;
+  long long max_dataset_timestamp;
   double timedelay;
   bool use_udp;
   std::string udp_ip;
@@ -70,6 +70,7 @@ struct EstimatorParams {
   double buf_len;
   double slot_len;
   double slot_mea_max_range;
+  double time_scale;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };

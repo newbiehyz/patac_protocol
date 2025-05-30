@@ -9,7 +9,7 @@
 #include "odo_measurement.h"
 
 namespace apa_slam {
-OdoMea::OdoMea(const double timestamp, double* data)
+OdoMea::OdoMea(const long long timestamp, double* data)
     : KinematicMea(KINEMATIC_TYPE_ODO, timestamp),
       _data(Eigen::Map<Eigen::MatrixXd, Eigen::ColMajor>(data, DATA_ROWS_ODO,
                                                          1)) {}

@@ -32,14 +32,14 @@ void EkfEstimator::Init() {
   }
 }
 
-bool EkfEstimator::GetLatestVechileState(double &timestamp,
+bool EkfEstimator::GetLatestVechileState(long long &timestamp,
                                          Eigen::VectorXd &mean,
                                          Eigen::MatrixXd &cov) {
   return EKFManagement::GetInstance().GetLatestVechileState(timestamp, mean,
                                                             cov);
 }
 
-bool EkfEstimator::ProcDrPose(double ts, const Pose &pose, double &ts_out,
+bool EkfEstimator::ProcDrPose(long long ts, const Pose &pose, long long &ts_out,
                               double &v_out, double &w_out) {
   int size_dr = _dr_pose.size();
   if (size_dr >= 1 && std::fabs(_dr_timestamp[size_dr - 1] - ts) < 1e-4) {
@@ -64,8 +64,11 @@ bool EkfEstimator::ProcDrPose(double ts, const Pose &pose, double &ts_out,
 
     double diff = angle_diff(_dr_pose[2].yaw, _dr_pose[0].yaw);
 
-    w_out = diff / (ts1 - ts0);
-    v_out = (twb0 - twb1).norm() / (ts1 - ts0);
+    double dt = static_cast<double>(ts1 - ts0) *
+                ApaParameters::GetInstance().GetEstimatorParamters().time_scale;
+
+    w_out = diff / dt;
+    v_out = (twb0 - twb1).norm() / dt;
     ts_out = _dr_timestamp[1];
 
     Eigen::Vector2d dir0 = Rwb0.col(0).head(2);
@@ -100,7 +103,7 @@ double EkfEstimator::angle_diff(double angle1, double angle2) {
 }
 
 void EkfEstimator::udp() {
-  double latest_ts;
+  long long latest_ts;
   Eigen::VectorXd latest_x;
   Eigen::MatrixXd latest_P;
 
@@ -150,7 +153,7 @@ EkfEstimator &EkfEstimator::GetInstance() {
 }
 
 void EkfEstimator::InputSemanticMea(
-    const double ts, const std::vector<SemanticMea::Ptr> &semantic_meas) {
+    const long long ts, const std::vector<SemanticMea::Ptr> &semantic_meas) {
   auto start = std::chrono::steady_clock::now();
 
   if (!this->Initialized()) {
@@ -175,7 +178,7 @@ void EkfEstimator::InputSemanticMea(
 }
 
 void EkfEstimator::process_semantic_meas(
-    const SensorType &type, const double ts,
+    const SensorType &type, const long long ts,
     const std::vector<SemanticMea::Ptr> &parking_slot_meas) {
   Pose mea_pose;
   if (!get_pose(ts, mea_pose)) {
@@ -237,20 +240,15 @@ void EkfEstimator::process_semantic_meas(
             << std::endl;
 }
 
-bool EkfEstimator::get_pose(const double ts, Pose &pose) {
-  if (_dr_buf.empty()) {
+bool EkfEstimator::get_pose(const long long ts, Pose &pose) {
+  if (_dr_buf.size() < 2) {
     return false;
   }
 
-  if (ts < _dr_buf.begin()->first) {
+  if (ts < _dr_buf.begin()->first || ts > _dr_buf.rbegin()->first) {
     std::cout << "get pose before dr_buf begin\n";
     return false;
   }
-
-  // if (ts > _dr_buf.rbegin()->first) {
-  //   std::cout << "get pose after dr_buf rbegin\n";
-  //   return false;
-  // }
 
   auto it1 = _dr_buf.lower_bound(ts);
   auto it0 = it1;
@@ -293,7 +291,7 @@ void EkfEstimator::sort_semantic_meas(
 }
 
 void EkfEstimator::InputKinematicMea(
-    const double ts, const std::vector<KinematicMea::Ptr> &kinetic_meas) {
+    const long long ts, const std::vector<KinematicMea::Ptr> &kinetic_meas) {
   auto start = std::chrono::steady_clock::now();
 
   for (size_t i = 0; i < kinetic_meas.size(); ++i) {
@@ -327,7 +325,7 @@ Eigen::Vector2d EkfEstimator::interpolate_translation(
   return twb0 + t * (twb1 - twb0);
 }
 
-void EkfEstimator::process_odo_mea(const double ts,
+void EkfEstimator::process_odo_mea(const long long ts,
                                    const KinematicMea::Ptr odo_mea) {
   const Eigen::VectorXd &odo_data = odo_mea->GetMeaData();
   double v = odo_data[0];
@@ -338,7 +336,7 @@ void EkfEstimator::process_odo_mea(const double ts,
     // std::cout << "=========== " << dt << " " << v << " " << w << std::endl;
     EKFManagement::GetInstance().Propagate(ts, v, w);
   }
-  double latest_ts;
+  long long latest_ts;
   Eigen::VectorXd latest_x;
   Eigen::MatrixXd latest_P;
   if (EKFManagement::GetInstance().GetLatestVechileState(latest_ts, latest_x,
@@ -354,7 +352,8 @@ void EkfEstimator::process_odo_mea(const double ts,
     _dr_buf.insert({ts, dr_info});
     std::cout << "Pose: " << dr_pose.x << " " << dr_pose.y << " " << dr_pose.yaw
               << std::endl;
-    if (fabs(_dr_buf.begin()->first - _dr_buf.rbegin()->first) >
+    if (fabs(_dr_buf.begin()->first - _dr_buf.rbegin()->first) *
+            ApaParameters::GetInstance().GetEstimatorParamters().time_scale >
         ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
       _dr_buf.erase(_dr_buf.begin());
     }

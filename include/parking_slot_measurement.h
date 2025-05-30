@@ -20,7 +20,7 @@ namespace apa_slam {
 class ParkingSlotMea : public SemanticMea {
  public:
   typedef std::shared_ptr<ParkingSlotMea> Ptr;
-  ParkingSlotMea(const double timestamp, double* data);
+  ParkingSlotMea(const long long timestamp, double* data);
   Eigen::MatrixXd GetMeaData();
   void AddNoise();
   void SetMeaData(const Eigen::MatrixXd &data);

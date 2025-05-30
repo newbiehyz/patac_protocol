@@ -10,7 +10,7 @@
 #include "parking_slot_measurement.h"
 
 namespace apa_slam {
-ParkingSlotMea::ParkingSlotMea(const double timestamp, double* data)
+ParkingSlotMea::ParkingSlotMea(const long long timestamp, double* data)
     : SemanticMea(SEMANTIC_TYPE_PARKING_SLOT, timestamp),
       _data(Eigen::Map<Eigen::MatrixXd, Eigen::ColMajor>(
           data, DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT)) {

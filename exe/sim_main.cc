@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
   estimator.Init();
 
   ReplaySensorType type;
-  double timestamp;
+  long long timestamp;
   while (loader->PopOutMea(type, timestamp)) {
     if (type == ReplaySensorType::REPLAY_TYPE_KINEMATIC) {
       auto kinematic_meas = loader->GetKinematicMeas(timestamp);

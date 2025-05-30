@@ -9,11 +9,11 @@
 #include "kinematic_measurement.h"
 namespace apa_slam {
 
-KinematicMea::KinematicMea(const SensorType &type, const double timestamp)
+KinematicMea::KinematicMea(const SensorType &type, const long long timestamp)
     : _type(type), _timestamp(timestamp) {}
 
 SensorType KinematicMea::GetKineticMeaType() { return _type; }
 
-double KinematicMea::GetMeaTimestamp() { return _timestamp; }
+long long KinematicMea::GetMeaTimestamp() { return _timestamp; }
 
 }  // namespace apa_slam

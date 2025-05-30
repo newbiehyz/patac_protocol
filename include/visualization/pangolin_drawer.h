@@ -29,7 +29,7 @@ class PangolinDrawer {
   void draw_traj();
   void draw_local_meas();
 
-  std::map<double, Pose> _traj;
+  std::map<long long, Pose> _traj;
 
   std::shared_ptr<pangolin::GlFont> _font;
 };

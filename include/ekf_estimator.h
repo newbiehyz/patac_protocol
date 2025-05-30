@@ -8,15 +8,15 @@
  */
 #pragma once
 
+#include <arpa/inet.h>
+#include <unistd.h>
+
 #include <Eigen/Eigen>
 #include <chrono>
 #include <iostream>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-
-#include <arpa/inet.h>
-#include <unistd.h>
 
 #include "ekf_management.h"
 #include "kinematic_measurement.h"
@@ -36,24 +36,24 @@ class EkfEstimator {
 
   void Init();
 
-  bool GetLatestVechileState(double& timestamp, Eigen::VectorXd& mean,
+  bool GetLatestVechileState(long long& timestamp, Eigen::VectorXd& mean,
                              Eigen::MatrixXd& cov);
 
-  void InputSemanticMea(const double ts,
+  void InputSemanticMea(const long long ts,
                         const std::vector<SemanticMea::Ptr>& semantic_meas);
 
-  void InputKinematicMea(const double ts,
+  void InputKinematicMea(const long long ts,
                          const std::vector<KinematicMea::Ptr>& kinetic_meas);
 
   bool Initialized() const;
 
   void Reset();
 
-  bool ProcDrPose(double ts, const Pose& pose, double& ts_out, double& v_out,
-                  double& w_out);
+  bool ProcDrPose(long long ts, const Pose& pose, long long& ts_out,
+                  double& v_out, double& w_out);
 
  private:
-  void process_odo_mea(const double ts, const KinematicMea::Ptr odo_mea);
+  void process_odo_mea(const long long ts, const KinematicMea::Ptr odo_mea);
 
   void sort_semantic_meas(
       const std::vector<SemanticMea::Ptr>& semantic_meas,
@@ -61,10 +61,10 @@ class EkfEstimator {
           sorted_meas);
 
   void process_semantic_meas(
-      const SensorType& type, const double ts,
+      const SensorType& type, const long long ts,
       const std::vector<SemanticMea::Ptr>& parking_slot_meas);
 
-  bool get_pose(const double ts, Pose& pose);
+  bool get_pose(const long long ts, Pose& pose);
 
   double interpolate_angle(const double angle0, const double angle1,
                            const double t);
@@ -80,15 +80,13 @@ class EkfEstimator {
 
   std::unordered_map<SensorType, TrackerBase::Ptr> _tracker_pools;
 
-  std::map<double, DrInfo> _dr_buf;
+  std::map<long long, DrInfo> _dr_buf;
 
   std::vector<Pose> _dr_pose;
-  std::vector<double> _dr_timestamp;
-
+  std::vector<long long> _dr_timestamp;
 
   // socket debug
   int _socket;
   sockaddr_in _server_addr;
-
 };
 }  // namespace apa_slam

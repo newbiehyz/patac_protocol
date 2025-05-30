@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
   estimator.Init();
 
   ReplaySensorType type;
-  double arrive_timestamp;
-  double sensor_timestamp;
+  long long arrive_timestamp;
+  long long sensor_timestamp;
   while (loader->PopOutMea(type, arrive_timestamp, sensor_timestamp)) {
     if (type == ReplaySensorType::REPLAY_TYPE_KINEMATIC) {
       auto kinematic_meas = loader->GetKinematicMeas(sensor_timestamp);
@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
                 << " with sensor timestamp: " << kinematic_meas.at(0)->GetMeaTimestamp() << " with data: "
                 << kinematic_meas.at(0)->GetMeaData().transpose() << std::endl;
       estimator.InputKinematicMea(sensor_timestamp, kinematic_meas);
-      std::this_thread::sleep_for(std::chrono::milliseconds(5));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
     if (type == ReplaySensorType::REPLAY_TYPE_SEMANTIC) {
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
                 << " with sensor timestamp: "
                 << semantic_meas.at(0)->GetMeaTimestamp() << std::endl;
       estimator.InputSemanticMea(sensor_timestamp, semantic_meas);
-      std::this_thread::sleep_for(std::chrono::milliseconds(10));
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
   }
 

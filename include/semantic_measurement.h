@@ -17,17 +17,17 @@ namespace apa_slam {
 class SemanticMea {
  public:
   typedef std::shared_ptr<SemanticMea> Ptr;
-  SemanticMea(const SensorType& type, const double timestamp);
+  SemanticMea(const SensorType& type, const long long timestamp);
   virtual ~SemanticMea() = default;
   SensorType GetSemanticMeaType();
   virtual Eigen::MatrixXd GetMeaData() = 0;
   virtual void SetMeaData(const Eigen::MatrixXd &data) = 0;
   virtual void AddNoise() = 0;
-  double GetMeaTimestamp();
+  long long GetMeaTimestamp();
   virtual Eigen::MatrixXd GetMeasurementNosise() = 0;
   virtual Eigen::VectorXd GetVectorizedData() = 0;
  private:
   SensorType _type;
-  double _timestamp;
+  long long _timestamp;
 };
 }  // namespace apa_slam

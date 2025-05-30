@@ -15,7 +15,7 @@
     "slot_matching_angle_thresh": 0.5,
     "slot_min_tracking_times": 5,
     "slot_mea_max_range": 8.0,
-    "margin_tracking_time": 1.0,
+    "margin_tracking_time": 10.0,
     "slot_local_map_range": 50.0,
     "duplicate_slot_thresh": 1.0,
     "export_debug_file": true,
@@ -25,8 +25,8 @@
     "time_scale": 0.001
   },
   "fillback": {
-    "pose_min_timestamp": 1746770825.0,
-    "pose_max_timestamp": 1746770858.0,
+    "pose_min_timestamp": 1746770825000,
+    "pose_max_timestamp": 1746770858000,
     "timedelay": 0.2,
     "use_udp": false,
     "network_ip": "192.168.1.101",

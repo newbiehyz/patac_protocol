@@ -95,7 +95,7 @@ void PangolinDrawer::DrawAPA() {
   if (EkfEstimator::GetInstance().Initialized()) {
     Eigen::VectorXd x;
     Eigen::MatrixXd P;
-    double ts;
+    long long ts;
     EkfEstimator::GetInstance().GetLatestVechileState(ts, x, P);
     Pose pose;
     pose.x = x.x();
