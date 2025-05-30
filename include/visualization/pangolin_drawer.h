@@ -27,13 +27,8 @@ class PangolinDrawer {
   void draw_vehicle_bbox();
   void draw_parking_slot(const int& id, const Eigen::MatrixXd& data);
   void draw_traj();
-  void draw_matching(const SensorType& type, const Pose& pose,
-                     const std::map<int, SemanticLandmark::Ptr>& map,
-                     const std::vector<int>& matching);
+  void draw_local_meas();
 
-  void draw_parking_slot_matching(
-      const Pose& pose, const std::map<int, SemanticLandmark::Ptr>& map,
-      const std::vector<int>& matching);
   std::map<double, Pose> _traj;
 
   std::shared_ptr<pangolin::GlFont> _font;

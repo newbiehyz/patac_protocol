@@ -57,7 +57,7 @@ bool EKFManagement::Initialized() { return _initialized; }
 void EKFManagement::ClearList() { _lm_state_list.clear(); }
 
 void EKFManagement::Update(const double timestamp) {
-  std::cout << "Update At: " << timestamp << std::endl;
+  std::cout << "Update At: " << std::to_string(timestamp) << std::endl;
 
   std::map<SensorType, std::set<int>> augmentation_list;
   std::map<SensorType, std::set<int>> update_list;
@@ -70,21 +70,6 @@ void EKFManagement::Update(const double timestamp) {
   }
   {
     std::lock_guard<std::mutex> lck(_data_mutex);
-
-    state_marginalization(marginalization_list);
-    if (!marginalization_list.empty()) {
-      for (auto it_type = marginalization_list.begin();
-           it_type != marginalization_list.end(); ++it_type) {
-        const auto type = it_type->first;
-        for (auto it = it_type->second.begin(); it != it_type->second.end();
-             ++it) {
-          int id = *it;
-          if (update_list.count(type) && update_list.at(type).count(id)) {
-            update_list.at(type).erase(id);
-          }
-        }
-      }
-    }
 
     if (ApaParameters::GetInstance()
             .GetEstimatorParamters()
@@ -103,7 +88,23 @@ void EKFManagement::Update(const double timestamp) {
       }
     }
 
+    state_marginalization(marginalization_list);
+    if (!marginalization_list.empty()) {
+      for (auto it_type = marginalization_list.begin();
+           it_type != marginalization_list.end(); ++it_type) {
+        const auto type = it_type->first;
+        for (auto it = it_type->second.begin(); it != it_type->second.end();
+             ++it) {
+          int id = *it;
+          if (update_list.count(type) && update_list.at(type).count(id)) {
+            update_list.at(type).erase(id);
+          }
+        }
+      }
+    }
+
     ekf_update(update_list);
+
     state_augmentation(augmentation_list);
     SemanticMap::GetInstance().TagMarginalization(timestamp);
 
@@ -127,6 +128,13 @@ void EKFManagement::ekf_update(
     return;
   }
 
+#ifdef ENABLE_OPENGL
+  {
+    std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+    vis_meas.slot_meas.clear();
+  }
+#endif
+
   Eigen::MatrixXd P;
   Eigen::VectorXd x;
   std::map<SensorType, std::map<int, int>> ekf_lm_pos;
@@ -140,7 +148,7 @@ void EKFManagement::ekf_update(
   Eigen::VectorXd residual = Eigen::VectorXd::Zero(residual_size);
 
   int pos = 0;
-  std::cout << "Update List: ";
+  std::cout << "Update List: \n";
   for (auto it_type = update_list.begin(); it_type != update_list.end();
        ++it_type) {
     const SensorType &semantic_type = it_type->first;
@@ -153,6 +161,35 @@ void EKFManagement::ekf_update(
           .GetLandmark(semantic_type, landmark_id)
           ->GetLatestResidualAndJacobian(_vehicle_x, r, Jacobian_vehicle,
                                          Jacobian_landmark);
+      std::cout << " r: " << r.transpose() << std::endl;
+
+#ifdef ENABLE_OPENGL
+      {
+        Eigen::Vector2d twb = _vehicle_x.head(2);
+        Eigen::Rotation2Dd rot(_vehicle_x[2]);
+        Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+
+        auto mea = SemanticMap::GetInstance()
+                       .GetLandmark(semantic_type, landmark_id)
+                       ->GetLatestMea();
+        Eigen::MatrixXd data = mea->GetMeaData();
+        Eigen::VectorXd mea_vector = Eigen::VectorXd::Zero(4);
+        mea_vector.head(2) = Rwb * data.col(0) + twb;
+        mea_vector.tail(2) = Rwb * data.col(1) + twb;
+        {
+          std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+          vis_meas.slot_meas.push_back(mea_vector);
+        }
+      }
+#endif
+
+      // if (r.head(2).norm() > 2.0 || r.tail(2).norm() > 2.0) {
+      //   continue;
+      // }
+      // double scale = 1.0;
+      // if (r.head(2).norm() > 0.5 || r.tail(2).norm() > 0.5) {
+      //   scale = 10.0;
+      // }
       int residual_size, landmark_size;
       switch (semantic_type) {
         case SEMANTIC_TYPE_PARKING_SLOT:
@@ -170,6 +207,9 @@ void EKFManagement::ekf_update(
               .GetLandmark(semantic_type, landmark_id)
               ->GetLatestMea()
               ->GetMeasurementNosise();
+      if (r.head(2).norm() < 0.2 && r.tail(2).norm() < 0.2) {
+        R.block(pos, pos, residual_size, residual_size) *= 0.01;
+      }
 
       Hx.block(pos, 0, residual_size, STATE_VEHICLE_SIZE) = Jacobian_vehicle;
       int lm_pos = ekf_lm_pos.at(semantic_type).at(landmark_id);
@@ -179,7 +219,6 @@ void EKFManagement::ekf_update(
     }
   }
 
-  // residual *= -1.0;
   std::cout << std::endl;
   // std::cout << "Residual:\n" << residual.transpose() << std::endl;
   // std::cout << "#######################\n";
@@ -204,7 +243,6 @@ void EKFManagement::ekf_update(
     // std::cout << "P+++++\n";
     // std::cout << P << std::endl;
     // MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
-
     update_mean_and_cov(x, P, ekf_lm_pos);
 
     update_filter_info();

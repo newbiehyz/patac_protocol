@@ -65,6 +65,9 @@ Eigen::Vector2d FillbackDataLoader::conver_uv_to_vehicle(
   corner_v.x() = y * LR_BIRD_PIXECL_2_WORLD;
   corner_v.y() = -x * LR_BIRD_PIXECL_2_WORLD;
 
+  // corner_v.x() = x * LR_BIRD_PIXECL_2_WORLD;
+  // corner_v.y() = y * LR_BIRD_PIXECL_2_WORLD;
+
   corner_v /= 1000.0f;
 
   return corner_v;

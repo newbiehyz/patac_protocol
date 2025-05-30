@@ -94,14 +94,14 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.slot_local_map_range =
         data["estimator"]["slot_local_map_range"];
     _est_params.export_debug_file = data["estimator"]["export_debug_file"];
-    _est_params.use_time_compensate =
-        data["estimator"]["use_time_compensate"];
+    _est_params.use_time_compensate = data["estimator"]["use_time_compensate"];
     _est_params.buf_len = data["estimator"]["buf_len"];
     _est_params.slot_len = data["estimator"]["slot_len"];
-    
 
     _est_params.duplicate_slot_thresh =
         data["estimator"]["duplicate_slot_thresh"];
+
+    _est_params.slot_mea_max_range = data["estimator"]["slot_mea_max_range"];
 
     _dataset_params.min_dataset_timestamp =
         data["fillback"]["pose_min_timestamp"];
@@ -111,7 +111,6 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _dataset_params.use_udp = data["fillback"]["use_udp"];
     _dataset_params.udp_ip = data["fillback"]["network_ip"];
     _dataset_params.udp_port = data["fillback"]["port"];
-
 
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;

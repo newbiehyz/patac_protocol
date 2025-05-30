@@ -27,8 +27,6 @@ void PangolinDrawer::draw_traj() {
 
 void PangolinDrawer::draw_parking_slot(const int& id,
                                        const Eigen::MatrixXd& data) {
-
-
   glPointSize(8.0);
 
   glBegin(GL_POINTS);
@@ -48,14 +46,13 @@ void PangolinDrawer::draw_parking_slot(const int& id,
   glColor3f(.0f, .0f, 1.0f);
   glLineWidth(2.0);
   glBegin(GL_LINE_STRIP);
-  
+
   glVertex3f(data.col(1).x(), data.col(1).y(), .0f);
   glVertex3f(data.col(2).x(), data.col(2).y(), .0f);
   glVertex3f(data.col(3).x(), data.col(3).y(), .0f);
   glVertex3f(data.col(0).x(), data.col(0).y(), .0f);
 
   glEnd();
-
 
   glColor3f(1.0f, 1.0f, 1.0f);
   _font->Text(std::to_string(id)).Draw(0.5 + pt.x(), 0.5 + pt.y());
@@ -109,48 +106,22 @@ void PangolinDrawer::DrawAPA() {
     this->draw_traj();
     _traj.insert({ts, pose});
     draw_local_map(pose);
+
+    draw_local_meas();
   }
 }
 
-void PangolinDrawer::draw_parking_slot_matching(
-    const Pose& pose, const std::map<int, SemanticLandmark::Ptr>& map,
-    const std::vector<int>& matching) {
-  Eigen::Vector2d twb(pose.x, pose.y);
-  Eigen::Rotation2Dd rot(pose.yaw);
-  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
-  for (int i = 0; i < matching.size(); ++i) {
-    int id = matching.at(i);
-    if (id == -2) {
-      continue;
-    }
-    if (map.at(id)->Initialized()) {
-      auto latest_mea = map.at(id)->GetLatestMea();
-      Eigen::Vector2d pt0 = latest_mea->GetMeaData().col(0).head(2);
-      Eigen::Vector2d pt1 = latest_mea->GetMeaData().col(1).head(2);
-      Eigen::Vector2d pt0_w = Rwb * pt0 + twb;
-      Eigen::Vector2d pt1_w = Rwb * pt1 + twb;
-      glColor3f(.0f, .0f, 1.0f);
-      pangolin::glDrawCirclePerimeter(pt0_w.x(), pt0_w.y(), 0.5);
-      pangolin::glDrawCirclePerimeter(pt1_w.x(), pt1_w.y(), 0.5);
-    }
+void PangolinDrawer::draw_local_meas() {
+  std::vector<Eigen::VectorXd> slot_meas;
+
+  {
+    std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+    slot_meas = vis_meas.slot_meas;
   }
-}
-
-void PangolinDrawer::draw_matching(
-    const SensorType& type, const Pose& pose,
-    const std::map<int, SemanticLandmark::Ptr>& map,
-    const std::vector<int>& matching) {
-  Eigen::Vector2d twb(pose.x, pose.y);
-  Eigen::Rotation2Dd rot(pose.yaw);
-  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
-
-  switch (type) {
-    case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-      // draw_parking_slot_matching(pose, map, matching);
-      break;
-
-    default:
-      break;
+  glColor3f(1.0f, .0f, 0.0f);
+  for (size_t i = 0; i < slot_meas.size(); ++i) {
+    pangolin::glDrawCirclePerimeter(slot_meas[i][0], slot_meas[i][1], 0.5);
+    pangolin::glDrawCirclePerimeter(slot_meas[i][2], slot_meas[i][3], 0.5);
   }
 }
 

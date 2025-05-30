@@ -12,6 +12,7 @@
 #include <Eigen/Eigen>
 #include <set>
 #include <cstdint> 
+#include <mutex>
 #include "cross_correlation_id.h"
 // x0 x1 x2 x3
 // y0 y1 y2 y3
@@ -68,6 +69,7 @@ struct EstimatorParams {
   bool use_time_compensate;
   double buf_len;
   double slot_len;
+  double slot_mea_max_range;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };
@@ -115,5 +117,13 @@ struct FilterInfo {
   double vehicle_w;
   double ts;
 };
+
+
+struct VisualizationMeas {
+  std::mutex meas_mutex;
+  std::vector<Eigen::VectorXd> slot_meas;
+};
+
+extern VisualizationMeas vis_meas;
 
 }  // namespace apa_slam

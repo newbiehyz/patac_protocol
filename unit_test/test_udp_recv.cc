@@ -40,7 +40,7 @@ int main()
     inet_ntop(AF_INET, &sender_addr.sin_addr, sender_ip, sizeof(sender_ip));
     int sender_port = ntohs(sender_addr.sin_port);
 
-    std::string expected_ip = "192.168.1.101"; // 你想接收的指定 IP
+    std::string expected_ip = "192.168.1.11"; // 你想接收的指定 IP
 
     if (expected_ip == sender_ip)
     {

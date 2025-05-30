@@ -7,17 +7,18 @@
     "perception_sensing_range": 10.0
   },
   "estimator": {
-    "slot_mea_noise_x": 20.0,
-    "slot_mea_noise_y": 20.0,
+    "slot_mea_noise_x": 8.0 ,
+    "slot_mea_noise_y": 8.0,
     "odo_velocity_noise": 1.0,
-    "odo_angular_velocity_noise": 0.5,
-    "slot_matching_dist_thresh": 1.5,
-    "slot_matching_angle_thresh": 0.3,
-    "slot_min_tracking_times": 3,
-    "margin_tracking_time": 20.0,
-    "slot_local_map_range": 10.0,
+    "odo_angular_velocity_noise": 0.01,
+    "slot_matching_dist_thresh": 2.0,
+    "slot_matching_angle_thresh": 0.5,
+    "slot_min_tracking_times": 5,
+    "slot_mea_max_range": 8.0,
+    "margin_tracking_time": 1.0,
+    "slot_local_map_range": 50.0,
     "duplicate_slot_thresh": 1.0,
-    "export_debug_file": false,
+    "export_debug_file": true,
     "use_time_compensate": true,
     "buf_len": 5.0,
     "slot_length": 5.0,
@@ -26,9 +27,9 @@
   "fillback": {
     "pose_min_timestamp": 1746770825.0,
     "pose_max_timestamp": 1746770858.0,
-    "timedelay": 0.0,
-    "use_udp": true,
-    "network_ip": "192.168.1.102",
+    "timedelay": 0.2,
+    "use_udp": false,
+    "network_ip": "192.168.1.101",
     "port": 8888
   }
 

@@ -16,6 +16,8 @@
 #include "odo_measurement.h"
 #include "parking_slot_measurement.h"
 #include "semantic_measurement.h"
+
+#include "fillback_data_loader.h"
 namespace apa_slam {
 class LocalMappingInterface {
  public:
@@ -24,7 +26,8 @@ class LocalMappingInterface {
   void Reset();
   void Init(const std::string& cfg_json);
   void ProcDrPose(double timestamp_d, const Eigen::VectorXd& pose);
-
+  void ProcSlotData(double timestamp_d,
+                    const std::vector<Eigen::VectorXd>& slot_data);
   bool GetLatestVehiclePose(Eigen::VectorXd& pose);
 
  private:

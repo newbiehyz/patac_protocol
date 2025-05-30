@@ -41,6 +41,10 @@ bool EkfEstimator::GetLatestVechileState(double &timestamp,
 
 bool EkfEstimator::ProcDrPose(double ts, const Pose &pose, double &ts_out,
                               double &v_out, double &w_out) {
+  int size_dr = _dr_pose.size();
+  if (size_dr >= 1 && std::fabs(_dr_timestamp[size_dr - 1] - ts) < 1e-4) {
+    return false;
+  }
   if (_dr_pose.size() < 3) {
     _dr_pose.push_back(pose);
     _dr_timestamp.push_back(ts);
@@ -58,7 +62,7 @@ bool EkfEstimator::ProcDrPose(double ts, const Pose &pose, double &ts_out,
         Eigen::AngleAxisd(_dr_pose[2].yaw, Eigen::Vector3d::UnitZ())
             .toRotationMatrix();
 
-    double diff = angle_diff(_dr_pose[0].yaw, _dr_pose[2].yaw);
+    double diff = angle_diff(_dr_pose[2].yaw, _dr_pose[0].yaw);
 
     w_out = diff / (ts1 - ts0);
     v_out = (twb0 - twb1).norm() / (ts1 - ts0);

@@ -59,6 +59,12 @@ IF(ENABLE_OPENGL)
   TARGET_LINK_LIBRARIES(run_fillback viewer ${Pangolin_LIBRARIES})
 ENDIF()
 
+ADD_EXECUTABLE(run_interface ${CMAKE_CURRENT_SOURCE_DIR}/exe/interface_main.cc)
+TARGET_LINK_LIBRARIES(run_interface ${PROJECT_NAME})
+IF(ENABLE_OPENGL)
+  TARGET_LINK_LIBRARIES(run_interface viewer ${Pangolin_LIBRARIES})
+ENDIF()
+
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/unit_test)
 
 
