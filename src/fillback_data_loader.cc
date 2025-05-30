@@ -25,7 +25,8 @@ void FillbackDataLoader::LoadDataSet(const std::string& dataset_path) {
 
   _mea_it = _mea_seq.begin();
 }
-bool FillbackDataLoader::PopOutMea(ReplaySensorType& type, double& arriving_ts, double &sensor_ts) {
+bool FillbackDataLoader::PopOutMea(ReplaySensorType& type, double& arriving_ts,
+                                   double& sensor_ts) {
   if (_mea_it == _mea_seq.end()) {
     return false;
   }
@@ -51,7 +52,7 @@ std::vector<KinematicMea::Ptr> FillbackDataLoader::GetKinematicMeas(
   return _kinematic_mea.at(timestamp);
 }
 
-Eigen::Vector2d FillbackDataLoader::conver_uv_to_vehicle(
+Eigen::Vector2d FillbackDataLoader::ConvertUvToVehicle(
     const Eigen::Vector2d& uv) {
   float REAR_AXEL_TO_CENTER =
       (VEHICLE_LENGTH / 2) - REAR_AXLE_CENTER_VEHICLE_REAR;
@@ -489,7 +490,10 @@ Eigen::VectorXd FillbackDataLoader::interpolate_pose(
 
   return pose;
 }
-
+FillbackDataLoader& FillbackDataLoader::GetInstance() {
+  static FillbackDataLoader instance;
+  return instance;
+}
 void FillbackDataLoader::load_semantic_meas(
     const std::string& semantic_mea_file) {
   std::ifstream file(semantic_mea_file);
@@ -531,8 +535,8 @@ void FillbackDataLoader::load_semantic_meas(
         for (const auto& slot : quadParkingSlotList) {
           Eigen::Vector2d corner_l_uv(slot["tl"]["x"], slot["tl"]["y"]);
           Eigen::Vector2d corner_r_uv(slot["tr"]["x"], slot["tr"]["y"]);
-          Eigen::Vector2d corner_l = conver_uv_to_vehicle(corner_l_uv);
-          Eigen::Vector2d corner_r = conver_uv_to_vehicle(corner_r_uv);
+          Eigen::Vector2d corner_l = ConvertUvToVehicle(corner_l_uv);
+          Eigen::Vector2d corner_r = ConvertUvToVehicle(corner_r_uv);
           Eigen::Vector2d dir = corner_r - corner_l;
           dir.normalize();
           corner_l += dir * 0.12;
@@ -567,9 +571,8 @@ void FillbackDataLoader::load_semantic_meas(
             }
           }
 
-          SemanticMea::Ptr slot_mea = std::make_shared<ParkingSlotMea>(
-              timestamp_d,
-              mea.data());
+          SemanticMea::Ptr slot_mea =
+              std::make_shared<ParkingSlotMea>(timestamp_d, mea.data());
           _semantic_mea[timestamp_d].push_back(slot_mea);
           ++id;
         }

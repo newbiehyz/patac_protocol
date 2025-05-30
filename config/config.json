@@ -21,8 +21,8 @@
     "export_debug_file": true,
     "use_time_compensate": true,
     "buf_len": 5.0,
-    "slot_length": 5.0,
-    "slot_len": 5.0
+    "slot_len": 5.0,
+    "time_scale": 0.001
   },
   "fillback": {
     "pose_min_timestamp": 1746770825.0,

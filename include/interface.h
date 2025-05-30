@@ -12,12 +12,11 @@
 
 #include "apa_parameters.h"
 #include "ekf_estimator.h"
+#include "fillback_data_loader.h"
 #include "kinematic_measurement.h"
 #include "odo_measurement.h"
 #include "parking_slot_measurement.h"
 #include "semantic_measurement.h"
-
-#include "fillback_data_loader.h"
 namespace apa_slam {
 class LocalMappingInterface {
  public:
@@ -30,7 +29,11 @@ class LocalMappingInterface {
                     const std::vector<Eigen::VectorXd>& slot_data);
   bool GetLatestVehiclePose(Eigen::VectorXd& pose);
 
+  bool GetLatestSlotMap(std::map<int, Eigen::MatrixXd>& slot_map);
+
  private:
+  std::string _output_file_name;
+  std::string _cfg;
 };
 
 }  // namespace apa_slam

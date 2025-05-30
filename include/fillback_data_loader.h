@@ -12,6 +12,7 @@
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <set>
+
 #include "kinematic_measurement.h"
 #include "local_mapping_define.h"
 #include "odo_measurement.h"
@@ -53,9 +54,13 @@ class FillbackDataLoader {
   typedef std::shared_ptr<FillbackDataLoader> Ptr;
   FillbackDataLoader();
   void LoadDataSet(const std::string& dataset_path);
-  bool PopOutMea(ReplaySensorType& type, double& arriving_ts, double &sensor_ts);
+  bool PopOutMea(ReplaySensorType& type, double& arriving_ts,
+                 double& sensor_ts);
   std::vector<SemanticMea::Ptr> GetSemanticMeas(const double timestamp);
   std::vector<KinematicMea::Ptr> GetKinematicMeas(const double timestamp);
+  Eigen::Vector2d ConvertUvToVehicle(const Eigen::Vector2d& uv);
+
+  static FillbackDataLoader& GetInstance();
 
  private:
   void load_odo_meas(const std::string& odo_mea_file);
@@ -64,14 +69,17 @@ class FillbackDataLoader {
   void load_pose_odo_meas2(const std::string& pose_file);
   double get_angular_velocity(const double velocity,
                               const double steering_angle, const int gear);
-  Eigen::Vector2d conver_uv_to_vehicle(const Eigen::Vector2d& uv);
+
   void load_semantic_meas(const std::string& semantic_mea_file);
   double angle_diff(double angle1, double angle2);
-  Eigen::VectorXd interpolate_pose(const double timestamp, const std::map<double, Eigen::Vector3d> &pose_data);
+  Eigen::VectorXd interpolate_pose(
+      const double timestamp,
+      const std::map<double, Eigen::Vector3d>& pose_data);
   std::map<double, std::vector<SemanticMea::Ptr>> _semantic_mea;
   std::map<double, std::vector<KinematicMea::Ptr>> _kinematic_mea;
   std::map<double, std::vector<std::pair<ReplaySensorType, double>>> _mea_seq;
-  std::map<double, std::vector<std::pair<ReplaySensorType, double>>>::iterator _mea_it;
+  std::map<double, std::vector<std::pair<ReplaySensorType, double>>>::iterator
+      _mea_it;
 
   std::map<double, Eigen::Vector3d> _pose_data;
   int _mea_id{0};
