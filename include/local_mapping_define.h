@@ -71,6 +71,9 @@ struct EstimatorParams {
   double slot_len;
   double slot_mea_max_range;
   double time_scale;
+  int window_size;
+  double sl_translation_th;
+  double sl_angle_th;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };

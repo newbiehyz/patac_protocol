@@ -213,30 +213,35 @@ void EKFManagement::ekf_update(
   }
 
   std::cout << std::endl;
-  // std::cout << "Residual:\n" << residual.transpose() << std::endl;
-  // std::cout << "#######################\n";
-  // std::cout << "Hx\n" << Hx << std::endl;
-  // std::cout << "#######################\n";
-  // std::cout << "x----:\n" << x.transpose() << std::endl;
-  // std::cout << "P-----\n";
-  // std::cout << P << std::endl;
-  // std::cout << "-----\n";
 
-  // std::cout << R << std::endl;
   if (residual.size() > 0) {
     Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
     Eigen::MatrixXd Sinv = S.inverse();
-    // std::cout << "Identity\n";
-    // std::cout << S * Sinv << std::endl;
     Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
     x = x + K * residual;
     P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
     P = (P + P.transpose()) * 0.5;
-    // std::cout << "x+++++++:\n" << x.transpose() << std::endl;
-    // std::cout << "P+++++\n";
-    // std::cout << P << std::endl;
+
     // MatrixPlot::GetInstance().PlotCovarianceMatrix(P);
     update_mean_and_cov(x, P, ekf_lm_pos);
+
+    std::cout << "After Update\n";
+    for (auto it_type = update_list.begin(); it_type != update_list.end();
+         ++it_type) {
+      const SensorType &semantic_type = it_type->first;
+      for (auto it = it_type->second.begin(); it != it_type->second.end();
+           ++it) {
+        const int &landmark_id = *it;
+        std::cout << landmark_id << " ";
+        Eigen::VectorXd r;
+        Eigen::MatrixXd Jacobian_vehicle, Jacobian_landmark;
+        SemanticMap::GetInstance()
+            .GetLandmark(semantic_type, landmark_id)
+            ->GetLatestResidualAndJacobian(_vehicle_x, r, Jacobian_vehicle,
+                                           Jacobian_landmark);
+        std::cout << " residual: " << r.transpose() << std::endl;
+      }
+    }
 
     update_filter_info();
   }

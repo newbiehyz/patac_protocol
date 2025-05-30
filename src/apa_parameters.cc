@@ -50,7 +50,6 @@ void ApaParameters::printout_parameters() {
             << std::endl;
   std::cout << "estimator.duplicate_slot_thresh: "
             << _est_params.duplicate_slot_thresh << std::endl;
-            
 }
 
 const SimulationParams &ApaParameters::GetSimulationParameters() {
@@ -105,6 +104,11 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.slot_mea_max_range = data["estimator"]["slot_mea_max_range"];
 
     _est_params.time_scale = data["estimator"]["time_scale"];
+    _est_params.window_size = data["estimator"]["window_size"];
+
+    _est_params.sl_translation_th = data["estimator"]["window_translation_th"];
+    _est_params.sl_angle_th = data["estimator"]["window_angle_th"];
+
 
     _dataset_params.min_dataset_timestamp =
         data["fillback"]["pose_min_timestamp"];
