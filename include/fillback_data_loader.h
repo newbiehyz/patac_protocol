@@ -18,6 +18,11 @@
 #include "odo_measurement.h"
 #include "parking_slot_measurement.h"
 #include "semantic_measurement.h"
+
+
+#include "math_utils.h"
+
+
 using json = nlohmann::json;
 #define WHEEL_BASE 3.16
 #define R_N_557_ROW 5

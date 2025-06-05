@@ -18,7 +18,9 @@ void EkfEstimator::Init() {
 
   SemanticMap::GetInstance().ClearMap();
 
-  EKFManagement::GetInstance().Init();
+  // EKFManagement::GetInstance().Init();
+
+  SlEKFManagement::GetInstance().Init();
 
   if (ApaParameters::GetInstance().GetDatasetParameters().use_udp) {
     _socket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -97,8 +99,10 @@ void EkfEstimator::Reset() {
 
 double EkfEstimator::angle_diff(double angle1, double angle2) {
   double diff = angle1 - angle2;
-  while (diff > M_PI) diff -= 2 * M_PI;
-  while (diff < -M_PI) diff += 2 * M_PI;
+  while (diff > M_PI)
+    diff -= 2 * M_PI;
+  while (diff < -M_PI)
+    diff += 2 * M_PI;
   return diff;
 }
 
@@ -167,7 +171,8 @@ void EkfEstimator::InputSemanticMea(
     process_semantic_meas(mea_type, ts, it->second);
   }
 
-  EKFManagement::GetInstance().Update(ts);
+  // EKFManagement::GetInstance().Update(ts);
+  SlEKFManagement::GetInstance().Update(ts);
 
   auto end = std::chrono::steady_clock::now();
   auto duration =
@@ -316,7 +321,7 @@ bool EkfEstimator::Initialized() const {
 double EkfEstimator::interpolate_angle(const double angle0, const double angle1,
                                        const double t) {
   double diff = std::atan2(std::sin(angle1 - angle0),
-                           std::cos(angle1 - angle0));  // shortest angle diff
+                           std::cos(angle1 - angle0)); // shortest angle diff
   return angle0 + t * diff;
 }
 
@@ -334,13 +339,17 @@ void EkfEstimator::process_odo_mea(const long long ts,
   {
     std::lock_guard<std::mutex> lock(_data_mutex);
     // std::cout << "=========== " << dt << " " << v << " " << w << std::endl;
-    EKFManagement::GetInstance().Propagate(ts, v, w);
+    // EKFManagement::GetInstance().Propagate(ts, v, w);
+    SlEKFManagement::GetInstance().Propagate(ts, v, w);
   }
   long long latest_ts;
   Eigen::VectorXd latest_x;
   Eigen::MatrixXd latest_P;
-  if (EKFManagement::GetInstance().GetLatestVechileState(latest_ts, latest_x,
-                                                         latest_P)) {
+  // if (EKFManagement::GetInstance().GetLatestVechileState(latest_ts, latest_x,
+  //                                                        latest_P))
+
+  if (SlEKFManagement::GetInstance().GetLatestVechileState(latest_ts, latest_x,
+                                                           latest_P)) {
     Pose dr_pose;
     dr_pose.x = latest_x[0];
     dr_pose.y = latest_x[1];
@@ -362,4 +371,4 @@ void EkfEstimator::process_odo_mea(const long long ts,
     }
   }
 }
-}  // namespace apa_slam
+} // namespace apa_slam

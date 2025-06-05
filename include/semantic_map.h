@@ -44,6 +44,8 @@ class SemanticMap {
       std::map<SensorType, std::set<int>>& update_list,
       std::map<SensorType, std::set<int>>& marginalization_list);
 
+  void GetSlidingWindowDataList();
+
   Eigen::MatrixXd GetLandmarkCov(const SensorType& type, const int id);
 
   void SetLandmarkCov(const SensorType& type, const int id,

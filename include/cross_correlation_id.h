@@ -6,6 +6,7 @@
  *
  * Copyright (c) 2025 PATAC
  */
+#pragma once
 
 #include <cstdint>
 #include <map>

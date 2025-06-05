@@ -25,6 +25,10 @@
 #include "parking_slot_tracker.h"
 #include "semantic_measurement.h"
 #include "tracker_base.h"
+
+#include "sl_ekf_management.h"
+
+
 namespace apa_slam {
 class EkfEstimator {
  public:
