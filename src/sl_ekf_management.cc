@@ -46,7 +46,6 @@ void SlEKFManagement::Propagate(const long long timestamp, const double v,
                                 const double w) {
   _vehicle_w = w;
   _vehicle_v = v;
- 
 
   if (!_initialized) {
     _initialized = true;
@@ -160,11 +159,12 @@ void SlEKFManagement::Update(const long long timestamp) {
     if (SlidingWindow::GetInstance().AddKeyFrame(timestamp,
                                                  it_state->second.first)) {
       SlidingWindow::GetInstance().Propagate(timestamp, odo_for_update);
+      Eigen::VectorXd x, residual;
+      Eigen::MatrixXd P, R, H;
+      std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+      SlidingWindow::GetInstance().ConstructEKF(x, P, residual, H, R,
+                                                ekf_lm_pos);
     }
-    Eigen::VectorXd x, residual;
-    Eigen::MatrixXd P, R, H;
-    std::map<SensorType, std::map<int, int>> ekf_lm_pos;
-    SlidingWindow::GetInstance().ConstructEKF(x, P, residual, H, R, ekf_lm_pos);
   }
 
   long long latest_sl_timestamp;

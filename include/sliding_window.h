@@ -68,7 +68,7 @@ class SlidingWindow {
   void initialize_landmark(
       const std::vector<std::map<SensorType, std::vector<int>>> &sw_lm_list);
 
-  void update_propagate_window_status(
+  void refresh_propagate_window_status(
       const long long &timestamp, const Eigen::VectorXd &latest_state,
       const Eigen::MatrixXd &P_aug,
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
@@ -105,7 +105,7 @@ class SlidingWindow {
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
 
   void refresh_propagate_window_landmark(
-      const Eigen::MatrixXd &P,
+      const int win_sz, const Eigen::MatrixXd &P,
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
 
   void refresh_update_window(const Eigen::MatrixXd &P);
