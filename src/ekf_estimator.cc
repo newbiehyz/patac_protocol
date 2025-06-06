@@ -362,8 +362,8 @@ void EkfEstimator::process_odo_mea(const long long ts,
     dr_info.angular_velocity = w;
     dr_info.velocity = v;
     _dr_buf.insert({ts, dr_info});
-    std::cout << "Pose: " << dr_pose.x << " " << dr_pose.y << " " << dr_pose.yaw
-              << std::endl;
+    // std::cout << "Pose: " << dr_pose.x << " " << dr_pose.y << " " << dr_pose.yaw
+    //           << std::endl;
     if (fabs(_dr_buf.begin()->first - _dr_buf.rbegin()->first) *
             ApaParameters::GetInstance().GetEstimatorParamters().time_scale >
         ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {

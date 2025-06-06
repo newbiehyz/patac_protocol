@@ -51,6 +51,8 @@ class SemanticLandmark {
 
   const SemanticMea::Ptr GetLatestMea();
 
+  bool GetMea(const long long timestamp, SemanticMea::Ptr& mea);
+
   void TagMarginalization(const long long timestamp);
 
   void EraseMeasPre(const long long timestamp);

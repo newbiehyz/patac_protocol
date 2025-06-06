@@ -47,7 +47,13 @@ class SlidingWindow {
   void ConstructEKF(Eigen::VectorXd &x, Eigen::MatrixXd &P,
                     Eigen::VectorXd &residual, Eigen::MatrixXd &H,
                     Eigen::MatrixXd &R,
-                    std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
+                    std::map<SensorType, std::map<int, int>> &ekf_lm_pos,
+                    std::map<SensorType, std::set<int>> &marginalization_list);
+
+  void UpdateEKF(
+      const Eigen::VectorXd &x, const Eigen::MatrixXd &P,
+      const std::map<SensorType, std::map<int, int>> &ekf_lm_pos,
+      const std::map<SensorType, std::set<int>> &marginalization_list);
 
   long long GetSlwTimestamp(const int id);
 
@@ -76,6 +82,9 @@ class SlidingWindow {
   void set_landmark_cross_correlation(const CrossCorrelationId &id0,
                                       const CrossCorrelationId &id1,
                                       const Eigen::MatrixXd &correlation);
+
+  int get_residual_sz(
+      const std::vector<std::map<SensorType, std::vector<int>>> &sw_lm_list);
 
   Eigen::MatrixXd get_landmark_cross_correlation(const CrossCorrelationId &id0,
                                                  const CrossCorrelationId &id1);
@@ -113,6 +122,9 @@ class SlidingWindow {
   void refresh_update_window_landmark(
       const Eigen::MatrixXd &P,
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
+
+  void marginalization(
+      const std::map<SensorType, std::set<int>> &marginalization_list);
 
   bool _initialized{false};
 

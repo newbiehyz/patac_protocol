@@ -103,4 +103,15 @@ const SemanticMea::Ptr SemanticLandmark::GetLatestMea() {
   return _meas.rbegin()->second.second;
 }
 
+bool SemanticLandmark::GetMea(const long long timestamp, SemanticMea::Ptr &mea) {
+  if (!_meas.count(timestamp)) {
+    std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX NO SUCH MEA "
+                 "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
+    return false;
+  }
+
+  mea = _meas.at(timestamp).second;
+  return true;
+}
+
 }  // namespace apa_slam

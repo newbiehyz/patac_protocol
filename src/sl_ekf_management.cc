@@ -160,10 +160,22 @@ void SlEKFManagement::Update(const long long timestamp) {
                                                  it_state->second.first)) {
       SlidingWindow::GetInstance().Propagate(timestamp, odo_for_update);
       Eigen::VectorXd x, residual;
-      Eigen::MatrixXd P, R, H;
+      Eigen::MatrixXd P, R, Hx;
       std::map<SensorType, std::map<int, int>> ekf_lm_pos;
-      SlidingWindow::GetInstance().ConstructEKF(x, P, residual, H, R,
-                                                ekf_lm_pos);
+      std::map<SensorType, std::set<int>> marginalization_list;
+      SlidingWindow::GetInstance().ConstructEKF(
+          x, P, residual, Hx, R, ekf_lm_pos, marginalization_list);
+      if (residual.size() != 0) {
+        Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
+        Eigen::MatrixXd Sinv = S.inverse();
+        Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
+        x = x + K * residual;
+        P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
+        P = (P + P.transpose()) * 0.5;
+        SlidingWindow::GetInstance().UpdateEKF(x, P, ekf_lm_pos,
+                                               marginalization_list);
+        // std::cout << (K * residual).transpose() << std::endl;
+      }
     }
   }
 
