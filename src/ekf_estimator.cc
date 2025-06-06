@@ -37,8 +37,9 @@ void EkfEstimator::Init() {
 bool EkfEstimator::GetLatestVechileState(long long &timestamp,
                                          Eigen::VectorXd &mean,
                                          Eigen::MatrixXd &cov) {
-  return EKFManagement::GetInstance().GetLatestVechileState(timestamp, mean,
-                                                            cov);
+  // return EKFManagement::GetInstance().GetLatestVechileState(timestamp, mean,
+  //                                                           cov);
+  return SlEKFManagement::GetInstance().GetLatestVechileState(timestamp, mean, cov);
 }
 
 bool EkfEstimator::ProcDrPose(long long ts, const Pose &pose, long long &ts_out,
@@ -315,7 +316,9 @@ void EkfEstimator::InputKinematicMea(
 }
 
 bool EkfEstimator::Initialized() const {
-  return EKFManagement::GetInstance().Initialized();
+  // return EKFManagement::GetInstance().Initialized();
+  return SlEKFManagement::GetInstance().Initialized();
+
 }
 
 double EkfEstimator::interpolate_angle(const double angle0, const double angle1,

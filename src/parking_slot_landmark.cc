@@ -41,19 +41,64 @@ void ParkingSlotLandmark::AddSemanticMea(const long long timestmap,
 
   _meas.insert({timestmap, {mea_pose, mea}});
 
-  if (_meas.size() >= ApaParameters::GetInstance()
-                          .GetEstimatorParamters()
-                          .slot_min_tracking_times &&
-      !Initialized()) {
-    SetNeedInitializeFlag(true);
-  }
+  // if (_meas.size() >= ApaParameters::GetInstance()
+  //                         .GetEstimatorParamters()
+  //                         .slot_min_tracking_times &&
+  //     !Initialized()) {
+  //   SetNeedInitializeFlag(true);
+  // }
 
-  if (_meas.size() > ApaParameters::GetInstance()
-                         .GetEstimatorParamters()
-                         .slot_min_tracking_times &&
-      !NeedInitialize() && Initialized()) {
-    SetUpdateFlag(true);
-  }
+  // if (_meas.size() > ApaParameters::GetInstance()
+  //                        .GetEstimatorParamters()
+  //                        .slot_min_tracking_times &&
+  //     !NeedInitialize() && Initialized()) {
+  //   SetUpdateFlag(true);
+  // }
+}
+
+void ParkingSlotLandmark::InitializeLandmark(const long long timestamp,
+                                             const Eigen::VectorXd& state,
+                                             const Eigen::MatrixXd& P,
+                                             Eigen::MatrixXd& Jx) {
+  Eigen::Vector2d twb = state.head(2);
+  double yaw = state[2];
+  Eigen::Rotation2Dd rot(yaw);
+  Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+  // Rwb << cos, -sin,
+  //        sin, cos
+
+  Eigen::Matrix2d mea_data =
+      _meas.at(timestamp).second->GetMeaData().topLeftCorner(2, 2);
+  Eigen::Matrix2d pt_w = Rwb * mea_data + twb.replicate(1, 2);
+
+  _data = Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
+  _data.topLeftCorner(2, 2) = pt_w;
+
+  Jx = Eigen::MatrixXd::Zero(STATE_PARKING_SLOT_SIZE, STATE_VEHICLE_SIZE);
+  Jx.block(0, 0, 2, 2).setIdentity();
+  Jx.block(2, 0, 2, 2).setIdentity();
+
+  Eigen::Matrix2d d_Rwb_theta;
+  d_Rwb_theta << -std::sin(yaw), -std::cos(yaw), std::cos(yaw), -std::sin(yaw);
+
+  Jx.block(0, 2, 2, 1) = d_Rwb_theta * mea_data.col(0);
+  Jx.block(2, 2, 2, 1) = d_Rwb_theta * mea_data.col(1);
+
+  Eigen::MatrixXd J0 = Jx.topRows(2);
+  Eigen::MatrixXd J1 = Jx.bottomRows(2);
+
+  Eigen::MatrixXd mea_cov =
+      _meas.rbegin()->second.second->GetMeasurementNosise().topLeftCorner(2, 2);
+  Eigen::MatrixXd cov =
+      Eigen::MatrixXd::Zero(STATE_PARKING_SLOT_SIZE, STATE_PARKING_SLOT_SIZE);
+  cov.topLeftCorner(2, 2) =
+      J0 * P * J0.transpose() + Rwb * mea_cov * Rwb.transpose();
+  cov.bottomRightCorner(2, 2) =
+      J1 * P * J1.transpose() + Rwb * mea_cov * Rwb.transpose();
+
+  SetCov(cov);
+
+  SetInitializeFlag(true);
 }
 
 void ParkingSlotLandmark::InitializeLandmark(const Eigen::VectorXd& state,

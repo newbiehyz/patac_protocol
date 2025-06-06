@@ -44,7 +44,7 @@ void LocalMappingInterface::ProcDrPose(long long timestamp,
     Eigen::VectorXd mea_data = Eigen::VectorXd::Zero(2);
     mea_data[0] = v_out;
     mea_data[1] = w_out;
-    std::cout << "v_out: " << v_out << std::endl;
+    // std::cout << "v_out: " << v_out << std::endl;
     KinematicMea::Ptr odo_mea =
         std::make_shared<OdoMea>(ts_out, mea_data.data());
     std::vector<KinematicMea::Ptr> mea_vector;

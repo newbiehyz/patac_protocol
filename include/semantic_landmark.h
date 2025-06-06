@@ -51,9 +51,16 @@ class SemanticLandmark {
 
   const SemanticMea::Ptr GetLatestMea();
 
-  void TagMarginalization(const double timestamp);
+  void TagMarginalization(const long long timestamp);
+
+  void EraseMeasPre(const long long timestamp);
 
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
+                                  const Eigen::MatrixXd& P,
+                                  Eigen::MatrixXd& Jx) = 0;
+
+  virtual void InitializeLandmark(const long long timestamp,
+                                  const Eigen::VectorXd& state,
                                   const Eigen::MatrixXd& P,
                                   Eigen::MatrixXd& Jx) = 0;
 
@@ -70,8 +77,13 @@ class SemanticLandmark {
                                     Eigen::MatrixXd& J_v,
                                     Eigen::MatrixXd& J_lm);
 
-  virtual Eigen::VectorXd ComputeMatchingResidual(const Eigen::VectorXd& pose,
-                                                  const SemanticMea::Ptr& mea) = 0;
+  virtual Eigen::VectorXd ComputeMatchingResidual(
+      const Eigen::VectorXd& pose, const SemanticMea::Ptr& mea) = 0;
+
+  int GetSlidingWindowObservationTimes(
+      const std::vector<long long>& sl_timestamp, std::vector<int>& window_id);
+
+  bool NeedMargin(const std::vector<long long>& sl_timestamp);
 
  protected:
   std::map<long long, std::pair<Pose, SemanticMea::Ptr>> _meas;

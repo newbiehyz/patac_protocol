@@ -35,6 +35,7 @@ private:
   void erase_pres(const long long timestamp);
 
   Eigen::VectorXd _vehicle_x;
+  Eigen::MatrixXd _vehicle_P;
   double _vehicle_v;
   double _vehicle_w;
   long long _ts;
@@ -42,6 +43,9 @@ private:
 
   std::map<long long, Eigen::VectorXd> _odo_meas;
   std::map<long long, std::pair<Eigen::VectorXd, Eigen::MatrixXd>> _pre_states;
+
+  std::mutex _data_mutex;
+
 };
 
 } // namespace apa_slam

@@ -23,8 +23,8 @@
     "buf_len": 5.0,
     "slot_len": 5.0,
     "time_scale": 0.001,
-    "window_size": 5,
-    "window_translation_th": 0.5,
+    "window_size": 10,
+    "window_translation_th": 1.0,
     "window_angle_th": 0.5
   },
   "fillback": {

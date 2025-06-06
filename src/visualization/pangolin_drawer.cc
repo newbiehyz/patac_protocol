@@ -13,6 +13,68 @@
 namespace apa_slam {
 PangolinDrawer::PangolinDrawer() {
   _font = std::make_shared<pangolin::GlFont>(font_ttf, 20);
+
+  int sl_sz = ApaParameters::GetInstance().GetEstimatorParamters().window_size;
+
+  std::random_device rd;
+  std::mt19937 gen(rd());
+  std::uniform_real_distribution<> sat_dist(0.7, 1.0);  // 饱和度范围
+  std::uniform_real_distribution<> val_dist(0.8, 1.0);  // 亮度范围
+
+  // 黄金角度近似，确保色相均匀分布
+  const double golden_ratio = 0.618033988749895;
+  double h = 0.0;
+
+  for (int i = 0; i < sl_sz; ++i) {
+    h += golden_ratio;
+    h = fmod(h, 1.0);
+
+    double s = sat_dist(gen);
+    double v = val_dist(gen);
+
+    // HSV 转 RGB
+    double r, g, b;
+    int hi = static_cast<int>(h * 6);
+    double f = h * 6 - hi;
+    double p = v * (1 - s);
+    double q = v * (1 - f * s);
+    double t = v * (1 - (1 - f) * s);
+
+    switch (hi % 6) {
+      case 0:
+        r = v;
+        g = t;
+        b = p;
+        break;
+      case 1:
+        r = q;
+        g = v;
+        b = p;
+        break;
+      case 2:
+        r = p;
+        g = v;
+        b = t;
+        break;
+      case 3:
+        r = p;
+        g = q;
+        b = v;
+        break;
+      case 4:
+        r = t;
+        g = p;
+        b = v;
+        break;
+      case 5:
+        r = v;
+        g = p;
+        b = q;
+        break;
+    }
+
+    _sl_color.emplace_back(r, g, b);
+  }
 }
 
 void PangolinDrawer::draw_traj() {
@@ -89,6 +151,35 @@ void PangolinDrawer::draw_vehicle_bbox() {
   glEnd();
 }
 
+void PangolinDrawer::draw_sliding_window() {
+  SlwVisualization sw;
+  // {
+  //   std::lock_guard<std::mutex> lock(gl_slw.mutex);
+  sw.sl_pose = gl_slw.sl_pose;
+  // }
+  for (size_t i = 0; i < sw.sl_pose.size(); ++i) {
+    Eigen::Matrix3d Rwb =
+        Eigen::AngleAxisd(sw.sl_pose.at(i).z(), Eigen::Vector3d::UnitZ())
+            .toRotationMatrix();
+    Eigen::Matrix4d T = Eigen::Matrix4d::Identity();
+    T.topLeftCorner(3, 3) = Rwb;
+    T.topRightCorner(2, 1) = sw.sl_pose.at(i).head(2);
+
+    glPushMatrix();
+    glMultMatrixd(T.data());
+    glLineWidth(2.0);
+
+    glColor3f(_sl_color.at(i).x(), _sl_color.at(i).y(), _sl_color.at(i).z());
+    glBegin(GL_LINE_LOOP);
+    glVertex3f(0.4, .0, .0);
+    glVertex3f(0.0, -0.4, .0);
+    glVertex3f(0.0, 0.4, .0);
+    glEnd();
+
+    glPopMatrix();
+  }
+}
+
 void PangolinDrawer::DrawAPA() {
   std::map<SensorType, std::vector<SemanticMea::Ptr>> cur_meas;
   std::map<SensorType, std::vector<int>> cur_matching;
@@ -106,8 +197,8 @@ void PangolinDrawer::DrawAPA() {
     this->draw_traj();
     _traj.insert({ts, pose});
     draw_local_map(pose);
-
-    draw_local_meas();
+    draw_sliding_window();
+    // draw_local_meas();
   }
 }
 

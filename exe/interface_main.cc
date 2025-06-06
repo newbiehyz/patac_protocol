@@ -12,12 +12,13 @@ int main(int argc, char** argv) {
   const std::string cfg = argv[1];
   std::string data_file = argv[2];
 
+  LocalMappingInterface::GetInstance().Init(cfg);
+
 #ifdef ENABLE_OPENGL
   PangolinViewer::Ptr viewer = std::make_shared<PangolinViewer>();
   viewer->Start();
 #endif
 
-  LocalMappingInterface::GetInstance().Init(cfg);
   std::ifstream fin;
   fin.open(data_file, std::ios::in);
   std::string line;

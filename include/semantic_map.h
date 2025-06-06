@@ -39,12 +39,19 @@ class SemanticMap {
                           const Eigen::VectorXd& vehicle_mean,
                           Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx);
 
+  void InitializeLandmark(const SensorType type, const int id, const long long timestamp,
+                          const Eigen::VectorXd& vehicle_mean,
+                          Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx);
+
   void GetEKFDataList(
       std::map<SensorType, std::set<int>>& augmentation_list,
       std::map<SensorType, std::set<int>>& update_list,
       std::map<SensorType, std::set<int>>& marginalization_list);
 
-  void GetSlidingWindowDataList();
+  void GetSlidingWindowEKFDataList(
+      const std::vector<long long>& slw_timestamp,
+      std::vector<std::map<SensorType, std::vector<int>>>& sw_lm_list,
+      std::map<SensorType, std::set<int>>& marginalization_list);
 
   Eigen::MatrixXd GetLandmarkCov(const SensorType& type, const int id);
 
@@ -57,7 +64,7 @@ class SemanticMap {
   const SemanticLandmark::Ptr GetLandmark(const SensorType& type,
                                           const int& id);
 
-  void TagMarginalization(const double timestamp);
+  void TagMarginalization(const long long timestamp);
 
   void MarginLandmark(const SensorType& type, const int& id);
 

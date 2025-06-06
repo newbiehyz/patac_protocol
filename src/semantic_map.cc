@@ -49,6 +49,14 @@ void SemanticMap::InitializeLandmark(const SensorType type, const int id,
                                      Eigen::MatrixXd& Jx) {
   _map.at(type).at(id)->InitializeLandmark(vehicle_mean, vehicle_P, Jx);
 }
+
+void SemanticMap::InitializeLandmark(const SensorType type, const int id,
+                                     const long long timestamp,
+                                     const Eigen::VectorXd& vehicle_mean,
+                                     Eigen::MatrixXd& vehicle_P,
+                                     Eigen::MatrixXd& Jx) {
+  _map.at(type).at(id)->InitializeLandmark(timestamp, vehicle_mean, vehicle_P, Jx);
+}
 Eigen::MatrixXd SemanticMap::GetLandmarkCov(const SensorType& type,
                                             const int id) {
   return _map.at(type).at(id)->GetCov();
@@ -64,7 +72,7 @@ void SemanticMap::SetLandmarkMean(const SensorType& type, const int id,
   _map.at(type).at(id)->SetMean(mean);
 }
 
-void SemanticMap::TagMarginalization(const double timestamp) {
+void SemanticMap::TagMarginalization(const long long timestamp) {
   for (auto it_type = _map.begin(); it_type != _map.end(); ++it_type) {
     const auto& type = it_type->first;
     for (auto it_lm = it_type->second.begin(); it_lm != it_type->second.end();
@@ -92,7 +100,8 @@ bool SemanticMap::GetFullLocalMap(
     default:
       break;
   }
-  // std::cout << "Pose: " << pose.x << " " << pose.y << " " << pose.yaw << std::endl; 
+  // std::cout << "Pose: " << pose.x << " " << pose.y << " " << pose.yaw <<
+  // std::endl;
   for (auto it_lm = _map.at(type).begin(); it_lm != _map.at(type).end();
        ++it_lm) {
     Eigen::MatrixXd lm_data = it_lm->second->GetLandmarkData();
@@ -102,9 +111,11 @@ bool SemanticMap::GetFullLocalMap(
     if (distance < range) {
       local_map.push_back(it_lm->second);
       // std::cout << "local map id: " << it_lm->first << " |||| \n"
-      //           << it_lm->second->GetLandmarkData().col(0).head(2).transpose()
+      //           <<
+      //           it_lm->second->GetLandmarkData().col(0).head(2).transpose()
       //           << std::endl
-      //           << it_lm->second->GetLandmarkData().col(1).head(2).transpose()
+      //           <<
+      //           it_lm->second->GetLandmarkData().col(1).head(2).transpose()
       //           << std::endl;
     }
   }
@@ -119,6 +130,42 @@ void SemanticMap::MarginLandmark(const SensorType& type, const int& id) {
 const SemanticLandmark::Ptr SemanticMap::GetLandmark(const SensorType& type,
                                                      const int& id) {
   return _map.at(type).at(id);
+}
+
+void SemanticMap::GetSlidingWindowEKFDataList(
+    const std::vector<long long>& slw_timestamp,
+    std::vector<std::map<SensorType, std::vector<int>>>& sw_lm_list,
+    std::map<SensorType, std::set<int>>& marginalization_list) {
+  sw_lm_list.resize(slw_timestamp.size());
+  for (auto it_type = _map.begin(); it_type != _map.end(); ++it_type) {
+    const auto& type = it_type->first;
+    switch (type) {
+      case SensorType::SEMANTIC_TYPE_PARKING_SLOT: {
+        for (auto it_lm = it_type->second.begin();
+             it_lm != it_type->second.end(); ++it_lm) {
+          // it_lm->second->EraseMeasPre(slw_timestamp.at(0));
+
+          std::vector<int> ob_window_id;
+          int sl_ob_num = it_lm->second->GetSlidingWindowObservationTimes(
+              slw_timestamp, ob_window_id);
+          if (sl_ob_num > ApaParameters::GetInstance()
+                              .GetEstimatorParamters()
+                              .slot_min_tracking_times) {
+            for (int i = 0; i < ob_window_id.size(); ++i) {
+              sw_lm_list.at(ob_window_id.at(i))[type].push_back(it_lm->first);
+            }
+          }
+
+          if (sl_ob_num == 0 && it_lm->second->NeedMargin(slw_timestamp)) {
+            marginalization_list[type].insert(it_lm->first);
+          }
+        }
+      } break;
+
+      default:
+        break;
+    }
+  }
 }
 
 void SemanticMap::GetEKFDataList(

@@ -14,6 +14,7 @@ ADD_EXECUTABLE(test_udp_send ${CMAKE_CURRENT_SOURCE_DIR}/test_udp_send.cc)
 
 
 
+ADD_EXECUTABLE(test_tie ${CMAKE_CURRENT_SOURCE_DIR}/test_tie.cc)
 
 IF(ENABLE_OPENGL) 
 

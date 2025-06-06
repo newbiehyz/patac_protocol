@@ -13,4 +13,6 @@ namespace apa_slam {
 
 VisualizationMeas vis_meas;
 
+SlwVisualization gl_slw;
+
 }  // namespace apa_slam

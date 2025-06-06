@@ -12,8 +12,10 @@
 
 namespace apa_slam {
 SlEKFManagement::SlEKFManagement() {
-
-  _vehicle_x = Eigen::VectorXd::Zero(3);
+  _vehicle_x = Eigen::VectorXd::Zero(STATE_VEHICLE_SIZE);
+  _vehicle_P =
+      Eigen::MatrixXd::Identity(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) *
+      0.001f;
   _initialized = false;
 }
 
@@ -27,18 +29,28 @@ SlEKFManagement &SlEKFManagement::GetInstance() {
 bool SlEKFManagement::GetLatestVechileState(long long &timestamp,
                                             Eigen::VectorXd &mean,
                                             Eigen::MatrixXd &cov) {
+  if (SlidingWindow::GetInstance().Initialized() == false) {
+    return false;
+  }
+  std::lock_guard<std::mutex> lock(_data_mutex);
+
+  timestamp = _ts;
+  mean = _vehicle_x;
+  cov = _vehicle_P;
   return true;
 }
+
+bool SlEKFManagement::Initialized() { return _initialized; }
 
 void SlEKFManagement::Propagate(const long long timestamp, const double v,
                                 const double w) {
   _vehicle_w = w;
   _vehicle_v = v;
-  _ts = timestamp;
+ 
 
   if (!_initialized) {
     _initialized = true;
-
+    _ts = timestamp;
     return;
   }
 
@@ -72,14 +84,8 @@ void SlEKFManagement::Propagate(const long long timestamp, const double v,
   Eigen::MatrixXd Fn = Eigen::MatrixXd::Zero(3, 2);
   Fn.topLeftCorner(2, 1) = dir * dt;
   Fn(2, 1) = dt;
-  Eigen::MatrixXd P_last;
-  if (_pre_states.size() == 0) {
-    P_last = 0.001 * Eigen::MatrixXd::Identity(3, 3);
-  } else {
-    P_last = _pre_states.rbegin()->second.second;
-  }
 
-  P = Fx * P_last * Fx.transpose() + Fn * N * Fn.transpose();
+  P = Fx * _vehicle_P * Fx.transpose() + Fn * N * Fn.transpose();
   x = Eigen::VectorXd::Zero(STATE_VEHICLE_SIZE);
 
   twb += dir * v * dt;
@@ -91,6 +97,7 @@ void SlEKFManagement::Propagate(const long long timestamp, const double v,
   _pre_states[timestamp] = {x, P};
 
   _vehicle_x = x;
+  _vehicle_P = P;
   _ts = timestamp;
 
   // hist information
@@ -103,7 +110,7 @@ void SlEKFManagement::Propagate(const long long timestamp, const double v,
     int sl_sz = SlidingWindow::GetInstance().GetCurWindowSz();
     long long sl_timestmap =
         SlidingWindow::GetInstance().GetSlwTimestamp(sl_sz - 1);
-    erase_pres(sl_timestmap);
+    // erase_pres(sl_timestmap);
   }
 }
 
@@ -120,12 +127,20 @@ void SlEKFManagement::erase_pres(const long long timestamp) {
 }
 
 void SlEKFManagement::Update(const long long timestamp) {
+  std::lock_guard<std::mutex> lock(_data_mutex);
 
-  if (!SlidingWindow::GetInstance().Initialized()) {
-    if (timestamp < _pre_states.begin()->first ||
-        timestamp > _pre_states.rbegin()->first) {
-      return;
+  if (timestamp < _pre_states.begin()->first ||
+      timestamp > _pre_states.rbegin()->first) {
+    if (timestamp < _pre_states.begin()->first) {
+      std::cout << "FATAL ERROR: UPDATE TIMESTAMP BEFORE odo_buffer begins()\n";
     }
+
+    if (timestamp > _pre_states.rbegin()->first) {
+      std::cout << "FATAL ERROR: UPDATE TIMESTAMP AFTER odo_buffer rbegins()\n";
+    }
+    return;
+  }
+  if (!SlidingWindow::GetInstance().Initialized()) {
     auto it = _pre_states.lower_bound(timestamp);
     Eigen::VectorXd x = it->second.first;
     Eigen::MatrixXd P = it->second.second;
@@ -146,7 +161,32 @@ void SlEKFManagement::Update(const long long timestamp) {
                                                  it_state->second.first)) {
       SlidingWindow::GetInstance().Propagate(timestamp, odo_for_update);
     }
+    Eigen::VectorXd x, residual;
+    Eigen::MatrixXd P, R, H;
+    std::map<SensorType, std::map<int, int>> ekf_lm_pos;
+    SlidingWindow::GetInstance().ConstructEKF(x, P, residual, H, R, ekf_lm_pos);
+  }
+
+  long long latest_sl_timestamp;
+  Eigen::VectorXd latest_sl_x;
+  Eigen::MatrixXd latest_sl_P;
+
+  if (SlidingWindow::GetInstance().Initialized()) {
+    int sl_sz = SlidingWindow::GetInstance().GetCurWindowSz();
+    if (SlidingWindow::GetInstance().GetSlidingWindowStatus(
+            sl_sz - 1, latest_sl_timestamp, latest_sl_x, latest_sl_P)) {
+      auto it_odo = _odo_meas.lower_bound(latest_sl_timestamp);
+      _vehicle_w = it_odo->second.y();
+      _vehicle_v = it_odo->second.x();
+      _ts = latest_sl_timestamp;
+      _vehicle_P = latest_sl_P;
+      _vehicle_x = latest_sl_x;
+      while (it_odo != _odo_meas.end()) {
+        this->Propagate(it_odo->first, it_odo->second.x(), it_odo->second.y());
+        ++it_odo;
+      }
+    }
   }
 }
 
-} // namespace apa_slam
+}  // namespace apa_slam

@@ -26,6 +26,10 @@ class ParkingSlotLandmark : public SemanticLandmark {
   void InitializeLandmark(const Eigen::VectorXd& state,
                           const Eigen::MatrixXd& P, Eigen::MatrixXd& Jx);
 
+  void InitializeLandmark(const long long timestamp,
+                          const Eigen::VectorXd& state,
+                          const Eigen::MatrixXd& P, Eigen::MatrixXd& Jx);
+
   Eigen::VectorXd GetVectorizedData();
 
   void GetResidualAndJacobian(const SemanticMea::Ptr& mea,

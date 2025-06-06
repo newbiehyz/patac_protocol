@@ -25,6 +25,17 @@ bool SemanticLandmark::Initialized() { return _initialized; }
 
 bool SemanticLandmark::NeedMargin() { return _margin; }
 
+bool SemanticLandmark::NeedMargin(const std::vector<long long>& sl_timestamp) {
+  if (_meas.empty()) {
+    return true;
+  }
+  if (_meas.rbegin()->first < sl_timestamp.back()) {
+    return true;
+  }
+
+  return false;
+}
+
 void SemanticLandmark::SetMarginFlag(const bool& flag) { _margin = flag; }
 
 bool SemanticLandmark::NeedUpdate() { return _update; }
@@ -43,13 +54,37 @@ void SemanticLandmark::SetInitializeFlag(const bool& flag) {
 
 void SemanticLandmark::SetCov(const Eigen::MatrixXd& cov) { _cov = cov; }
 
-void SemanticLandmark::TagMarginalization(const double timestamp) {
+void SemanticLandmark::TagMarginalization(const long long timestamp) {
   if (ApaParameters::GetInstance().GetEstimatorParamters().time_scale *
           fabs(_meas.rbegin()->first - timestamp) >
       ApaParameters::GetInstance()
           .GetEstimatorParamters()
           .margin_tracking_time) {
     SetMarginFlag(true);
+  }
+}
+
+int SemanticLandmark::GetSlidingWindowObservationTimes(
+    const std::vector<long long>& sl_timestamp, std::vector<int>& window_id) {
+  int n = 0;
+  for (size_t i = 0; i < sl_timestamp.size(); ++i) {
+    if (_meas.count(sl_timestamp.at(i))) {
+      window_id.push_back(i);
+      ++n;
+    }
+  }
+
+  return n;
+}
+
+void SemanticLandmark::EraseMeasPre(const long long timestamp) {
+  auto it = _meas.begin();
+  while (it != _meas.end()) {
+    if (it->first < timestamp) {
+      it = _meas.erase(it);
+    } else {
+      ++it;
+    }
   }
 }
 

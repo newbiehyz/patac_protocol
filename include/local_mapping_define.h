@@ -130,4 +130,12 @@ struct VisualizationMeas {
 
 extern VisualizationMeas vis_meas;
 
+struct SlwVisualization {
+  std::mutex mutex;
+
+  std::vector<Eigen::VectorXd> sl_pose;
+};
+
+extern SlwVisualization gl_slw;
+
 }  // namespace apa_slam
