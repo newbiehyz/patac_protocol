@@ -16,8 +16,8 @@
 #include "apa_parameters.h"
 #include "cross_correlation_id.h"
 #include "math_utils.h"
+#include "matrix_plot.h"
 #include "semantic_map.h"
-
 using WindowCrossCorrelation =
     std::map<std::pair<int, int>,
              Eigen::MatrixXd>;  // std::pair<id0, id1> P01, id0 < id1,
@@ -74,9 +74,12 @@ class SlidingWindow {
   void initialize_landmark(
       const std::vector<std::map<SensorType, std::vector<int>>> &sw_lm_list);
 
+  void refresh_window_cross_correlation(const Eigen::MatrixXd &P);
+
+
   void refresh_propagate_window_status(
       const long long &timestamp, const Eigen::VectorXd &latest_state,
-      const Eigen::MatrixXd &P_aug,
+      const Eigen::MatrixXd &P,
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
 
   void set_landmark_cross_correlation(const CrossCorrelationId &id0,
@@ -107,19 +110,13 @@ class SlidingWindow {
                                                         const SensorType &type,
                                                         const int &lm_id);
 
-  void refresh_propagate_window(const int win_sz, const Eigen::MatrixXd &P);
 
-  void refresh_landmark(
+  void refresh_landmark_cross_correlation(
       const Eigen::MatrixXd &P,
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
 
-  void refresh_propagate_window_landmark(
-      const int win_sz, const Eigen::MatrixXd &P,
-      const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
 
-  void refresh_update_window(const Eigen::MatrixXd &P);
-
-  void refresh_update_window_landmark(
+  void refresh_window_landmark_cross_correlation(
       const Eigen::MatrixXd &P,
       const std::map<SensorType, std::map<int, int>> &ekf_lm_pos);
 

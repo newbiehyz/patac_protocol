@@ -134,6 +134,7 @@ struct SlwVisualization {
   std::mutex mutex;
 
   std::vector<Eigen::VectorXd> sl_pose;
+  std::vector<Eigen::VectorXd> sl_meas;
 };
 
 extern SlwVisualization gl_slw;

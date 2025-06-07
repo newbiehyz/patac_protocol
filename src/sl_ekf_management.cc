@@ -127,7 +127,9 @@ void SlEKFManagement::erase_pres(const long long timestamp) {
 
 void SlEKFManagement::Update(const long long timestamp) {
   std::lock_guard<std::mutex> lock(_data_mutex);
-
+  if(_pre_states.empty()) {
+    return;
+  }
   if (timestamp < _pre_states.begin()->first ||
       timestamp > _pre_states.rbegin()->first) {
     if (timestamp < _pre_states.begin()->first) {
@@ -169,12 +171,16 @@ void SlEKFManagement::Update(const long long timestamp) {
         Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
         Eigen::MatrixXd Sinv = S.inverse();
         Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
+        // std::cout << "dx: " << (K * residual).transpose() << std::endl;
         x = x + K * residual;
         P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
         P = (P + P.transpose()) * 0.5;
         SlidingWindow::GetInstance().UpdateEKF(x, P, ekf_lm_pos,
                                                marginalization_list);
-        // std::cout << (K * residual).transpose() << std::endl;
+        // SlidingWindow::GetInstance().ConstructEKF(
+        //     x, P, residual, Hx, R, ekf_lm_pos, marginalization_list);
+
+        // getchar();
       }
     }
   }
