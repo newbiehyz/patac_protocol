@@ -127,17 +127,22 @@ void SlEKFManagement::erase_pres(const long long timestamp) {
 
 void SlEKFManagement::Update(const long long timestamp) {
   std::lock_guard<std::mutex> lock(_data_mutex);
-  if(_pre_states.empty()) {
+  if (_pre_states.empty()) {
     return;
   }
   if (timestamp < _pre_states.begin()->first ||
       timestamp > _pre_states.rbegin()->first) {
-    if (timestamp < _pre_states.begin()->first) {
-      std::cout << "FATAL ERROR: UPDATE TIMESTAMP BEFORE odo_buffer begins()\n";
-    }
+    // if (timestamp < _pre_states.begin()->first) {
+    //   std::cout << "FATAL ERROR: UPDATE TIMESTAMP BEFORE odo_buffer
+    //   begins()\n";
+    // }
 
     if (timestamp > _pre_states.rbegin()->first) {
-      std::cout << "FATAL ERROR: UPDATE TIMESTAMP AFTER odo_buffer rbegins()\n";
+      // std::cout << "FATAL ERROR: UPDATE TIMESTAMP AFTER odo_buffer
+      // rbegins()\n";
+      std::cout << "\033[1;33mFATAL ERROR: UPDATE TIMESTAMP AFTER odo_buffer "
+                   "Rbegins\033[0m"
+                << std::endl;
     }
     return;
   }
@@ -168,12 +173,26 @@ void SlEKFManagement::Update(const long long timestamp) {
       SlidingWindow::GetInstance().ConstructEKF(
           x, P, residual, Hx, R, ekf_lm_pos, marginalization_list);
       if (residual.size() != 0) {
-        Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
+        Eigen::JacobiSVD<Eigen::MatrixXd> svd(
+            Hx, Eigen::ComputeThinU | Eigen::ComputeThinV);
+        Eigen::MatrixXd U = svd.matrixU();  // m x n
+        Eigen::VectorXd residual_compressed = U.transpose() * residual;
+        Eigen::MatrixXd H_compressed =
+            svd.singularValues().asDiagonal() * svd.matrixV().transpose();
+        Eigen::MatrixXd R_compressed = U.transpose() * R * U;
+
+        Eigen::MatrixXd S =
+            H_compressed * P * H_compressed.transpose() + R_compressed;
         Eigen::MatrixXd Sinv = S.inverse();
-        Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
-        // std::cout << "dx: " << (K * residual).transpose() << std::endl;
-        x = x + K * residual;
-        P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
+        Eigen::MatrixXd K = P * H_compressed.transpose() * Sinv;
+        x = x + K * residual_compressed;
+        P = P - K * (H_compressed * P * H_compressed.transpose() + R_compressed) * K.transpose();
+        // Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
+        // Eigen::MatrixXd Sinv = S.inverse();
+        // Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
+        // x = x + K * residual;
+        // P = P - K * (Hx * P * Hx.transpose() + R) * K.transpose();
+
         P = (P + P.transpose()) * 0.5;
         SlidingWindow::GetInstance().UpdateEKF(x, P, ekf_lm_pos,
                                                marginalization_list);

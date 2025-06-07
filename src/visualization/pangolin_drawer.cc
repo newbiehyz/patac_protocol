@@ -188,7 +188,7 @@ void PangolinDrawer::draw_sliding_window() {
   }
 }
 
-void PangolinDrawer::DrawAPA() {
+void PangolinDrawer::DrawAPA(pangolin::OpenGlRenderState& s_cam) {
   std::map<SensorType, std::vector<SemanticMea::Ptr>> cur_meas;
   std::map<SensorType, std::vector<int>> cur_matching;
   if (EkfEstimator::GetInstance().Initialized()) {

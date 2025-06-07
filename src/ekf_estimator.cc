@@ -39,7 +39,8 @@ bool EkfEstimator::GetLatestVechileState(long long &timestamp,
                                          Eigen::MatrixXd &cov) {
   // return EKFManagement::GetInstance().GetLatestVechileState(timestamp, mean,
   //                                                           cov);
-  return SlEKFManagement::GetInstance().GetLatestVechileState(timestamp, mean, cov);
+  return SlEKFManagement::GetInstance().GetLatestVechileState(timestamp, mean,
+                                                              cov);
 }
 
 bool EkfEstimator::ProcDrPose(long long ts, const Pose &pose, long long &ts_out,
@@ -100,10 +101,8 @@ void EkfEstimator::Reset() {
 
 double EkfEstimator::angle_diff(double angle1, double angle2) {
   double diff = angle1 - angle2;
-  while (diff > M_PI)
-    diff -= 2 * M_PI;
-  while (diff < -M_PI)
-    diff += 2 * M_PI;
+  while (diff > M_PI) diff -= 2 * M_PI;
+  while (diff < -M_PI) diff += 2 * M_PI;
   return diff;
 }
 
@@ -164,6 +163,8 @@ void EkfEstimator::InputSemanticMea(
   if (!this->Initialized()) {
     return;
   }
+
+  std::cout << "Update Timestamp: " << ts << std::endl;
   std::unordered_map<SensorType, std::vector<SemanticMea::Ptr>> meas_sorted;
   sort_semantic_meas(semantic_meas, meas_sorted);
 
@@ -251,9 +252,34 @@ bool EkfEstimator::get_pose(const long long ts, Pose &pose) {
     return false;
   }
 
-  if (ts < _dr_buf.begin()->first || ts > _dr_buf.rbegin()->first) {
-    std::cout << "get pose before dr_buf begin\n";
+  if (ts < _dr_buf.begin()->first) {
+    std::cout << "\033[1;33mGet Pose Before dr_buf Begins\033[0m" << std::endl;
     return false;
+  }
+  if (ts > _dr_buf.rbegin()->first) {
+    double dt = static_cast<double>(ts - _dr_buf.rbegin()->first) *
+                ApaParameters::GetInstance().GetEstimatorParamters().time_scale;
+    if (dt > 1.0) {
+      std::cout << "\033[1;33mGet Pose After dr_buf RBegins For 1 second\033[0m"
+                << std::endl;
+      return false;
+    } else {
+      Eigen::Vector2d twb(_dr_buf.rbegin()->second.pose.x,
+                          _dr_buf.rbegin()->second.pose.y);
+      double yaw = _dr_buf.rbegin()->second.pose.yaw;
+      Eigen::Rotation2Dd rot(yaw);
+      Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+      Eigen::Vector2d dir = Rwb.col(0);
+      twb += dir * _dr_buf.rbegin()->second.velocity * dt;
+      yaw += _dr_buf.rbegin()->second.angular_velocity * dt;
+      
+      pose.x = twb.x();
+      pose.y = twb.y();
+      pose.yaw = yaw;
+
+      return true;
+
+    }
   }
 
   auto it1 = _dr_buf.lower_bound(ts);
@@ -279,7 +305,7 @@ bool EkfEstimator::get_pose(const long long ts, Pose &pose) {
   //           << pose_yaw << std::endl;
 
   return true;
-}
+}  // namespace apa_slam
 
 void EkfEstimator::sort_semantic_meas(
     const std::vector<SemanticMea::Ptr> &semantic_meas,
@@ -318,13 +344,12 @@ void EkfEstimator::InputKinematicMea(
 bool EkfEstimator::Initialized() const {
   // return EKFManagement::GetInstance().Initialized();
   return SlEKFManagement::GetInstance().Initialized();
-
 }
 
 double EkfEstimator::interpolate_angle(const double angle0, const double angle1,
                                        const double t) {
   double diff = std::atan2(std::sin(angle1 - angle0),
-                           std::cos(angle1 - angle0)); // shortest angle diff
+                           std::cos(angle1 - angle0));  // shortest angle diff
   return angle0 + t * diff;
 }
 
@@ -362,7 +387,8 @@ void EkfEstimator::process_odo_mea(const long long ts,
     dr_info.angular_velocity = w;
     dr_info.velocity = v;
     _dr_buf.insert({ts, dr_info});
-    // std::cout << "Pose: " << dr_pose.x << " " << dr_pose.y << " " << dr_pose.yaw
+    // std::cout << "Pose: " << dr_pose.x << " " << dr_pose.y << " " <<
+    // dr_pose.yaw
     //           << std::endl;
     if (fabs(_dr_buf.begin()->first - _dr_buf.rbegin()->first) *
             ApaParameters::GetInstance().GetEstimatorParamters().time_scale >
@@ -374,4 +400,4 @@ void EkfEstimator::process_odo_mea(const long long ts,
     }
   }
 }
-} // namespace apa_slam
+}  // namespace apa_slam

@@ -41,7 +41,7 @@ void PangolinViewer::run() {
     d_cam.Activate(s_cam);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-    _drawer->DrawAPA();
+    _drawer->DrawAPA(s_cam);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
     pangolin::FinishFrame();

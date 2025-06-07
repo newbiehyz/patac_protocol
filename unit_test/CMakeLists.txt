@@ -16,6 +16,9 @@ ADD_EXECUTABLE(test_udp_send ${CMAKE_CURRENT_SOURCE_DIR}/test_udp_send.cc)
 
 ADD_EXECUTABLE(test_tie ${CMAKE_CURRENT_SOURCE_DIR}/test_tie.cc)
 
+ADD_EXECUTABLE(test_data_compression ${CMAKE_CURRENT_SOURCE_DIR}/test_data_compression.cc)
+
+
 IF(ENABLE_OPENGL) 
 
   ADD_EXECUTABLE(test_udp_recv ${CMAKE_CURRENT_SOURCE_DIR}/test_udp_recv.cc)
