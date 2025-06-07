@@ -97,6 +97,8 @@ bool EkfEstimator::ProcDrPose(long long ts, const Pose &pose, long long &ts_out,
 void EkfEstimator::Reset() {
   // clear map
   SemanticMap::GetInstance().ClearMap();
+
+  _dr_buf.clear();
 }
 
 double EkfEstimator::angle_diff(double angle1, double angle2) {

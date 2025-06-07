@@ -22,7 +22,7 @@ class PangolinDrawer {
   typedef std::shared_ptr<PangolinDrawer> Ptr;
   PangolinDrawer();
 
-  void DrawAPA();
+  void DrawAPA(pangolin::OpenGlRenderState& s_cam);
 
  private:
   void draw_local_map(const Pose& pose);

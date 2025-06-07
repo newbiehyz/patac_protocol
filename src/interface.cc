@@ -68,6 +68,16 @@ void LocalMappingInterface::ProcSlotData(
         FillbackDataLoader::GetInstance().ConvertUvToVehicle(uv0);
     Eigen::Vector2d pt1 =
         FillbackDataLoader::GetInstance().ConvertUvToVehicle(uv1);
+
+    if (pt0.norm() > ApaParameters::GetInstance()
+                         .GetEstimatorParamters()
+                         .slot_mea_max_range ||
+        pt1.norm() > ApaParameters::GetInstance()
+                         .GetEstimatorParamters()
+                         .slot_mea_max_range) {
+      continue;
+    }
+
     data.col(0) = pt0;
     data.col(1) = pt1;
     fout_interface << " " << pt0.x() << " " << pt0.y() << " " << pt1.x() << " "
@@ -100,7 +110,6 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
 
 bool LocalMappingInterface::GetLatestSlotMap(
     std::map<int, Eigen::MatrixXd> &slot_map) {
-  
   if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
     return false;
   }

@@ -58,16 +58,16 @@ std::vector<KinematicMea::Ptr> FillbackDataLoader::GetKinematicMeas(
 Eigen::Vector2d FillbackDataLoader::ConvertUvToVehicle(
     const Eigen::Vector2d& uv) {
   float REAR_AXEL_TO_CENTER =
-      (VEHICLE_LENGTH / 2) - REAR_AXLE_CENTER_VEHICLE_REAR;
+      (APA_VEHICLE_LENGTH / 2) - APA_REAR_AXLE_CENTER_VEHICLE_REAR;
 
-  float x = uv.x() - BIRD_VIEW_HEIGHT / 2;
-  float y = BIRD_VIEW_HEIGHT / 2 - uv.y() +
-            (REAR_AXEL_TO_CENTER / LR_BIRD_PIXECL_2_WORLD);
+  float x = uv.x() - APA_BIRD_VIEW_HEIGHT / 2;
+  float y = APA_BIRD_VIEW_HEIGHT / 2 - uv.y() +
+            (REAR_AXEL_TO_CENTER / APA_LR_BIRD_PIXECL_2_WORLD);
 
   Eigen::Vector2d corner_v;
 
-  corner_v.x() = y * LR_BIRD_PIXECL_2_WORLD;
-  corner_v.y() = -x * LR_BIRD_PIXECL_2_WORLD;
+  corner_v.x() = y * APA_LR_BIRD_PIXECL_2_WORLD;
+  corner_v.y() = -x * APA_LR_BIRD_PIXECL_2_WORLD;
 
   // corner_v.x() = x * LR_BIRD_PIXECL_2_WORLD;
   // corner_v.y() = y * LR_BIRD_PIXECL_2_WORLD;
@@ -84,80 +84,6 @@ double FillbackDataLoader::angle_diff(double angle1, double angle2) {
   return diff;
 }
 
-double FillbackDataLoader::get_angular_velocity(const double velocity,
-                                                const double steering_angle,
-                                                const int gear) {
-  double vehicle_angle_557[R_N_557_ROW][R_N_557_COL];
-  for (int row = 0; row < R_N_557_ROW; ++row) {
-    for (int col = 0; col < R_N_557_COL; ++col) {
-      if (row == 0) {
-        vehicle_angle_557[row][col] = RADIUS_557_TAB[row][col] / 180.0f * M_PI;
-      } else {
-        double r = RADIUS_557_TAB[row][col];
-        double v_angle = std::atan2(WHEEL_BASE, r);
-        vehicle_angle_557[row][col] = v_angle;
-      }
-    }
-  }
-  int id = 0;
-  if (gear == 7) {
-    if (steering_angle > 0) {
-      id = 0;
-    } else {
-      id = 1;
-    }
-  }
-  if (gear == 7) {
-    if (steering_angle > 0) {
-      id = 2;
-    } else {
-      id = 3;
-    }
-  }
-
-  int index;
-  double sa_deg = fabs(steering_angle);
-  double sa_rad = sa_deg / 180.0f * M_PI;
-
-  for (index = 0; index <= R_N_557_COL; ++index) {
-    if (sa_rad > vehicle_angle_557[0][index]) {
-      break;
-    }
-  }
-  float x1, x2, y1, y2, k;
-  if (index == 0) {
-    x1 = vehicle_angle_557[0][0];
-    y1 = vehicle_angle_557[id][0];
-    x2 = vehicle_angle_557[0][1];
-    y2 = vehicle_angle_557[id][1];
-
-  } else if (index == R_N_557_COL) {
-    x1 = vehicle_angle_557[0][R_N_557_COL - 1];
-    y1 = vehicle_angle_557[id][R_N_557_COL - 1];
-    x2 = vehicle_angle_557[0][R_N_557_COL - 2];
-    y2 = vehicle_angle_557[id][R_N_557_COL - 2];
-  } else {
-    x1 = vehicle_angle_557[0][index - 1];
-    y1 = vehicle_angle_557[id][index - 1];
-    x2 = vehicle_angle_557[0][index];
-    y2 = vehicle_angle_557[id][index];
-  }
-  k = (y2 - y1) / (x2 - x1);
-
-  double v_angle = k * (sa_rad - x1) + y1;
-
-  double r = WHEEL_BASE / tan(v_angle);
-
-  double sign = steering_angle < 0 ? -1.0f : 1.0f;
-
-  double w = sign * fabs(velocity) / r;
-
-  if (velocity == 0) {
-    w = 0;
-  }
-
-  return w;
-}  // namespace apa_slam
 
 void FillbackDataLoader::load_pose_odo_meas2(const std::string& pose_file) {
   std::ifstream file(pose_file);
@@ -409,56 +335,7 @@ void FillbackDataLoader::load_pose_odo_meas(const std::string& pose_file,
   std::cout << "========\n";
 }
 
-void FillbackDataLoader::load_odo_meas(const std::string& odo_mea_file) {
-  std::ifstream file(odo_mea_file);
-  json j;
-  file >> j;  // Parse JSON
 
-  for (const auto& item : j) {
-    if (item.contains("timestamp") && item.contains("VehSpdAvgNDrvn") &&
-        item.contains("TARS_TransActRng") && item.contains("StrWhAng")) {
-      long long timestamp = item["timestamp"];
-      double yaw_rate = item["IMUYawRtPri"];
-      double lon_acc = item["IMULonAccPri"];
-      double lat_acc = item["IMULatAccPrim"];
-      double speed = item["VehSpdAvgNDrvn"];
-      double str_wh_ang = item["StrWhAng"];
-      double gear = item["TARS_TransActRng"];
-      double timestamp_d =
-          static_cast<double>(timestamp) * static_cast<double>(1e-3);
-
-      speed /= 3.6;
-
-      std::cout << std::setprecision(20) << "Timestamp: " << timestamp_d
-                << ", Speed: " << speed << " Wheel Angle: " << str_wh_ang
-                << "\n";
-
-      double w =
-          get_angular_velocity(speed, str_wh_ang, static_cast<int>(gear));
-      std::cout << std::setprecision(20) << "Angular Velocity: " << w << "\n";
-
-      // std::cout << std::setprecision(20) << "Timestamp: " << timestamp_d
-      //           << ", Speed: " << speed << ", Angular Speed: " << w
-      //           << " Wheel Angle: " << str_wh_ang << "\n";
-
-      if (static_cast<int>(gear) == 3) {
-        speed *= -1.0;
-      }
-
-      Eigen::VectorXd odo_mea_data = Eigen::VectorXd::Zero(DATA_ROWS_ODO);
-      odo_mea_data[0] = speed;
-      odo_mea_data[1] = w;
-      KinematicMea::Ptr odo_mea =
-          std::make_shared<OdoMea>(timestamp_d, odo_mea_data.data());
-
-      _mea_seq[timestamp_d].push_back(
-          {ReplaySensorType::REPLAY_TYPE_KINEMATIC, timestamp_d});
-      _kinematic_mea[timestamp_d].push_back(odo_mea);
-    }
-  }
-
-  file.close();
-}
 
 Eigen::VectorXd FillbackDataLoader::interpolate_pose(
     const long long timestamp,
