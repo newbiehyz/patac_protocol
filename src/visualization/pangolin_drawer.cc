@@ -153,10 +153,9 @@ void PangolinDrawer::draw_vehicle_bbox() {
 
 void PangolinDrawer::draw_sliding_window() {
   SlwVisualization sw;
-  // {
-  //   std::lock_guard<std::mutex> lock(gl_slw.mutex);
   sw.sl_pose = gl_slw.sl_pose;
-  // }
+  sw.sl_meas = gl_slw.sl_meas;
+
   for (size_t i = 0; i < sw.sl_pose.size(); ++i) {
     Eigen::Matrix3d Rwb =
         Eigen::AngleAxisd(sw.sl_pose.at(i).z(), Eigen::Vector3d::UnitZ())
@@ -177,6 +176,15 @@ void PangolinDrawer::draw_sliding_window() {
     glEnd();
 
     glPopMatrix();
+
+    glColor3f(_sl_color.at(i).x(), _sl_color.at(i).y(), _sl_color.at(i).z());
+    for (size_t j = 0; j < sw.sl_meas.at(i).size(); ++j) {
+      pangolin::glDrawCirclePerimeter(sw.sl_meas.at(i).at(j).x(),
+                                      sw.sl_meas.at(i).at(j).y(), 0.3);
+      pangolin::glDrawLine(sw.sl_meas.at(i).at(j).x(),
+                           sw.sl_meas.at(i).at(j).y(), sw.sl_pose.at(i).x(),
+                           sw.sl_pose.at(i).y());
+    }
   }
 }
 

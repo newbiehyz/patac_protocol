@@ -7,8 +7,8 @@
     "perception_sensing_range": 10.0
   },
   "estimator": {
-    "slot_mea_noise_x": 20.0 ,
-    "slot_mea_noise_y": 20.0,
+    "slot_mea_noise_x": 50.0 ,
+    "slot_mea_noise_y": 50.0,
     "odo_velocity_noise": 1.0,
     "odo_angular_velocity_noise": 0.5,
     "slot_matching_dist_thresh": 2.0,

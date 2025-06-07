@@ -122,11 +122,12 @@ void SlidingWindow::Propagate(
   PP.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
       P_aug.bottomRightCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
   PP.bottomRightCorner(PP.rows() - STATE_VEHICLE_SIZE,
-                      PP.cols() - STATE_VEHICLE_SIZE) =
+                       PP.cols() - STATE_VEHICLE_SIZE) =
       P_aug.topLeftCorner(PP.rows() - STATE_VEHICLE_SIZE,
                           PP.cols() - STATE_VEHICLE_SIZE);
   PP.topRightCorner(STATE_VEHICLE_SIZE, PP.cols() - STATE_VEHICLE_SIZE) =
-      P_aug.bottomLeftCorner(STATE_VEHICLE_SIZE, PP.cols() - STATE_VEHICLE_SIZE);
+      P_aug.bottomLeftCorner(STATE_VEHICLE_SIZE,
+                             PP.cols() - STATE_VEHICLE_SIZE);
   PP.bottomLeftCorner(PP.rows() - STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
       P_aug.topRightCorner(PP.rows() - STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
 
@@ -341,30 +342,32 @@ void SlidingWindow::ConstructEKF(
   SemanticMap::GetInstance().GetSlidingWindowEKFDataList(
       _sl_timestamp, sw_lm_list, margin_list);
 
-  std::vector<std::map<SensorType, std::vector<int>>> sw_lm_list_copy;
-  sw_lm_list_copy.resize(sw_lm_list.size());
-  for (size_t i = 0; i < sw_lm_list.size(); ++i) {
-    if (!sw_lm_list.at(i).empty()) {
-      for (size_t j = 0;
-           j <
-           sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).size();
-           ++j) {
-        if (sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).at(j) ==
-            0) {
-          sw_lm_list_copy.at(i)[SensorType::SEMANTIC_TYPE_PARKING_SLOT]
-              .push_back(0);
-        }
-      }
-      std::cout
-          << "Window Id: " << i << " Update Landmark Size: "
-          << sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).size()
-          << std::endl;
-    }
-  }
+  // std::vector<std::map<SensorType, std::vector<int>>> sw_lm_list_copy;
+  // sw_lm_list_copy.resize(sw_lm_list.size());
+  // for (size_t i = 0; i < sw_lm_list.size(); ++i) {
+  //   if (!sw_lm_list.at(i).empty()) {
+  //     for (size_t j = 0;
+  //          j <
+  //          sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).size();
+  //          ++j) {
+  //       if (sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).at(j)
+  //       ==
+  //           0) {
+  //         sw_lm_list_copy.at(i)[SensorType::SEMANTIC_TYPE_PARKING_SLOT]
+  //             .push_back(0);
+  //       }
+  //     }
+  //     std::cout
+  //         << "Window Id: " << i << " Update Landmark Size: "
+  //         <<
+  //         sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).size()
+  //         << std::endl;
+  //   }
+  // }
 
-  sw_lm_list_copy = sw_lm_list;
+  // sw_lm_list_copy = sw_lm_list;
 
-  initialize_landmark(sw_lm_list_copy);
+  initialize_landmark(sw_lm_list);
   if (!marginalization_list.empty()) {
     for (auto it = marginalization_list.begin()->second.begin();
          it != marginalization_list.begin()->second.end(); ++it) {
@@ -382,16 +385,16 @@ void SlidingWindow::ConstructEKF(
   // std::cout << "======================\n";
   // getchar();
 
-  int residual_sz = get_residual_sz(sw_lm_list_copy);
+  int residual_sz = get_residual_sz(sw_lm_list);
   residual = Eigen::VectorXd::Zero(residual_sz);
   H = Eigen::MatrixXd::Zero(residual_sz, state_sz);
   R = Eigen::MatrixXd::Zero(residual_sz, residual_sz);
 
   int residual_pos = 0;
-  for (size_t i = 0; i < sw_lm_list_copy.size(); ++i) {
+  for (size_t i = 0; i < sw_lm_list.size(); ++i) {
     int window_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
-    for (auto it_type = sw_lm_list_copy.at(i).begin();
-         it_type != sw_lm_list_copy.at(i).end(); ++it_type) {
+    for (auto it_type = sw_lm_list.at(i).begin();
+         it_type != sw_lm_list.at(i).end(); ++it_type) {
       const auto &type = it_type->first;
       for (size_t j = 0; j < it_type->second.size(); ++j) {
         int lm_id = it_type->second.at(j);
@@ -432,17 +435,46 @@ void SlidingWindow::ConstructEKF(
   // std::cout << "R\n" << residual.transpose() << std::endl;
   // std::cout << "#############################\n";
 
-#ifdef ENABLE_OPENGL
+  // #ifdef ENABLE_OPENGL
   {
     std::lock_guard<std::mutex> lock(gl_slw.mutex);
     gl_slw.sl_pose.clear();
     gl_slw.sl_meas.clear();
+    gl_slw.sl_pose.resize(this->GetCurWindowSz());
+    gl_slw.sl_meas.resize(this->GetCurWindowSz());
+
     for (size_t i = 0; i < this->GetCurWindowSz(); ++i) {
-      gl_slw.sl_pose.push_back(_sl_pose.at(i));
+      gl_slw.sl_pose.at(i) = _sl_pose.at(i);
+
+      const auto &timestamp = _sl_timestamp.at(i);
+      Eigen::Vector2d twb = _sl_pose.at(i).head(2);
+      double yaw = _sl_pose.at(i).z();
+      Eigen::Rotation2Dd rot(yaw);
+      Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+      if (!sw_lm_list.at(i).empty()) {
+        for (size_t j = 0;
+             j !=
+             sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).size();
+             ++j) {
+          int landmark_id =
+              sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).at(j);
+          apa_slam::SemanticMea::Ptr mea;
+          if (SemanticMap::GetInstance()
+                  .GetLandmark(SensorType::SEMANTIC_TYPE_PARKING_SLOT,
+                               landmark_id)
+                  ->GetMea(timestamp, mea)) {
+            Eigen::VectorXd mea_data = mea->GetVectorizedData();
+            Eigen::Vector2d mea0_w = Rwb * mea_data.head(2) + twb;
+            Eigen::Vector2d mea1_w = Rwb * mea_data.tail(2) + twb;
+            gl_slw.sl_meas.at(i).push_back(mea0_w);
+            gl_slw.sl_meas.at(i).push_back(mea1_w);
+          }
+        }
+      }
     }
   }
 
-#endif
+  // #endif
 }
 
 SlidingWindow &SlidingWindow::GetInstance() {
@@ -502,7 +534,6 @@ void SlidingWindow::refresh_window_landmark_cross_correlation(
   }
 }
 
-
 void SlidingWindow::refresh_window_cross_correlation(const Eigen::MatrixXd &P) {
   _window_cross_correlation.clear();
 
@@ -518,7 +549,6 @@ void SlidingWindow::refresh_window_cross_correlation(const Eigen::MatrixXd &P) {
     }
   }
 }
-
 
 void SlidingWindow::refresh_landmark_cross_correlation(
     const Eigen::MatrixXd &P,
@@ -575,8 +605,6 @@ void SlidingWindow::refresh_landmark_cross_correlation(
   }
 }
 
-
-
 void SlidingWindow::marginalization(
     const std::map<SensorType, std::set<int>> &marginalization_list) {
   std::map<SensorType, std::set<int>> state_lm;
@@ -598,7 +626,6 @@ void SlidingWindow::marginalization(
 
   _state_landmark = state_lm;
 }
-
 
 std::pair<int, int> SlidingWindow::make_window_correlation_key(const int id0,
                                                                const int id1) {
