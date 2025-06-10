@@ -106,7 +106,7 @@ void PangolinDrawer::draw_parking_slot(const int& id,
   glEnd();
 
   glColor3f(.0f, .0f, 1.0f);
-  glLineWidth(2.0);
+  glLineWidth(5.0);
   glBegin(GL_LINE_STRIP);
 
   glVertex3f(data.col(1).x(), data.col(1).y(), .0f);
@@ -195,17 +195,19 @@ void PangolinDrawer::DrawAPA(pangolin::OpenGlRenderState& s_cam) {
     Eigen::VectorXd x;
     Eigen::MatrixXd P;
     long long ts;
-    EkfEstimator::GetInstance().GetLatestVechileState(ts, x, P);
-    Pose pose;
-    pose.x = x.x();
-    pose.y = x.y();
-    pose.yaw = x.z();
+    if (EkfEstimator::GetInstance().GetLatestVechileState(ts, x, P)) {
+      Pose pose;
+      pose.x = x.x();
+      pose.y = x.y();
+      pose.yaw = x.z();
 
-    this->draw_vehicle(pose, P);
-    this->draw_traj();
-    _traj.insert({ts, pose});
-    draw_local_map(pose);
-    draw_sliding_window();
+      this->draw_vehicle(pose, P);
+      this->draw_traj();
+      _traj.insert({ts, pose});
+      draw_local_map(pose);
+      draw_sliding_window();
+    }
+
     // draw_local_meas();
   }
 }

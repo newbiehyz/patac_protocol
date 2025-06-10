@@ -30,6 +30,7 @@ public:
   bool Initialized();
   bool GetLatestVechileState(long long &timestamp, Eigen::VectorXd &mean,
                              Eigen::MatrixXd &cov);
+  void Reset();
 
 private:
   void erase_pres(const long long timestamp);

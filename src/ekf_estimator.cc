@@ -97,7 +97,10 @@ bool EkfEstimator::ProcDrPose(long long ts, const Pose &pose, long long &ts_out,
 void EkfEstimator::Reset() {
   // clear map
   SemanticMap::GetInstance().ClearMap();
-
+  SlEKFManagement::GetInstance().Reset();
+  SlidingWindow::GetInstance().Reset();
+  _dr_pose.clear();
+  _dr_timestamp.clear();
   _dr_buf.clear();
 }
 

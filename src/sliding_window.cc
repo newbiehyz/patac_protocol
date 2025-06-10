@@ -22,6 +22,16 @@ void SlidingWindow::Init() {
   _N.diagonal()[1] = noise_w * noise_w;
 }
 
+void SlidingWindow::Reset() {
+  _sl_timestamp.clear();
+  _sl_P.clear();
+  _sl_pose.clear();
+  _state_landmark.clear();
+  _window_cross_correlation.clear();
+  _window_lm_cross_correlation.clear();
+  _initialized = false;
+}
+
 int SlidingWindow::GetCurWindowSz() { return _sl_timestamp.size(); }
 
 bool SlidingWindow::GetSlidingWindowStatus(const int id, long long &timestamp,
@@ -827,7 +837,8 @@ int SlidingWindow::get_state_size(
   return state_sz;
 }
 
-bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x) {
+bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
+                                const double translation_th) {
   if (_sl_pose.empty()) {
     return true;
   } else {
@@ -843,9 +854,7 @@ bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x) {
     double translation_diff = (twb_cur - twb_last).norm();
     double yaw_diff = fabs(AngleDiff(yaw_cur, yaw_last));
 
-    if (translation_diff > ApaParameters::GetInstance()
-                               .GetEstimatorParamters()
-                               .sl_translation_th ||
+    if (translation_diff >= translation_th ||
         yaw_diff >
             ApaParameters::GetInstance().GetEstimatorParamters().sl_angle_th) {
       return true;

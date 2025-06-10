@@ -57,7 +57,9 @@ class SlidingWindow {
 
   long long GetSlwTimestamp(const int id);
 
-  bool AddKeyFrame(const long long ts, const Eigen::VectorXd &x);
+  bool AddKeyFrame(const long long ts, const Eigen::VectorXd &x, const double translation_th);
+
+  void Reset();
 
  private:
   void landmark_state_augmentation(const SensorType &type, const int &lm_id,

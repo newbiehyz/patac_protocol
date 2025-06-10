@@ -11,15 +11,23 @@
 #include "sl_ekf_management.h"
 
 namespace apa_slam {
-SlEKFManagement::SlEKFManagement() {
+SlEKFManagement::SlEKFManagement() {}
+
+void SlEKFManagement::Reset() {
+  _initialized = false;
+  _odo_meas.clear();
+  _pre_states.clear();
+  this->Init();
+}
+
+void SlEKFManagement::Init() {
   _vehicle_x = Eigen::VectorXd::Zero(STATE_VEHICLE_SIZE);
   _vehicle_P =
       Eigen::MatrixXd::Identity(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) *
       0.001f;
   _initialized = false;
+  SlidingWindow::GetInstance().Init();
 }
-
-void SlEKFManagement::Init() { SlidingWindow::GetInstance().Init(); }
 
 SlEKFManagement &SlEKFManagement::GetInstance() {
   static SlEKFManagement instance;
@@ -157,14 +165,21 @@ void SlEKFManagement::Update(const long long timestamp) {
         SlidingWindow::GetInstance().GetSlwTimestamp(slw_sz - 1);
     auto it_odo = _odo_meas.lower_bound(last_slw_timestamp);
     std::vector<std::pair<long long, Eigen::VectorXd>> odo_for_update;
+    double v = it_odo->second.x();
+    double w = it_odo->second.y();
     while (it_odo != _odo_meas.end() && it_odo->first <= timestamp) {
       odo_for_update.push_back({it_odo->first, it_odo->second});
       ++it_odo;
     }
 
     auto it_state = _pre_states.lower_bound(timestamp);
-    if (SlidingWindow::GetInstance().AddKeyFrame(timestamp,
-                                                 it_state->second.first)) {
+    double translation_th =
+        ApaParameters::GetInstance().GetEstimatorParamters().sl_translation_th;
+    if (v == 0) {
+      translation_th = .0f;
+    }
+    if (SlidingWindow::GetInstance().AddKeyFrame(
+            timestamp, it_state->second.first, translation_th)) {
       SlidingWindow::GetInstance().Propagate(timestamp, odo_for_update);
       Eigen::VectorXd x, residual;
       Eigen::MatrixXd P, R, Hx;
@@ -183,10 +198,13 @@ void SlEKFManagement::Update(const long long timestamp) {
 
         Eigen::MatrixXd S =
             H_compressed * P * H_compressed.transpose() + R_compressed;
+        S.diagonal() += 1e-7 * Eigen::VectorXd::Ones(S.diagonal().size());
         Eigen::MatrixXd Sinv = S.inverse();
         Eigen::MatrixXd K = P * H_compressed.transpose() * Sinv;
         x = x + K * residual_compressed;
-        P = P - K * (H_compressed * P * H_compressed.transpose() + R_compressed) * K.transpose();
+        P = P -
+            K * (H_compressed * P * H_compressed.transpose() + R_compressed) *
+                K.transpose();
         // Eigen::MatrixXd S = Hx * P * Hx.transpose() + R;
         // Eigen::MatrixXd Sinv = S.inverse();
         // Eigen::MatrixXd K = P * Hx.transpose() * Sinv;
