@@ -13,7 +13,7 @@
 
 #include "local_mapping_define.h"
 #include "semantic_landmark.h"
-
+#include "parking_slot_measurement.h"
 namespace apa_slam {
 class ParkingSlotLandmark : public SemanticLandmark {
  public:
@@ -44,7 +44,11 @@ class ParkingSlotLandmark : public SemanticLandmark {
 
   Eigen::MatrixXd ConstructFullSlot();
 
+  void SetAttribute(const ParkingSlotAttribute &attri);
+
+  ParkingSlotAttribute GetAttribute();
  private:
   Eigen::MatrixXd _data;
+  ParkingSlotAttribute _attri;
 };
 }  // namespace apa_slam

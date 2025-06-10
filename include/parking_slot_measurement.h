@@ -26,8 +26,12 @@ class ParkingSlotMea : public SemanticMea {
   void SetMeaData(const Eigen::MatrixXd &data);
   Eigen::MatrixXd GetMeasurementNosise();
   Eigen::VectorXd GetVectorizedData();
+  void SetAttribute(const ParkingSlotAttribute &attri);
+  const ParkingSlotAttribute& GetAttribute();
  private:
   Eigen::MatrixXd _data;
   Eigen::MatrixXd _R;
+  ParkingSlotAttribute _attri;
+
 };
 }  // namespace apa_slam

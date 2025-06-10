@@ -67,8 +67,10 @@ void ParkingSlotLandmark::InitializeLandmark(const long long timestamp,
   // Rwb << cos, -sin,
   //        sin, cos
 
-  Eigen::Matrix2d mea_data =
-      _meas.at(timestamp).second->GetMeaData().topLeftCorner(2, 2);
+  auto mea = _meas.at(timestamp).second;
+  auto slot_mea = std::dynamic_pointer_cast<ParkingSlotMea>(mea);
+
+  Eigen::Matrix2d mea_data = mea->GetMeaData().topLeftCorner(2, 2);
   Eigen::Matrix2d pt_w = Rwb * mea_data + twb.replicate(1, 2);
 
   _data = Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
@@ -175,6 +177,12 @@ Eigen::MatrixXd ParkingSlotLandmark::ConstructFullSlot() {
 
   return data_slot;
 }
+
+void ParkingSlotLandmark::SetAttribute(const ParkingSlotAttribute& attri) {
+  _attri = attri;
+}
+
+ParkingSlotAttribute ParkingSlotLandmark::GetAttribute() { return _attri; }
 
 Eigen::VectorXd ParkingSlotLandmark::ComputeMatchingResidual(
     const Eigen::VectorXd& pose, const SemanticMea::Ptr& mea) {

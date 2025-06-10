@@ -35,17 +35,19 @@ int main()
   {
     ssize_t len = recvfrom(sock, buffer, sizeof(buffer), 0,
                            (sockaddr *)&sender_addr, &addr_len);
+    std::cout << "Received data from target ip\n";
 
     char sender_ip[INET_ADDRSTRLEN];
     inet_ntop(AF_INET, &sender_addr.sin_addr, sender_ip, sizeof(sender_ip));
     int sender_port = ntohs(sender_addr.sin_port);
 
-    std::string expected_ip = "192.168.1.11"; // 你想接收的指定 IP
+    std::string expected_ip = "192.168.2.11"; // 你想接收的指定 IP
 
     if (expected_ip == sender_ip)
     {
       UdpData *recv_data = reinterpret_cast<UdpData *>(buffer);
       {
+        std::cout << "@@@@@@@\n";
         std::lock_guard<std::mutex> lck(mutex);
         data = *recv_data;
       }

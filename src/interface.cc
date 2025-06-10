@@ -42,8 +42,9 @@ void LocalMappingInterface::ProcDrPose(long long timestamp,
   std::ofstream fout_interface;
   fout_interface.open(_output_file_name, std::ios::app);
   double timestamp_d = static_cast<double>(timestamp) * 0.001;
-  fout_interface << "pose " << std::setprecision(20) << std::to_string(timestamp_d)
-                 << " " << p.x << " " << p.y << " " << p.yaw << std::endl;
+  fout_interface << "pose " << std::setprecision(20)
+                 << std::to_string(timestamp_d) << " " << p.x << " " << p.y
+                 << " " << p.yaw << std::endl;
   fout_interface.close();
   double v_out, w_out;
   long long ts_out;
@@ -62,7 +63,8 @@ void LocalMappingInterface::ProcDrPose(long long timestamp,
 }
 
 void LocalMappingInterface::ProcSlotData(
-    long long timestamp, const std::vector<Eigen::VectorXd> &slot_data) {
+    long long timestamp, const std::vector<Eigen::VectorXd> &slot_data,
+    const std::vector<ParkingSlotAttribute> &slot_attribute) {
   std::vector<SemanticMea::Ptr> slot_meas;
   std::ofstream fout_interface;
   fout_interface.open(_output_file_name, std::ios::app);
@@ -91,10 +93,20 @@ void LocalMappingInterface::ProcSlotData(
 
     data.col(0) = pt0;
     data.col(1) = pt1;
+
+    Eigen::Vector2d dir = pt1 - pt0;
+    dir.normalize();
+    const auto &inner_tunning = ApaParameters::GetInstance()
+                                    .GetEstimatorParamters()
+                                    .slot_inward_tunning;
+    pt0 += dir * inner_tunning;
+    pt1 -= dir * inner_tunning;
     fout_interface << " " << pt0.x() << " " << pt0.y() << " " << pt1.x() << " "
                    << pt1.y();
     SemanticMea::Ptr mea =
         std::make_shared<ParkingSlotMea>(timestamp, data.data());
+    auto slot_mea = std::dynamic_pointer_cast<ParkingSlotMea>(mea);
+    slot_mea->SetAttribute(slot_attribute.at(i));
     slot_meas.push_back(mea);
   }
   fout_interface << std::endl;
@@ -120,7 +132,9 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
 }
 
 bool LocalMappingInterface::GetLatestSlotMap(
-    std::map<int, Eigen::MatrixXd> &slot_map) {
+    std::map<int, Eigen::MatrixXd> &slot_map,
+    std::map<int, ParkingSlotAttribute> &slot_attri
+  ) {
   if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
     return false;
   }
@@ -132,14 +146,13 @@ bool LocalMappingInterface::GetLatestSlotMap(
       Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
       int id = it->second->GetId();
       slot_map[id] = slot_data;
+      slot_attri[id] = slot->GetAttribute();
     }
   }
 
   return true;
 }
 
-void LocalMappingInterface::Reset() {
-  EkfEstimator::GetInstance().Reset();
-}
+void LocalMappingInterface::Reset() { EkfEstimator::GetInstance().Reset(); }
 
 }  // namespace apa_slam

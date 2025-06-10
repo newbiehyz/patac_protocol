@@ -26,10 +26,12 @@ class LocalMappingInterface {
   void Init(const std::string& cfg_json);
   void ProcDrPose(long long timestamp, const Eigen::VectorXd& pose);
   void ProcSlotData(long long timestamp_d,
-                    const std::vector<Eigen::VectorXd>& slot_data);
+                    const std::vector<Eigen::VectorXd>& slot_data,
+                    const std::vector<ParkingSlotAttribute>& slot_attribute);
   bool GetLatestVehiclePose(Eigen::VectorXd& pose);
 
-  bool GetLatestSlotMap(std::map<int, Eigen::MatrixXd>& slot_map);
+  bool GetLatestSlotMap(std::map<int, Eigen::MatrixXd>& slot_map,
+                        std::map<int, ParkingSlotAttribute>& slot_attri);
 
  private:
   std::string _output_file_name;

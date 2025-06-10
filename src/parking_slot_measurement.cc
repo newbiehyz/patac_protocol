@@ -39,6 +39,10 @@ Eigen::MatrixXd ParkingSlotMea::GetMeaData() { return _data; }
 
 void ParkingSlotMea::SetMeaData(const Eigen::MatrixXd& data) { _data = data; };
 
+void ParkingSlotMea::SetAttribute(const ParkingSlotAttribute& attri) {
+  _attri = attri;
+}
+
 void ParkingSlotMea::AddNoise() {
   std::default_random_engine generator;
   std::normal_distribution<double> dist(0.0, 1.0);

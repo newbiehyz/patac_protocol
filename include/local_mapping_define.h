@@ -54,6 +54,16 @@ struct DatasetParams {
   int udp_port;
 };
 
+enum ParkingSlotType {
+  Vertical= 0,
+  Horizontal = 1
+};
+
+
+struct ParkingSlotAttribute {
+  bool parkable;
+  ParkingSlotType slot_type;
+};
 struct EstimatorParams {
   double slot_mea_noise_x;
   double slot_mea_noise_y;
@@ -74,6 +84,7 @@ struct EstimatorParams {
   int window_size;
   double sl_translation_th;
   double sl_angle_th;
+  double slot_inward_tunning;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };
