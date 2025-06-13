@@ -27,7 +27,7 @@
 #include "tracker_base.h"
 
 #include "sl_ekf_management.h"
-
+#include "action_queue.h"
 
 namespace apa_slam {
 class EkfEstimator {
@@ -80,6 +80,8 @@ class EkfEstimator {
 
   void udp();
 
+  bool zupt();
+
   std::mutex _data_mutex;
 
   std::unordered_map<SensorType, TrackerBase::Ptr> _tracker_pools;
@@ -88,6 +90,9 @@ class EkfEstimator {
 
   std::vector<Pose> _dr_pose;
   std::vector<long long> _dr_timestamp;
+
+  bool _zupt{false};
+  int _zupt_sz{5};
 
   // socket debug
   int _socket;

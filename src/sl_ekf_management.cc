@@ -133,7 +133,7 @@ void SlEKFManagement::erase_pres(const long long timestamp) {
   }
 }
 
-void SlEKFManagement::Update(const long long timestamp) {
+void SlEKFManagement::Update(const long long timestamp, bool zupt) {
   std::lock_guard<std::mutex> lock(_data_mutex);
   if (_pre_states.empty()) {
     return;
@@ -175,7 +175,12 @@ void SlEKFManagement::Update(const long long timestamp) {
     auto it_state = _pre_states.lower_bound(timestamp);
     double translation_th =
         ApaParameters::GetInstance().GetEstimatorParamters().sl_translation_th;
-    if (v == 0) {
+    std::cout << "vvvvvvvvvvvvvvvvv: "  << v << std::endl;
+    // if (zupt) {
+    //   translation_th = .0f;
+    // }
+
+    if (fabs(v) < 1e-4) {
       translation_th = .0f;
     }
     if (SlidingWindow::GetInstance().AddKeyFrame(

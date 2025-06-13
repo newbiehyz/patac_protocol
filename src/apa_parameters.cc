@@ -109,6 +109,7 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.sl_translation_th = data["estimator"]["window_translation_th"];
     _est_params.sl_angle_th = data["estimator"]["window_angle_th"];
 
+    _est_params.slot_inward_tunning = data["estimator"]["inward_turning"];
 
     _dataset_params.min_dataset_timestamp =
         data["fillback"]["pose_min_timestamp"];

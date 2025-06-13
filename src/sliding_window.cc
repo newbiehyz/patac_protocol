@@ -854,7 +854,7 @@ bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
     double translation_diff = (twb_cur - twb_last).norm();
     double yaw_diff = fabs(AngleDiff(yaw_cur, yaw_last));
 
-    if (translation_diff >= translation_th ||
+    if ( translation_diff >= translation_th ||
         yaw_diff >
             ApaParameters::GetInstance().GetEstimatorParamters().sl_angle_th) {
       return true;

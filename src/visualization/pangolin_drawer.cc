@@ -237,9 +237,9 @@ void PangolinDrawer::draw_local_map(const Pose& pose) {
       // Eigen::MatrixXd data = it->second->GetLandmarkData();
       auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
       Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
-      std::cout << "===========================================################"
-                   "######################################## "
-                << slot->GetAttribute().slot_type << std::endl;
+      // std::cout << "===========================================################"
+      //              "######################################## "
+      //           << slot->GetAttribute().slot_type << std::endl;
       int id = it->second->GetId();
       draw_parking_slot(id, slot_data);
     }

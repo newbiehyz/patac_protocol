@@ -43,6 +43,8 @@ void ParkingSlotMea::SetAttribute(const ParkingSlotAttribute& attri) {
   _attri = attri;
 }
 
+const ParkingSlotAttribute& ParkingSlotMea::GetAttribute() { return _attri; }
+
 void ParkingSlotMea::AddNoise() {
   std::default_random_engine generator;
   std::normal_distribution<double> dist(0.0, 1.0);

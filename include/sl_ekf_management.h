@@ -26,7 +26,7 @@ public:
   void Init();
   static SlEKFManagement &GetInstance();
   void Propagate(const long long timestamp, const double v, const double w);
-  void Update(const long long timestamp);
+  void Update(const long long timestamp, bool zupt);
   bool Initialized();
   bool GetLatestVechileState(long long &timestamp, Eigen::VectorXd &mean,
                              Eigen::MatrixXd &cov);

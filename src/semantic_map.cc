@@ -37,7 +37,7 @@ bool SemanticMap::HasMap(const SensorType type) const {
   return _map.count(type);
 }
 
-const std::map<int, SemanticLandmark::Ptr>& SemanticMap::GetMap(
+const std::map<int, SemanticLandmark::Ptr> SemanticMap::GetMap(
     const SensorType type) {
   std::lock_guard<std::mutex> lock(_data_mutex);
   return _map.at(type);
@@ -55,7 +55,8 @@ void SemanticMap::InitializeLandmark(const SensorType type, const int id,
                                      const Eigen::VectorXd& vehicle_mean,
                                      Eigen::MatrixXd& vehicle_P,
                                      Eigen::MatrixXd& Jx) {
-  _map.at(type).at(id)->InitializeLandmark(timestamp, vehicle_mean, vehicle_P, Jx);
+  _map.at(type).at(id)->InitializeLandmark(timestamp, vehicle_mean, vehicle_P,
+                                           Jx);
 }
 Eigen::MatrixXd SemanticMap::GetLandmarkCov(const SensorType& type,
                                             const int id) {
@@ -236,6 +237,10 @@ int SemanticMap::GetMapInitializedLandmarkNum(const SensorType& type) {
   return num;
 }
 
-void SemanticMap::ClearMap() { _map.clear(); }
+void SemanticMap::ClearMap() {
+  std::lock_guard<std::mutex> lock(_data_mutex);
+
+  _map.clear();
+}
 
 }  // namespace apa_slam

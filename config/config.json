@@ -7,32 +7,33 @@
     "perception_sensing_range": 10.0
   },
   "estimator": {
-    "slot_mea_noise_x": 100.0,
-    "slot_mea_noise_y": 100.0,
+    "slot_mea_noise_x": 500.0,
+    "slot_mea_noise_y": 500.0,
     "odo_velocity_noise": 1.0,
     "odo_angular_velocity_noise": 0.5,
-    "slot_matching_dist_thresh": 2.0,
+    "slot_matching_dist_thresh": 1.0,
     "slot_matching_angle_thresh": 0.5,
-    "slot_min_tracking_times": 2,
-    "slot_mea_max_range": 6.0,
+    "slot_min_tracking_times": 3,
+    "slot_mea_max_range": 10.0,
     "margin_tracking_time": 10.0,
     "slot_local_map_range": 50.0,
     "duplicate_slot_thresh": 1.0,
     "export_debug_file": true,
     "use_time_compensate": true,
     "buf_len": 5.0,
-    "slot_len": 5.0,
+    "slot_len": 5.45,
     "time_scale": 0.001,
-    "window_size": 11,
-    "window_translation_th": 1.0,
-    "window_angle_th": 0.5
+    "window_size": 15,
+    "window_translation_th": 0.75,
+    "window_angle_th": 0.5,
+    "inward_turning": 0.135
   },
   "fillback": {
     "pose_min_timestamp": 1746770825000,
     "pose_max_timestamp": 1746770858000,
     "timedelay": 0.2,
     "use_udp": false,
-    "network_ip": "192.168.1.101",
+    "network_ip": "192.168.2.101",
     "port": 8888
   }
 

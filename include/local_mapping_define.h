@@ -10,9 +10,10 @@
 #pragma once
 
 #include <Eigen/Eigen>
-#include <set>
-#include <cstdint> 
+#include <cstdint>
 #include <mutex>
+#include <set>
+
 #include "cross_correlation_id.h"
 // x0 x1 x2 x3
 // y0 y1 y2 y3
@@ -54,11 +55,9 @@ struct DatasetParams {
   int udp_port;
 };
 
-enum ParkingSlotType {
-  Vertical= 0,
-  Horizontal = 1
-};
+enum ParkingSlotType { Vertical = 0, Horizontal = 1, Oblique = 2};
 
+enum Action : std::uint8_t { RESET = 0, MAPPING = 1 };
 
 struct ParkingSlotAttribute {
   bool parkable;
@@ -132,7 +131,6 @@ struct FilterInfo {
   double vehicle_w;
   double ts;
 };
-
 
 struct VisualizationMeas {
   std::mutex meas_mutex;

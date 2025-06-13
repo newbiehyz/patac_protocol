@@ -101,6 +101,8 @@ void ParkingSlotLandmark::InitializeLandmark(const long long timestamp,
   SetCov(cov);
 
   SetInitializeFlag(true);
+
+  SetAttribute(slot_mea->GetAttribute());
 }
 
 void ParkingSlotLandmark::InitializeLandmark(const Eigen::VectorXd& state,

@@ -102,6 +102,8 @@ void EkfEstimator::Reset() {
   _dr_pose.clear();
   _dr_timestamp.clear();
   _dr_buf.clear();
+
+  _zupt = false;
 }
 
 double EkfEstimator::angle_diff(double angle1, double angle2) {
@@ -109,6 +111,32 @@ double EkfEstimator::angle_diff(double angle1, double angle2) {
   while (diff > M_PI) diff -= 2 * M_PI;
   while (diff < -M_PI) diff += 2 * M_PI;
   return diff;
+}
+
+bool EkfEstimator::zupt() {
+  if (_dr_buf.size() < _zupt_sz) {
+    return false;
+  }
+
+  auto rit = _dr_buf.rbegin();
+  double avg_v = .0f;
+  int n = 0;
+  while (rit != _dr_buf.rend()) {
+    avg_v += rit->second.velocity;
+    ++n;
+    ++rit;
+    if (n > _zupt_sz) {
+      break;
+    }
+  }
+
+  avg_v /= static_cast<double>(n);
+
+  if (fabs(avg_v) < 1e-3) {
+    return true;
+  }
+  
+  return false;
 }
 
 void EkfEstimator::udp() {
@@ -164,6 +192,13 @@ EkfEstimator &EkfEstimator::GetInstance() {
 void EkfEstimator::InputSemanticMea(
     const long long ts, const std::vector<SemanticMea::Ptr> &semantic_meas) {
   auto start = std::chrono::steady_clock::now();
+  Action ac;
+  if (ActionQueue::GetInstance().GetNextAction(ac)) {
+    if (ac == RESET) {
+      this->Reset();
+      return;
+    }
+  }
 
   if (!this->Initialized()) {
     return;
@@ -179,7 +214,9 @@ void EkfEstimator::InputSemanticMea(
   }
 
   // EKFManagement::GetInstance().Update(ts);
-  SlEKFManagement::GetInstance().Update(ts);
+  bool perform_zupt = zupt();
+  std::cout << "---------------------------------------- " << perform_zupt << std::endl;
+  SlEKFManagement::GetInstance().Update(ts, perform_zupt);
 
   auto end = std::chrono::steady_clock::now();
   auto duration =
@@ -277,13 +314,12 @@ bool EkfEstimator::get_pose(const long long ts, Pose &pose) {
       Eigen::Vector2d dir = Rwb.col(0);
       twb += dir * _dr_buf.rbegin()->second.velocity * dt;
       yaw += _dr_buf.rbegin()->second.angular_velocity * dt;
-      
+
       pose.x = twb.x();
       pose.y = twb.y();
       pose.yaw = yaw;
 
       return true;
-
     }
   }
 
@@ -403,6 +439,8 @@ void EkfEstimator::process_odo_mea(const long long ts,
     if (ApaParameters::GetInstance().GetDatasetParameters().use_udp) {
       udp();
     }
+
+    // zupt();
   }
 }
 }  // namespace apa_slam

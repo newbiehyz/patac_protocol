@@ -27,7 +27,7 @@ class SemanticMap {
 
   void AddLandmark(const SensorType type, SemanticLandmark::Ptr landmark);
   bool HasMap(const SensorType type) const;
-  const std::map<int, SemanticLandmark::Ptr>& GetMap(const SensorType type);
+  const std::map<int, SemanticLandmark::Ptr> GetMap(const SensorType type);
   void ClearMap();
   int GetMapLandmarkNum(const SensorType& type);
   int GetMapInitializedLandmarkNum(const SensorType& type);

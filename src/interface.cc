@@ -18,8 +18,6 @@ LocalMappingInterface &LocalMappingInterface::GetInstance() {
 }
 
 void LocalMappingInterface::Init(const std::string &cfg_json) {
-  this->Reset();
-
   _cfg = cfg_json;
   ApaParameters::GetInstance().LoadParameters(cfg_json);
   EkfEstimator::GetInstance().Init();
@@ -50,6 +48,9 @@ void LocalMappingInterface::ProcDrPose(long long timestamp,
   long long ts_out;
   if (EkfEstimator::GetInstance().ProcDrPose(timestamp, p, ts_out, v_out,
                                              w_out)) {
+    // std::cout << timestamp << " ################ " << pose.transpose()
+    //           << " **** " << v_out << " " << w_out << std::endl;
+    // v_out *= 0.9;
     Eigen::VectorXd mea_data = Eigen::VectorXd::Zero(2);
     mea_data[0] = v_out;
     mea_data[1] = w_out;
@@ -77,6 +78,22 @@ void LocalMappingInterface::ProcSlotData(
     Eigen::MatrixXd data = Eigen::MatrixXd::Zero(2, 2);
     Eigen::Vector2d uv0 = slot_data.at(i).head(2);
     Eigen::Vector2d uv1 = slot_data.at(i).segment(2, 2);
+    fout_interface << " " << uv0.x() << " " << uv0.y() << " " << uv1.x() << " "
+                   << uv1.y() << " " << slot_attribute.at(i).parkable << " "
+                   << " " << slot_attribute.at(i).slot_type << " ";
+
+    // if x > 392 - 11 and x < 503 + 11 and y > 319 - 11 and y < 576 + 11:
+
+    if (uv0.x() > 392 - 11 && uv0.x() < 503 + 11 && uv0.y() > 319 - 11 &&
+        uv0.y() < 576 + 11) {
+      continue;
+    }
+
+    if (uv1.x() > 392 - 11 && uv1.x() < 503 + 11 && uv1.y() > 319 - 11 &&
+        uv1.y() < 576 + 11) {
+      continue;
+    }
+
     Eigen::Vector2d pt0 =
         FillbackDataLoader::GetInstance().ConvertUvToVehicle(uv0);
     Eigen::Vector2d pt1 =
@@ -91,9 +108,6 @@ void LocalMappingInterface::ProcSlotData(
       continue;
     }
 
-    data.col(0) = pt0;
-    data.col(1) = pt1;
-
     Eigen::Vector2d dir = pt1 - pt0;
     dir.normalize();
     const auto &inner_tunning = ApaParameters::GetInstance()
@@ -101,8 +115,10 @@ void LocalMappingInterface::ProcSlotData(
                                     .slot_inward_tunning;
     pt0 += dir * inner_tunning;
     pt1 -= dir * inner_tunning;
-    fout_interface << " " << pt0.x() << " " << pt0.y() << " " << pt1.x() << " "
-                   << pt1.y();
+
+    data.col(0) = pt0;
+    data.col(1) = pt1;
+
     SemanticMea::Ptr mea =
         std::make_shared<ParkingSlotMea>(timestamp, data.data());
     auto slot_mea = std::dynamic_pointer_cast<ParkingSlotMea>(mea);
@@ -133,26 +149,46 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
 
 bool LocalMappingInterface::GetLatestSlotMap(
     std::map<int, Eigen::MatrixXd> &slot_map,
-    std::map<int, ParkingSlotAttribute> &slot_attri
-  ) {
-  if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
-    return false;
-  }
-  const auto &map =
-      SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
-  for (auto it = map.begin(); it != map.end(); ++it) {
-    if (it->second->Initialized()) {
-      auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
-      Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
-      int id = it->second->GetId();
-      slot_map[id] = slot_data;
-      slot_attri[id] = slot->GetAttribute();
+    std::map<int, ParkingSlotAttribute> &slot_attri) {
+  try {
+    const auto map =
+        SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
+    if (map.empty()) {
+      return false;
     }
+    for (auto it = map.begin(); it != map.end(); ++it) {
+      if (!SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,
+                                                  it->first)) {
+        std::cout << "FATAL: THIS SHOULD NOT HAPPEN\n";
+        continue;
+      }
+      if (it->second->Initialized()) {
+        auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
+        Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
+        int id = it->second->GetId();
+        slot_map[id] = slot_data;
+        slot_attri[id] = slot->GetAttribute();
+      }
+    }
+  } catch (const std::out_of_range &e) {
+    std::cerr << e.what() << '\n';
+    std::cout << "FATAL: THIS SHOULD NOT HAPPEN\n";
   }
 
   return true;
 }
 
-void LocalMappingInterface::Reset() { EkfEstimator::GetInstance().Reset(); }
+void LocalMappingInterface::Reset() {
+  std::time_t now = std::time(nullptr);
+  std::tm *localTime = std::localtime(&now);
+
+  std::ostringstream oss;
+  oss << std::put_time(localTime, "%Y-%m-%d_%H-%M-%S");
+  _output_file_name =
+      "/userdata/apatest/" + oss.str() + "_apa_local_mapping.txt";
+  // EkfEstimator::GetInstance().Reset();
+
+  ActionQueue::GetInstance().PushAction(RESET);
+}
 
 }  // namespace apa_slam
