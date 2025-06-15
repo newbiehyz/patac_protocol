@@ -84,15 +84,15 @@ void LocalMappingInterface::ProcSlotData(
 
     // if x > 392 - 11 and x < 503 + 11 and y > 319 - 11 and y < 576 + 11:
 
-    if (uv0.x() > 392 - 11 && uv0.x() < 503 + 11 && uv0.y() > 319 - 11 &&
-        uv0.y() < 576 + 11) {
-      continue;
-    }
+    // if (uv0.x() > 392 - 11 && uv0.x() < 503 + 11 && uv0.y() > 319 - 11 &&
+    //     uv0.y() < 576 + 11) {
+    //   continue;
+    // }
 
-    if (uv1.x() > 392 - 11 && uv1.x() < 503 + 11 && uv1.y() > 319 - 11 &&
-        uv1.y() < 576 + 11) {
-      continue;
-    }
+    // if (uv1.x() > 392 - 11 && uv1.x() < 503 + 11 && uv1.y() > 319 - 11 &&
+    //     uv1.y() < 576 + 11) {
+    //   continue;
+    // }
 
     Eigen::Vector2d pt0 =
         FillbackDataLoader::GetInstance().ConvertUvToVehicle(uv0);
@@ -145,6 +145,10 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
   }
 
   return false;
+}
+
+void LocalMappingInterface::SetTargetSlotId(const int id) {
+  SemanticMap::GetInstance().SetTargetSlotId(id);
 }
 
 bool LocalMappingInterface::GetLatestSlotMap(

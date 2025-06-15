@@ -47,8 +47,13 @@ class ParkingSlotLandmark : public SemanticLandmark {
   void SetAttribute(const ParkingSlotAttribute &attri);
 
   ParkingSlotAttribute GetAttribute();
+
+  void SetTarget();
+
+  bool IsTarget();
  private:
   Eigen::MatrixXd _data;
   ParkingSlotAttribute _attri;
+  bool _target{false};
 };
 }  // namespace apa_slam

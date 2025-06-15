@@ -87,6 +87,10 @@ int main(int argc, char** argv) {
       }
     }
     fin.close();
+
+    while(true) {
+      
+    }
   }
 
   return 0;

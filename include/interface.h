@@ -33,6 +33,7 @@ class LocalMappingInterface {
   bool GetLatestSlotMap(std::map<int, Eigen::MatrixXd>& slot_map,
                         std::map<int, ParkingSlotAttribute>& slot_attri);
 
+  void SetTargetSlotId(const int id);
  private:
   std::string _output_file_name;
   std::string _cfg;

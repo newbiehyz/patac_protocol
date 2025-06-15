@@ -71,6 +71,8 @@ class SemanticMap {
   bool GetFullLocalMap(const SensorType& type, const Pose& pose,
                        std::vector<SemanticLandmark::Ptr>& local_map);
 
+  void SetTargetSlotId(const int id);
+
  private:
   std::map<SensorType, std::map<int, SemanticLandmark::Ptr>> _map;
 

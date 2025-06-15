@@ -84,6 +84,17 @@ void SemanticMap::TagMarginalization(const long long timestamp) {
   }
 }
 
+void SemanticMap::SetTargetSlotId(const int id) {
+  if (!HasLandmark(SEMANTIC_TYPE_PARKING_SLOT, id)) {
+    return;
+  }
+
+  SemanticLandmark::Ptr lm = _map.at(SEMANTIC_TYPE_PARKING_SLOT).at(id);
+  ParkingSlotLandmark::Ptr ps_lm =
+      std::dynamic_pointer_cast<ParkingSlotLandmark>(lm);
+  ps_lm->SetTarget();
+}
+
 bool SemanticMap::GetFullLocalMap(
     const SensorType& type, const Pose& pose,
     std::vector<SemanticLandmark::Ptr>& local_map) {
@@ -156,8 +167,9 @@ void SemanticMap::GetSlidingWindowEKFDataList(
               sw_lm_list.at(ob_window_id.at(i))[type].push_back(it_lm->first);
             }
           }
+          ParkingSlotLandmark::Ptr ps = std::dynamic_pointer_cast<ParkingSlotLandmark>(it_lm->second);
 
-          if (sl_ob_num == 0 && it_lm->second->NeedMargin(slw_timestamp)) {
+          if (sl_ob_num == 0 && it_lm->second->NeedMargin(slw_timestamp) && !ps->IsTarget()) {
             marginalization_list[type].insert(it_lm->first);
           }
         }

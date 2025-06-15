@@ -186,6 +186,10 @@ void ParkingSlotLandmark::SetAttribute(const ParkingSlotAttribute& attri) {
 
 ParkingSlotAttribute ParkingSlotLandmark::GetAttribute() { return _attri; }
 
+void ParkingSlotLandmark::SetTarget() { _target = true; }
+
+bool ParkingSlotLandmark::IsTarget() { return _target; }
+
 Eigen::VectorXd ParkingSlotLandmark::ComputeMatchingResidual(
     const Eigen::VectorXd& pose, const SemanticMea::Ptr& mea) {
   Eigen::VectorXd matching_residual = Eigen::VectorXd::Zero(2);
