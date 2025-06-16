@@ -201,6 +201,9 @@ void SlidingWindow::construct_x_and_P(
                                                 ->GetVectorizedData();
       P.block(state_pos, state_pos, lm_state_size, lm_state_size) =
           SemanticMap::GetInstance().GetLandmark(type, lm_id)->GetCov();
+      if (only_localization) {
+        P.block(state_pos, state_pos, lm_state_size, lm_state_size).setZero();
+      }
       ekf_lm_pos_vector.push_back({type, lm_id, state_pos});
     }
   }
@@ -241,6 +244,11 @@ void SlidingWindow::construct_x_and_P(
             this->get_landmark_cross_correlation(id0, id1);
         P.block(pos1, pos0, state_sz1, state_sz0) =
             P.block(pos0, pos1, state_sz0, state_sz1).transpose();
+
+        if (only_localization) {
+          P.block(pos0, pos1, state_sz0, state_sz1).setZero();
+          P.block(pos1, pos0, state_sz1, state_sz0).setZero();
+        }
       }
     }
   }
@@ -271,6 +279,11 @@ void SlidingWindow::construct_x_and_P(
           correlation;
       P.block(lm_pos, window_pos, lm_state_sz, STATE_VEHICLE_SIZE) =
           correlation.transpose();
+
+      if (only_localization) {
+        P.block(window_pos, lm_pos, STATE_VEHICLE_SIZE, lm_state_sz).setZero();
+        P.block(lm_pos, window_pos, lm_state_sz, STATE_VEHICLE_SIZE).setZero();
+      }
     }
   }
 }
@@ -434,6 +447,22 @@ void SlidingWindow::ConstructEKF(
             J_window;
         H.block(residual_pos, lm_pos, r.size(), STATE_PARKING_SLOT_SIZE) =
             J_landmark;
+        bool is_tar = false;
+        if (type == SensorType::SEMANTIC_TYPE_PARKING_SLOT) {
+          auto ps_ptr = std::dynamic_pointer_cast<ParkingSlotLandmark>(
+              SemanticMap::GetInstance().GetLandmark(type, lm_id));
+          if (ps_ptr->IsTarget()) {
+            is_tar = true;
+          }
+        }
+        if (only_localization) {
+          H.block(residual_pos, lm_pos, r.size(), STATE_PARKING_SLOT_SIZE)
+              .setZero();
+        }
+
+        if (only_localization && !is_tar) {
+          H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE).setZero();
+        }
 
         residual_pos += r.size();
       }
@@ -854,7 +883,7 @@ bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
     double translation_diff = (twb_cur - twb_last).norm();
     double yaw_diff = fabs(AngleDiff(yaw_cur, yaw_last));
 
-    if ( translation_diff >= translation_th ||
+    if (translation_diff >= translation_th ||
         yaw_diff >
             ApaParameters::GetInstance().GetEstimatorParamters().sl_angle_th) {
       return true;

@@ -29,7 +29,7 @@ class PangolinDrawer {
 
   void draw_vehicle(const Pose& latest_pose, const Eigen::MatrixXd& latest_cov);
   void draw_vehicle_bbox();
-  void draw_parking_slot(const int& id, const Eigen::MatrixXd& data);
+  void draw_parking_slot(const int& id, const Eigen::MatrixXd& data, const bool &is_tar);
   void draw_traj();
   void draw_local_meas();
   void draw_sliding_window();

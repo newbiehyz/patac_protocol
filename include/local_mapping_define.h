@@ -84,6 +84,7 @@ struct EstimatorParams {
   double sl_translation_th;
   double sl_angle_th;
   double slot_inward_tunning;
+  bool use_loc_convert;
 };
 
 enum ReplaySensorType { REPLAY_TYPE_SEMANTIC = 0, REPLAY_TYPE_KINEMATIC = 1 };
@@ -147,5 +148,7 @@ struct SlwVisualization {
 };
 
 extern SlwVisualization gl_slw;
+
+extern bool only_localization;
 
 }  // namespace apa_slam

@@ -175,7 +175,6 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
     auto it_state = _pre_states.lower_bound(timestamp);
     double translation_th =
         ApaParameters::GetInstance().GetEstimatorParamters().sl_translation_th;
-    std::cout << "vvvvvvvvvvvvvvvvv: "  << v << std::endl;
     // if (zupt) {
     //   translation_th = .0f;
     // }

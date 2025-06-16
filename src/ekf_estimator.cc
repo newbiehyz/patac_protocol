@@ -104,6 +104,7 @@ void EkfEstimator::Reset() {
   _dr_buf.clear();
 
   _zupt = false;
+  only_localization = false;
 }
 
 double EkfEstimator::angle_diff(double angle1, double angle2) {

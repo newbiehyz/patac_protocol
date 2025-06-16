@@ -88,7 +88,8 @@ void PangolinDrawer::draw_traj() {
 }
 
 void PangolinDrawer::draw_parking_slot(const int& id,
-                                       const Eigen::MatrixXd& data) {
+                                       const Eigen::MatrixXd& data,
+                                       const bool& is_tar) {
   glPointSize(8.0);
 
   glBegin(GL_POINTS);
@@ -105,7 +106,12 @@ void PangolinDrawer::draw_parking_slot(const int& id,
   glVertex3f(pt.x(), pt.y(), .0f);
   glEnd();
 
-  glColor3f(.0f, .0f, 1.0f);
+  if (!is_tar) {
+    glColor3f(.0f, .0f, 1.0f);
+  }
+  else {
+    glColor3f(1.0f, 0.5f, 0.f);
+  }
   glLineWidth(5.0);
   glBegin(GL_LINE_STRIP);
 
@@ -236,12 +242,15 @@ void PangolinDrawer::draw_local_map(const Pose& pose) {
     if (it->second->Initialized()) {
       // Eigen::MatrixXd data = it->second->GetLandmarkData();
       auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
+      bool is_tar = slot->IsTarget();
       Eigen::MatrixXd slot_data = slot->ConstructFullSlot();
-      // std::cout << "===========================================################"
+      // std::cout <<
+      // "===========================================################"
       //              "######################################## "
       //           << slot->GetAttribute().slot_type << std::endl;
       int id = it->second->GetId();
-      draw_parking_slot(id, slot_data);
+
+      draw_parking_slot(id, slot_data, is_tar);
     }
   }
 }

@@ -97,19 +97,16 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.use_time_compensate = data["estimator"]["use_time_compensate"];
     _est_params.buf_len = data["estimator"]["buf_len"];
     _est_params.slot_len = data["estimator"]["slot_len"];
-
     _est_params.duplicate_slot_thresh =
         data["estimator"]["duplicate_slot_thresh"];
-
     _est_params.slot_mea_max_range = data["estimator"]["slot_mea_max_range"];
-
     _est_params.time_scale = data["estimator"]["time_scale"];
     _est_params.window_size = data["estimator"]["window_size"];
-
     _est_params.sl_translation_th = data["estimator"]["window_translation_th"];
     _est_params.sl_angle_th = data["estimator"]["window_angle_th"];
-
     _est_params.slot_inward_tunning = data["estimator"]["inward_turning"];
+    _est_params.use_loc_convert = data["estimator"]["use_loc_convert"];
+
 
     _dataset_params.min_dataset_timestamp =
         data["fillback"]["pose_min_timestamp"];

@@ -149,6 +149,13 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
 
 void LocalMappingInterface::SetTargetSlotId(const int id) {
   SemanticMap::GetInstance().SetTargetSlotId(id);
+  std::ofstream fout_interface;
+  fout_interface.open(_output_file_name, std::ios::app);
+  fout_interface << "set_target_id " << id << std::endl;
+  fout_interface.close();
+  if (ApaParameters::GetInstance().GetEstimatorParamters().use_loc_convert) {
+    only_localization = true;
+  }
 }
 
 bool LocalMappingInterface::GetLatestSlotMap(

@@ -11,7 +11,7 @@
     "slot_mea_noise_y": 500.0,
     "odo_velocity_noise": 1.0,
     "odo_angular_velocity_noise": 0.5,
-    "slot_matching_dist_thresh": 1.0,
+    "slot_matching_dist_thresh": 1.5,
     "slot_matching_angle_thresh": 0.5,
     "slot_min_tracking_times": 3,
     "slot_mea_max_range": 10.0,
@@ -26,7 +26,8 @@
     "window_size": 15,
     "window_translation_th": 0.75,
     "window_angle_th": 0.5,
-    "inward_turning": 0.135
+    "inward_turning": 0.135,
+    "use_loc_convert": true
   },
   "fillback": {
     "pose_min_timestamp": 1746770825000,

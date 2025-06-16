@@ -15,4 +15,6 @@ VisualizationMeas vis_meas;
 
 SlwVisualization gl_slw;
 
+bool only_localization{false};
+
 }  // namespace apa_slam
