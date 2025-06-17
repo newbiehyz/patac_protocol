@@ -33,7 +33,7 @@
     "pose_min_timestamp": 1746770825000,
     "pose_max_timestamp": 1746770858000,
     "timedelay": 0.2,
-    "use_udp": false,
+    "use_udp": true,
     "network_ip": "192.168.2.101",
     "port": 8888
   }
