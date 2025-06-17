@@ -91,6 +91,7 @@ int main(int argc, char** argv) {
         int tar_id;
         ss >> tar_id;
         LocalMappingInterface::GetInstance().SetTargetSlotId(tar_id);
+        LocalMappingInterface::GetInstance().NotifyTargetStatus();
       }
     }
     fin.close();

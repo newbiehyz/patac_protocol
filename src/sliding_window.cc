@@ -460,8 +460,9 @@ void SlidingWindow::ConstructEKF(
               .setZero();
         }
 
-        if (only_localization && !is_tar) {
-          H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE).setZero();
+        if (only_localization && is_tar) {
+          // H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE).setZero();
+          R.block(residual_pos, residual_pos, r.size(), r.size()) *= 0.01;
         }
 
         residual_pos += r.size();
