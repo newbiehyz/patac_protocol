@@ -9,6 +9,7 @@
  */
 #pragma once
 #include <memory>
+#include <thread>
 #include "action_queue.h"
 #include "apa_parameters.h"
 #include "ekf_estimator.h"
@@ -34,9 +35,14 @@ class LocalMappingInterface {
                         std::map<int, ParkingSlotAttribute>& slot_attri);
 
   void SetTargetSlotId(const int id);
+
+  void NotifyTargetStatus();
  private:
+  void set_id_th();
   std::string _output_file_name;
   std::string _cfg;
+  bool _ready_set{false};
+  int _tar_id;
 };
 
 }  // namespace apa_slam

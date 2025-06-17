@@ -147,16 +147,28 @@ bool LocalMappingInterface::GetLatestVehiclePose(Eigen::VectorXd &pose) {
   return false;
 }
 
-void LocalMappingInterface::SetTargetSlotId(const int id) {
-  SemanticMap::GetInstance().SetTargetSlotId(id);
+void LocalMappingInterface::NotifyTargetStatus() {
+  if (!_ready_set) {
+    if (ApaParameters::GetInstance().GetEstimatorParamters().use_loc_convert) {
+      only_localization = true;
+    }
+
+    std::thread set_th(&LocalMappingInterface::set_id_th, this);
+    set_th.detach();
+  }
+  _ready_set = true;
+}
+
+void LocalMappingInterface::set_id_th() {
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+  SemanticMap::GetInstance().SetTargetSlotId(_tar_id);
   std::ofstream fout_interface;
   fout_interface.open(_output_file_name, std::ios::app);
-  fout_interface << "set_target_id " << id << std::endl;
+  fout_interface << "set_target_id " << _tar_id << std::endl;
   fout_interface.close();
-  if (ApaParameters::GetInstance().GetEstimatorParamters().use_loc_convert) {
-    only_localization = true;
-  }
 }
+
+void LocalMappingInterface::SetTargetSlotId(const int id) { _tar_id = id; }
 
 bool LocalMappingInterface::GetLatestSlotMap(
     std::map<int, Eigen::MatrixXd> &slot_map,
@@ -192,6 +204,7 @@ bool LocalMappingInterface::GetLatestSlotMap(
 void LocalMappingInterface::Reset() {
   std::time_t now = std::time(nullptr);
   std::tm *localTime = std::localtime(&now);
+  _ready_set = false;
 
   std::ostringstream oss;
   oss << std::put_time(localTime, "%Y-%m-%d_%H-%M-%S");
