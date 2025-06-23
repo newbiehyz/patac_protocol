@@ -19,6 +19,7 @@
     "slot_local_map_range": 50.0,
     "duplicate_slot_thresh": 1.0,
     "export_debug_file": true,
+    "debug_file_path": "/home/yukan/Documents/apa_local_mapping_debug.txt",
     "use_time_compensate": true,
     "buf_len": 5.0,
     "slot_len": 5.45,

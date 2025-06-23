@@ -179,9 +179,14 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
     //   translation_th = .0f;
     // }
 
-    if (fabs(v) < 1e-4) {
+    if (fabs(v) < 1e-4 && !only_localization) {
       translation_th = .0f;
     }
+
+    if (only_localization) {
+      translation_th *= 0.5;
+    }
+
     if (SlidingWindow::GetInstance().AddKeyFrame(
             timestamp, it_state->second.first, translation_th)) {
       SlidingWindow::GetInstance().Propagate(timestamp, odo_for_update);

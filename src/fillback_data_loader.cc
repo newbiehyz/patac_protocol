@@ -402,15 +402,15 @@ void FillbackDataLoader::load_semantic_meas(
       Eigen::Matrix2d Rwb = rot_wb.toRotationMatrix();
 
       if (quadParkingSlotList.size() > 0) {
-        if (ApaParameters::GetInstance()
-                .GetEstimatorParamters()
-                .export_debug_file) {
-          std::ofstream fout_pose("/home/yukan/Documents/pose.txt",
-                                  std::ios::out | std::ios::app);
-          fout_pose << pose.x() << " " << pose.y() << " " << pose.z()
-                    << std::endl;
-          fout_pose.close();
-        }
+        // if (ApaParameters::GetInstance()
+        //         .GetEstimatorParamters()
+        //         .export_debug_file) {
+        //   std::ofstream fout_pose("/home/yukan/Documents/pose.txt",
+        //                           std::ios::out | std::ios::app);
+        //   fout_pose << pose.x() << " " << pose.y() << " " << pose.z()
+        //             << std::endl;
+        //   fout_pose.close();
+        // }
         int id = 0;
         for (const auto& slot : quadParkingSlotList) {
           Eigen::Vector2d corner_l_uv(slot["tl"]["x"], slot["tl"]["y"]);
@@ -434,21 +434,21 @@ void FillbackDataLoader::load_semantic_meas(
               timestamp < _pose_data.rbegin()->first) {
             Eigen::Vector2d corner_l_w = Rwb * corner_l + twb;
             Eigen::Vector2d corner_r_w = Rwb * corner_r + twb;
-            if (ApaParameters::GetInstance()
-                    .GetEstimatorParamters()
-                    .export_debug_file) {
-              std::ofstream fout_lm("/home/yukan/Documents/mapping.txt",
-                                    std::ios::out | std::ios::app);
-              fout_lm << corner_l_w.x() << " " << corner_l_w.y() << " "
-                      << corner_r_w.x() << " " << corner_r_w.y();
-              if (id = quadParkingSlotList.size() - 1) {
-                fout_lm << " ";
-              } else {
-                fout_lm << std::endl;
-              }
+            // if (ApaParameters::GetInstance()
+            //         .GetEstimatorParamters()
+            //         .export_debug_file) {
+            //   std::ofstream fout_lm("/home/yukan/Documents/mapping.txt",
+            //                         std::ios::out | std::ios::app);
+            //   fout_lm << corner_l_w.x() << " " << corner_l_w.y() << " "
+            //           << corner_r_w.x() << " " << corner_r_w.y();
+            //   if (id = quadParkingSlotList.size() - 1) {
+            //     fout_lm << " ";
+            //   } else {
+            //     fout_lm << std::endl;
+            //   }
 
-              fout_lm.close();
-            }
+            //   fout_lm.close();
+            // }
           }
 
           SemanticMea::Ptr slot_mea =

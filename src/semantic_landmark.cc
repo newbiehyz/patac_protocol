@@ -114,4 +114,9 @@ bool SemanticLandmark::GetMea(const long long timestamp, SemanticMea::Ptr &mea) 
   return true;
 }
 
+std::map<long long, std::pair<Pose, SemanticMea::Ptr>> SemanticLandmark::GetMeas() {
+  return _meas;
+}
+
+
 }  // namespace apa_slam

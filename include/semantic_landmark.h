@@ -57,6 +57,8 @@ class SemanticLandmark {
 
   void EraseMeasPre(const long long timestamp);
 
+  std::map<long long, std::pair<Pose, SemanticMea::Ptr>> GetMeas();
+
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
                                   const Eigen::MatrixXd& P,
                                   Eigen::MatrixXd& Jx) = 0;
