@@ -136,7 +136,7 @@ bool EkfEstimator::zupt() {
   if (fabs(avg_v) < 1e-3) {
     return true;
   }
-  
+
   return false;
 }
 
@@ -216,7 +216,8 @@ void EkfEstimator::InputSemanticMea(
 
   // EKFManagement::GetInstance().Update(ts);
   bool perform_zupt = zupt();
-  std::cout << "---------------------------------------- " << perform_zupt << std::endl;
+  std::cout << "---------------------------------------- " << perform_zupt
+            << std::endl;
   SlEKFManagement::GetInstance().Update(ts, perform_zupt);
 
   auto end = std::chrono::steady_clock::now();
@@ -237,37 +238,34 @@ void EkfEstimator::process_semantic_meas(
 
   std::vector<int> matching_rs =
       _tracker_pools.at(type)->HungarianMatching(parking_slot_meas, mea_pose);
-  if (ApaParameters::GetInstance().GetEstimatorParamters().export_debug_file) {
-    std::ofstream fout_pose("/home/yukan/Documents/dr_pose.txt",
-                            std::ios::out | std::ios::app);
-    fout_pose << mea_pose.x << " " << mea_pose.y << " " << mea_pose.yaw
-              << std::endl;
-    fout_pose.close();
-  }
+  // if (ApaParameters::GetInstance().GetEstimatorParamters().export_debug_file
+  // &&
+  //     parking_slot_meas.size() > 0) {
+  //   std::ofstream fout_mea("/home/yukan/Documents/mea_asso.txt",
+  //                          std::ios::out | std::ios::app);
+  //   fout_mea << ts << " ";
+  //   for (size_t i = 0; i < parking_slot_meas.size(); ++i) {
+  //     Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
+  //     Eigen::Rotation2Dd rot(mea_pose.yaw);
+  //     Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+  //     Eigen::Vector2d mea0 =
+  //         parking_slot_meas.at(i)->GetMeaData().col(0).head(2);
+  //     Eigen::Vector2d mea1 =
+  //         parking_slot_meas.at(i)->GetMeaData().col(1).head(2);
 
-  for (size_t i = 0; i < parking_slot_meas.size(); ++i) {
-    Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
-    Eigen::Rotation2Dd rot(mea_pose.yaw);
-    Eigen::Matrix2d Rwb = rot.toRotationMatrix();
-    Eigen::Vector2d mea0 = parking_slot_meas.at(i)->GetMeaData().col(0).head(2);
-    Eigen::Vector2d mea1 = parking_slot_meas.at(i)->GetMeaData().col(1).head(2);
-    Eigen::Vector2d lm0 = Rwb * mea0 + twb;
-    Eigen::Vector2d lm1 = Rwb * mea1 + twb;
-    if (ApaParameters::GetInstance()
-            .GetEstimatorParamters()
-            .export_debug_file) {
-      std::ofstream fout_projection("/home/yukan/Documents/dr_projection.txt",
-                                    std::ios::out | std::ios::app);
-      fout_projection << lm0.x() << " " << lm0.y() << " " << lm1.x() << " "
-                      << lm1.y();
-      if (i != parking_slot_meas.size() - 1) {
-        fout_projection << " ";
-      } else {
-        fout_projection << std::endl;
-      }
-      fout_projection.close();
-    }
-  }
+  //     if (matching_rs.at(i) == -2) {
+  //       continue;
+  //     }
+  //     fout_mea << mea0.x() << " " << mea0.y() << " " << mea1.x() << " "
+  //              << mea1.y() << " " << matching_rs.at(i);
+  //     if (i != parking_slot_meas.size() - 1) {
+  //       fout_mea << " ";
+  //     } else {
+  //       fout_mea << std::endl;
+  //     }
+  //   }
+  //   fout_mea.close();
+  // }
 
   std::cout << "Matching Log:\n";
   for (size_t i = 0; i < matching_rs.size(); ++i) {
@@ -432,6 +430,18 @@ void EkfEstimator::process_odo_mea(const long long ts,
     // std::cout << "Pose: " << dr_pose.x << " " << dr_pose.y << " " <<
     // dr_pose.yaw
     //           << std::endl;
+    if (ApaParameters::GetInstance()
+            .GetEstimatorParamters()
+            .export_debug_file) {
+      std::ofstream fout;
+      fout.open("/home/yukan/Documents/estimator_pose.txt",
+                std::ios::out | std::ios::app);
+      fout << std::to_string(latest_ts) << " " << std::to_string(latest_x.x())
+           << " " << std::to_string(latest_x.y()) << " "
+           << std::to_string(latest_x.z()) << std::endl;
+      fout.close();
+    }
+
     if (fabs(_dr_buf.begin()->first - _dr_buf.rbegin()->first) *
             ApaParameters::GetInstance().GetEstimatorParamters().time_scale >
         ApaParameters::GetInstance().GetEstimatorParamters().buf_len) {
@@ -442,6 +452,24 @@ void EkfEstimator::process_odo_mea(const long long ts,
     }
 
     // zupt();
+    if (SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
+      auto slot_map = SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
+      for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
+        auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
+        if (slot->IsTarget()) {
+          Eigen::MatrixXd data = slot->GetLandmarkData();
+          Eigen::Vector2d pt0 = data.col(0).head(2);
+          Eigen::Vector2d pt1 = data.col(1).head(2);
+          Eigen::Vector2d dir = pt1 - pt0;
+          dir.normalize();
+          dir = Eigen::Rotation2Dd(M_PI * 0.5).toRotationMatrix() * dir;
+          Eigen::Vector2d dir_vehicle = Eigen::Rotation2Dd(latest_x[2]).toRotationMatrix().col(0);
+          std::cout << "Angle Error:\n";
+          std::cout << std::acos(dir.dot(dir_vehicle)) * 180.0 /  M_PI << std::endl;
+          std::cout << "------------------------\n";
+        }
+      }
+    }
   }
 }
 }  // namespace apa_slam

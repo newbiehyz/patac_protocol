@@ -391,6 +391,9 @@ void SlidingWindow::ConstructEKF(
   // sw_lm_list_copy = sw_lm_list;
 
   initialize_landmark(sw_lm_list);
+  if (only_localization) {
+    margin_list.clear();
+  }
   if (!marginalization_list.empty()) {
     for (auto it = marginalization_list.begin()->second.begin();
          it != marginalization_list.begin()->second.end(); ++it) {
@@ -399,6 +402,7 @@ void SlidingWindow::ConstructEKF(
   }
 
   marginalization_list = margin_list;
+  
 
   int state_sz = this->get_state_size(ekf_lm_pos);
   construct_x_and_P(x, P, state_sz, ekf_lm_pos);
@@ -463,6 +467,8 @@ void SlidingWindow::ConstructEKF(
         if (only_localization && is_tar) {
           // H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE).setZero();
           R.block(residual_pos, residual_pos, r.size(), r.size()) *= 0.01;
+
+          
         }
 
         residual_pos += r.size();

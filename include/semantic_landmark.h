@@ -52,6 +52,9 @@ class SemanticLandmark {
   const SemanticMea::Ptr GetLatestMea();
 
   bool GetMea(const long long timestamp, SemanticMea::Ptr& mea);
+  
+  std::map<long long, std::pair<Pose, SemanticMea::Ptr>> GetMeas();
+
 
   void TagMarginalization(const long long timestamp);
 

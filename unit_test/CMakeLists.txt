@@ -21,11 +21,17 @@ ADD_EXECUTABLE(test_data_compression ${CMAKE_CURRENT_SOURCE_DIR}/test_data_compr
 
 IF(ENABLE_OPENGL) 
 
+  FIND_PACKAGE(Boost REQUIRED COMPONENTS filesystem)
   ADD_EXECUTABLE(test_udp_recv ${CMAKE_CURRENT_SOURCE_DIR}/test_udp_recv.cc)
   TARGET_LINK_LIBRARIES(test_udp_recv  ${PROJECT_NAME} ${Pangolin_LIBRARIES})
 
   ADD_EXECUTABLE(debug_main ${CMAKE_CURRENT_SOURCE_DIR}/debug_main.cc)
   TARGET_LINK_LIBRARIES(debug_main ${PROJECT_NAME} ${Pangolin_LIBRARIES})
+
+  ADD_EXECUTABLE(error_visualization ${CMAKE_CURRENT_SOURCE_DIR}/error.cc)
+  TARGET_INCLUDE_DIRECTORIES(error_visualization PRIVATE ${Boost_INCLUDE_DIRS})
+
+  TARGET_LINK_LIBRARIES(error_visualization ${PROJECT_NAME} ${Pangolin_LIBRARIES})
 
 ENDIF()
 

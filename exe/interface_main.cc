@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
           Eigen::MatrixXd mea_data = Eigen::MatrixXd::Zero(2, 2);
           double u0, v0, u1, v1;
           int type, parkabel;
-          ss >> u0 >> v0 >> u1 >> v1 >> type >> parkabel;
+          ss >> u0 >> v0 >> u1 >> v1 >> parkabel >> type;
           Eigen::VectorXd uv = Eigen::VectorXd::Zero(4);
           uv[0] = u0;
           uv[1] = v0;
@@ -75,6 +75,8 @@ int main(int argc, char** argv) {
 
           slot_data.push_back(uv);
           apa_slam::ParkingSlotAttribute attr;
+          attr.parkable = parkabel;
+          attr.slot_type = static_cast<apa_slam::ParkingSlotType>(type);
           slot_attribute.push_back(attr);
         }
         LocalMappingInterface::GetInstance().ProcSlotData(tsll, slot_data,

@@ -136,6 +136,28 @@ bool SemanticMap::GetFullLocalMap(
 }
 
 void SemanticMap::MarginLandmark(const SensorType& type, const int& id) {
+  if (ApaParameters::GetInstance().GetEstimatorParamters().export_debug_file) {
+    std::ofstream fout_mea("/home/yukan/Documents/mea_asso.txt",
+                           std::ios::out | std::ios::app);
+    auto meas = this->GetLandmark(type, id)->GetMeas();
+    fout_mea << id << " ";
+    for (auto it = meas.begin(); it != meas.end(); ++it) {
+      long long ts = it->first;
+      Eigen::MatrixXd mea_data = it->second.second->GetMeaData();
+      Eigen::Vector2d mea0 = mea_data.col(0).head(2);
+      Eigen::Vector2d mea1 = mea_data.col(1).head(2);
+
+      fout_mea << ts << " " << mea0.x() << " " << mea0.y() << " " << mea1.x()
+               << " " << mea1.y();
+      if (it->first < meas.rbegin()->first) {
+        fout_mea << " ";
+      } else {
+        fout_mea << std::endl;
+      }
+    }
+    fout_mea.close();
+  }
+
   _map.at(type).erase(id);
 }
 
@@ -167,9 +189,11 @@ void SemanticMap::GetSlidingWindowEKFDataList(
               sw_lm_list.at(ob_window_id.at(i))[type].push_back(it_lm->first);
             }
           }
-          ParkingSlotLandmark::Ptr ps = std::dynamic_pointer_cast<ParkingSlotLandmark>(it_lm->second);
+          ParkingSlotLandmark::Ptr ps =
+              std::dynamic_pointer_cast<ParkingSlotLandmark>(it_lm->second);
 
-          if (sl_ob_num == 0 && it_lm->second->NeedMargin(slw_timestamp) && !ps->IsTarget()) {
+          if (sl_ob_num == 0 && it_lm->second->NeedMargin(slw_timestamp) &&
+              !ps->IsTarget()) {
             marginalization_list[type].insert(it_lm->first);
           }
         }

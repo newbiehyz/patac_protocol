@@ -103,7 +103,8 @@ const SemanticMea::Ptr SemanticLandmark::GetLatestMea() {
   return _meas.rbegin()->second.second;
 }
 
-bool SemanticLandmark::GetMea(const long long timestamp, SemanticMea::Ptr &mea) {
+bool SemanticLandmark::GetMea(const long long timestamp,
+                              SemanticMea::Ptr& mea) {
   if (!_meas.count(timestamp)) {
     std::cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX NO SUCH MEA "
                  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX\n";
@@ -112,6 +113,11 @@ bool SemanticLandmark::GetMea(const long long timestamp, SemanticMea::Ptr &mea) 
 
   mea = _meas.at(timestamp).second;
   return true;
+}
+
+std::map<long long, std::pair<Pose, SemanticMea::Ptr>>
+SemanticLandmark::GetMeas() {
+  return _meas;
 }
 
 }  // namespace apa_slam

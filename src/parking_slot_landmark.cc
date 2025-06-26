@@ -170,12 +170,19 @@ Eigen::MatrixXd ParkingSlotLandmark::ConstructFullSlot() {
   Eigen::Vector2d dir_inner(-dir.y(), dir.x());
   Eigen::MatrixXd data_slot = Eigen::MatrixXd::Zero(2, 4);
   data_slot.leftCols(2) = _data;
-  data_slot.col(2) =
-      _data.col(1).head(2) +
-      dir_inner * ApaParameters::GetInstance().GetEstimatorParamters().slot_len;
-  data_slot.col(3) =
-      _data.col(0).head(2) +
-      dir_inner * ApaParameters::GetInstance().GetEstimatorParamters().slot_len;
+  double slot_len;
+  if (_attri.slot_type == Vertical) {
+    slot_len =
+        ApaParameters::GetInstance().GetEstimatorParamters().vertical_slot_len;
+  }
+  if (_attri.slot_type == Horizontal) {
+    slot_len = ApaParameters::GetInstance()
+                   .GetEstimatorParamters()
+                   .horizontal_slot_len;
+  }
+
+  data_slot.col(2) = _data.col(1).head(2) + dir_inner * slot_len;
+  data_slot.col(3) = _data.col(0).head(2) + dir_inner * slot_len;
 
   return data_slot;
 }

@@ -155,15 +155,19 @@ void LocalMappingInterface::NotifyTargetStatus() {
 
     std::thread set_th(&LocalMappingInterface::set_id_th, this);
     set_th.detach();
+    
   }
   _ready_set = true;
 }
 
 void LocalMappingInterface::set_id_th() {
-  std::this_thread::sleep_for(std::chrono::seconds(1));
+  int n_sec = ApaParameters::GetInstance().GetEstimatorParamters().slot_confirm_time_sec;
+  std::this_thread::sleep_for(std::chrono::seconds(n_sec));
   SemanticMap::GetInstance().SetTargetSlotId(_tar_id);
   std::ofstream fout_interface;
   fout_interface.open(_output_file_name, std::ios::app);
+  std::cout << "id: " << _tar_id << std::endl;
+  // getchar();
   fout_interface << "set_target_id " << _tar_id << std::endl;
   fout_interface.close();
 }

@@ -96,11 +96,13 @@
       }
     },
      {
-      "name": "interface_main",
+      "name": "error_visualization",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/build/run_interface",
-      "args": ["../config/config.json", "/home/yukan/J5LOG/2025-05-29_10-08-47_apa_local_mapping.txt"],
+      "program": "${workspaceFolder}/build/unit_test/error_visualization",
+      "args": ["home/yukan/Documents/data/apa_data/ACC/test1/"],
+      // "args": ["../config/config.json", "/home/yukan/J5LOG/2025-06-16_11-18-06_apa_local_mapping.txt"],
+
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}/build",
       "environment": [],
