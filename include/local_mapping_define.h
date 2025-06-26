@@ -75,6 +75,7 @@ struct EstimatorParams {
   int slot_min_tracking_times;
   double margin_tracking_time;
   bool export_debug_file;
+  std::string debug_file_path;
   bool use_time_compensate;
   double buf_len;
   double vertical_slot_len;

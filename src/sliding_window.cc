@@ -151,7 +151,7 @@ void SlidingWindow::Propagate(
   }
 
   refresh_propagate_window_status(ts, x_cur, PP, lm_pos);
-}  // namespace apa_slam
+} // namespace apa_slam
 
 void SlidingWindow::construct_x_and_P(
     Eigen::VectorXd &x, Eigen::MatrixXd &P, const int &state_sz,
@@ -164,7 +164,7 @@ void SlidingWindow::construct_x_and_P(
     x.segment(start_pos, STATE_VEHICLE_SIZE) = _sl_pose[i];
     P.block(start_pos, start_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
         _sl_P[i];
-  }  // window auto correlation
+  } // window auto correlation
 
   // window cross correlation
   for (int i = 0; i < this->GetCurWindowSz() - 1; ++i) {
@@ -186,12 +186,12 @@ void SlidingWindow::construct_x_and_P(
     const auto &type = it_lm->first;
     int lm_state_size;
     switch (type) {
-      case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-        lm_state_size = STATE_PARKING_SLOT_SIZE;
-        break;
+    case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+      lm_state_size = STATE_PARKING_SLOT_SIZE;
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
     for (auto it = it_lm->second.begin(); it != it_lm->second.end(); ++it) {
       int lm_id = it->first;
@@ -217,12 +217,12 @@ void SlidingWindow::construct_x_and_P(
       CrossCorrelationId id0(type0, lmid0);
       int state_sz0;
       switch (type0) {
-        case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-          state_sz0 = STATE_PARKING_SLOT_SIZE;
-          break;
+      case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+        state_sz0 = STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
 
       for (size_t j = i + 1; j < ekf_lm_pos_vector.size(); ++j) {
@@ -232,12 +232,12 @@ void SlidingWindow::construct_x_and_P(
         CrossCorrelationId id1(type1, lmid1);
         int state_sz1;
         switch (type1) {
-          case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-            state_sz1 = STATE_PARKING_SLOT_SIZE;
-            break;
+        case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+          state_sz1 = STATE_PARKING_SLOT_SIZE;
+          break;
 
-          default:
-            break;
+        default:
+          break;
         }
 
         P.block(pos0, pos1, state_sz0, state_sz1) =
@@ -263,12 +263,12 @@ void SlidingWindow::construct_x_and_P(
       auto lm_pos = std::get<2>(ekf_lm_pos_vector.at(j));
       int lm_state_sz;
       switch (type) {
-        case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-          lm_state_sz = STATE_PARKING_SLOT_SIZE;
-          break;
+      case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+        lm_state_sz = STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
 
       Eigen::MatrixXd correlation =
@@ -311,12 +311,12 @@ int SlidingWindow::get_residual_sz(
       for (size_t j = 0; j < it_type->second.size(); ++j) {
         int lm_id = it_type->second.at(j);
         switch (type) {
-          case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-            sz += STATE_PARKING_SLOT_SIZE;
-            break;
+        case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+          sz += STATE_PARKING_SLOT_SIZE;
+          break;
 
-          default:
-            break;
+        default:
+          break;
         }
       }
     }
@@ -350,9 +350,9 @@ void SlidingWindow::UpdateEKF(
       // SemanticMap::GetInstance().SetLandmarkCov(type, lm_id,
       //                                           P.block(pos, pos, 4, 4));
     }
-  }
 
-  marginalization(marginalization_list);
+    marginalization(marginalization_list);
+  }
 }
 
 void SlidingWindow::ConstructEKF(
@@ -373,7 +373,8 @@ void SlidingWindow::ConstructEKF(
   //          j <
   //          sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).size();
   //          ++j) {
-  //       if (sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).at(j)
+  //       if
+  //       (sw_lm_list.at(i).at(SensorType::SEMANTIC_TYPE_PARKING_SLOT).at(j)
   //       ==
   //           0) {
   //         sw_lm_list_copy.at(i)[SensorType::SEMANTIC_TYPE_PARKING_SLOT]
@@ -464,8 +465,14 @@ void SlidingWindow::ConstructEKF(
               .setZero();
         }
 
+        // if (only_localization && !is_tar) {
+        //   H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE)
+        //       .setZero();
+        // }
+
         if (only_localization && is_tar) {
-          // H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE).setZero();
+          // H.block(residual_pos, window_pos, r.size(),
+          // STATE_VEHICLE_SIZE).setZero();
           R.block(residual_pos, residual_pos, r.size(), r.size()) *= 0.01;
 
           
@@ -561,18 +568,18 @@ void SlidingWindow::refresh_window_landmark_cross_correlation(
         const auto &pos = it->second;
         int lm_state_sz;
         switch (type) {
-          case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-            lm_state_sz = STATE_PARKING_SLOT_SIZE;
-            break;
+        case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+          lm_state_sz = STATE_PARKING_SLOT_SIZE;
+          break;
 
-          default:
-            break;
+        default:
+          break;
         }
 
         Eigen::MatrixXd correlation =
             P.block(pos_window, pos, STATE_VEHICLE_SIZE, lm_state_sz);
-        // std::cout << "set_window_landmark_cross_correlation " << i << " " <<
-        // landmark_id << std::endl;
+        // std::cout << "set_window_landmark_cross_correlation " << i << " "
+        // << landmark_id << std::endl;
         set_window_landmark_cross_correlation(i, type, landmark_id,
                                               correlation);
       }
@@ -588,8 +595,8 @@ void SlidingWindow::refresh_window_cross_correlation(const Eigen::MatrixXd &P) {
       int pos_i = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
       int pos_j = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - j - 1);
 
-      Eigen::MatrixXd cross_correlation = P.block(
-          pos_i, pos_j, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);  // P_ij
+      Eigen::MatrixXd cross_correlation =
+          P.block(pos_i, pos_j, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE); // P_ij
 
       set_window_cross_correlation(i, j, cross_correlation);
     }
@@ -622,12 +629,12 @@ void SlidingWindow::refresh_landmark_cross_correlation(
     CrossCorrelationId id0(type0, lmid0);
     int state_sz0;
     switch (type0) {
-      case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-        state_sz0 = STATE_PARKING_SLOT_SIZE;
-        break;
+    case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+      state_sz0 = STATE_PARKING_SLOT_SIZE;
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
 
     for (size_t j = i + 1; j < ekf_lm_pos_vector.size(); ++j) {
@@ -637,12 +644,12 @@ void SlidingWindow::refresh_landmark_cross_correlation(
       CrossCorrelationId id1(type1, lmid1);
       int state_sz1;
       switch (type1) {
-        case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-          state_sz1 = STATE_PARKING_SLOT_SIZE;
-          break;
+      case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+        state_sz1 = STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
       Eigen::MatrixXd correlation = P.block(pos0, pos1, state_sz0, state_sz1);
       correlation.setZero();
@@ -711,8 +718,9 @@ void SlidingWindow::set_landmark_cross_correlation(
   }
 }
 
-Eigen::MatrixXd SlidingWindow::get_landmark_cross_correlation(
-    const CrossCorrelationId &id0, const CrossCorrelationId &id1) {
+Eigen::MatrixXd
+SlidingWindow::get_landmark_cross_correlation(const CrossCorrelationId &id0,
+                                              const CrossCorrelationId &id1) {
   CrossCorrelationKey key = make_landmark_cross_correlation_key(id0, id1);
   if (id0.type == key.first.type && id0.id == key.first.id) {
     return _lm_cross_correlation.at(key);
@@ -814,12 +822,12 @@ void SlidingWindow::landmark_state_augmentation(const SensorType &type,
   Eigen::MatrixXd P_aug = P;
   int lm_state_sz;
   switch (type) {
-    case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-      lm_state_sz = STATE_PARKING_SLOT_SIZE;
-      break;
+  case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+    lm_state_sz = STATE_PARKING_SLOT_SIZE;
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 
   P_aug.conservativeResize(P.rows() + lm_state_sz, P.cols() + lm_state_sz);
@@ -860,13 +868,13 @@ int SlidingWindow::get_state_size(
     for (auto it = it_type->second.begin(); it != it_type->second.end(); ++it) {
       int landmark_id = *it;
       switch (type) {
-        case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
-          ekf_lm_pos[type].insert({landmark_id, state_sz});
-          state_sz += STATE_PARKING_SLOT_SIZE;
-          break;
+      case SensorType::SEMANTIC_TYPE_PARKING_SLOT:
+        ekf_lm_pos[type].insert({landmark_id, state_sz});
+        state_sz += STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
     }
   }
@@ -900,4 +908,4 @@ bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
   return false;
 }
 
-}  // namespace apa_slam
+} // namespace apa_slam

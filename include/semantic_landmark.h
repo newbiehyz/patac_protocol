@@ -53,12 +53,12 @@ class SemanticLandmark {
 
   bool GetMea(const long long timestamp, SemanticMea::Ptr& mea);
   
-  std::map<long long, std::pair<Pose, SemanticMea::Ptr>> GetMeas();
-
 
   void TagMarginalization(const long long timestamp);
 
   void EraseMeasPre(const long long timestamp);
+
+  std::map<long long, std::pair<Pose, SemanticMea::Ptr>> GetMeas();
 
   virtual void InitializeLandmark(const Eigen::VectorXd& state,
                                   const Eigen::MatrixXd& P,

@@ -94,6 +94,7 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _est_params.slot_local_map_range =
         data["estimator"]["slot_local_map_range"];
     _est_params.export_debug_file = data["estimator"]["export_debug_file"];
+    _est_params.debug_file_path = data["estimator"]["debug_file_path"];
     _est_params.use_time_compensate = data["estimator"]["use_time_compensate"];
     _est_params.buf_len = data["estimator"]["buf_len"];
     _est_params.vertical_slot_len = data["estimator"]["vertical_slot_len"];
