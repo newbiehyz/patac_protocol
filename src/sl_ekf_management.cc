@@ -179,7 +179,9 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
     //   translation_th = .0f;
     // }
 
-    if (fabs(v) < 1e-4 && !only_localization) {
+    if (fabs(v) < 1e-4 && !only_localization &&
+        SlidingWindow::GetInstance().GetCurWindowSz() <
+            ApaParameters::GetInstance().GetEstimatorParamters().window_size) {
       translation_th = .0f;
     }
 
