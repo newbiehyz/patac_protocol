@@ -1,0 +1,17 @@
+syntax = "proto3";
+import "common.proto";
+import "uss_base.proto";
+import "uss_parking_slots.proto";
+package autodrive.workflow.proto;
+
+message UssTrackingModeMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  PlvState plv_mode = 3;
+  PsuState psu_mode = 4;
+  uint32 uss_ps_clear_distance = 5;
+  OdoState odo_mode = 6;
+  PerFusUssPs ps_correct = 7;
+}

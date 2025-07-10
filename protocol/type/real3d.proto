@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+import "dynamic_obstacle.proto";
+import "perception_base.proto";
+
+package autodrive.workflow.proto;
+
+enum Real3DType {
+  kReal3DTypePedestrian = 0;
+  kReal3DTypeVehicle = 1;
+  kReal3DTypeCyclist = 2;
+}
+
+enum Roi3DMapType {
+  kRoi3DMapTypePtUndistortMap = 0;
+  kRoi3DMapTypePtDistortMap = 1;
+  kRoi3DMapTypeEqflUMap = 2;
+  kRoi3DMapTypeEqflVMap = 3;
+}
+
+message Real3DResult {
+  DynamicObstacle bev_obstacle = 1;
+  perception_base.Box3D img_3dbox = 2;
+  perception_base.Rect img_rect = 3;
+}
+
+message Real3DResults {
+  perception_base.Header header = 1;
+  Real3DType type = 2;
+  string coordinate_type = 3;
+  repeated Real3DResult real3d_result = 4;
+}
+
+message Real3DData {
+  perception_base.Header header = 1;
+  repeated Real3DResults real3d_results = 2;
+}

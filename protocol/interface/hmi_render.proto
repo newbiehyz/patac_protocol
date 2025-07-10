@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+import "common.proto";
+import "fusion_obstacle.proto";
+import "parking_slot.proto";
+
+package autodrive.workflow.proto;
+
+message FusionParkingSlots {
+  // parking_slots
+  repeated parking_slot.ParkingSlotInfo parking_slots = 1;
+  // certified_slots
+  repeated int32 certified_slots = 2;
+}
+
+message HmiRender {
+  FusionObstacles obstacles = 1;
+  FusionParkingSlots parking_slots = 2;
+}
+
+message HmiRenderMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  // Frame
+  HmiRender hmi_render = 3;
+}

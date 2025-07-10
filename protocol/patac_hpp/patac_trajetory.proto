@@ -1,0 +1,35 @@
+syntax = "proto3";
+import "basic.proto";
+package patac_hpp;
+
+message TrajectoryPoint {
+  // timestamp
+  uint64 timestamp = 1;
+  // point id
+  uint32 id = 2;
+  // point x
+  float x = 3;
+  // point y
+  float y = 4;
+  // point z
+  float z = 5;
+  // point qx
+  float qx = 6;
+  // point qy
+  float qy = 7;
+  // point qz
+  float qz = 8;
+  // point qw
+  float qw = 9;
+  // velocity
+  float velocity = 10;
+  // angular velocity
+  float angular_velocity = 11;
+}
+
+message Trajectory {
+  // num of trajectory_point
+  uint32 num_trajectory_point = 1;
+  // trajectory point list
+  repeated TrajectoryPoint trajectory_point_list = 2;
+}

@@ -1,0 +1,63 @@
+syntax = "proto3";
+import "common.proto";
+import "system_type_base.proto";
+package autodrive.workflow.proto;
+
+enum VisionSystemStatus {
+  kVisionSystemStatusDriving = 0;
+  kVisionSystemStatusParking = 1;
+}
+
+enum VisionCalibrationStatus {
+  kCalibrationStatusNone = 0;
+  kCalibrationStatusStartEol = 1;
+  kCalibrationStatusStartOnl = 2;
+  kCalibrationStatusPauseOnl = 3;
+  kCalibrationStatusResumeOnl = 4;
+  kCalibrationStatusStopOnl = 5;
+  kStopEol = 6;
+  kAcceptParams = 7;
+}
+
+enum VisionCalibrationType {
+    kNone = 0;
+    kUDS = 1;
+    kDHU = 2;
+};
+
+enum CalibrationMode {
+  kCalibrationModeNone = 0;
+  kCalibrationModeSVC = 1;
+  kCalibrationModeRLC = 2;
+  kCalibrationModeFLC = 3;
+}
+
+enum EolCalibPattern {
+  kEOLCalibPatternNone = 0;
+  kEOLCalibPatternPattern1 = 1;
+  kEOLCalibPatternPattern2 = 2;
+}
+
+message VisionSystemMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  int32 parking_in_id = 3;
+  int32 parking_out_id = 4;
+  VisionSystemStatus system_status = 5;
+  VisionCalibrationStatus calibration_status= 6;
+  CalibrationMode calib_mode = 7;
+  EolCalibPattern calib_pattern = 8;
+  bool enable_backstage_searching = 9;
+  bool enable_normal_searching = 10;
+  bool enable_PEB_PrkgPerception = 11;
+  MirrFoldStsTyp mirr_fold_sts_at_driver = 12;
+  MirrFoldStsTyp mirr_fold_sts_at_pass = 13;
+  ApaStateInfo apa_states = 14;
+  UserSelectedParkingSlot usr_sel_ps = 15;
+  LockIdType lock_id_type = 16;
+  VisionCalibrationType calib_type = 17;
+  VpaStateDetailType vpa_state_detail_type = 18;
+  WorkModeType work_mode_type = 19;
+}

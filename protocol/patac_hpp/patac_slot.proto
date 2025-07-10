@@ -1,0 +1,52 @@
+syntax = "proto3";
+package patac_hpp;
+
+enum ParkingSlotType {
+  SlotTypeUnknown = 0;
+  SlotTypeVertical = 1;
+  SlotTypeParallel = 2;
+  SlotTypeOblique = 3;
+}
+
+enum OccupancyStatus {
+  OccupancyStatusUnknown = 0;
+  OccupancyStatusOccupied = 1;
+  OccupancyStatusNotOccupied = 2;
+}
+
+enum ParkingSource {
+  ParkingSourceUnspecified = 0;
+  ParkingSourceIpm = 1;
+  ParkingSourceUss = 2;
+  ParkingSourceUserSel = 3;
+}
+
+enum ParkingLockStatus {
+  ParkingLockStatusUnknown = 0;
+  ParkingLockStatusOpen = 1;
+  ParkingLockStatusClose = 2;
+}
+
+message Point2f {
+  float x = 1;
+  float y = 2;
+}
+
+message ParkingSlot {
+  int32 id = 1;
+  int32 valid = 2;
+  float conf = 3;
+  ParkingSlotType type = 4;
+  OccupancyStatus occupancy = 5;
+  repeated Point2f points = 6;
+  float planning_score = 7;
+  ParkingSource source = 8;
+  ParkingLockStatus lock_status = 9;
+}
+
+message ParkingSlotList {
+  // num of parking_slot
+  uint32 num_parking_slot = 1;
+  // parking_slot_list
+  repeated ParkingSlot parking_slot_list = 2;
+}

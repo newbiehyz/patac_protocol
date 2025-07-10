@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+import "common.proto";
+import "fusion_obstacle.proto";
+import "localization.proto";
+import "map_display.proto";
+import "vpa_state.proto";
+import "ndm_base.proto";
+
+package autodrive.workflow.proto;
+
+
+message HmdGlbPrcpPrkgSlots {
+  repeated GlbPrkgSlot glb_prkg_slots = 1;
+}
+
+message HmdGlbPrcpObstacle {
+  repeated GlbObstacle glb_prcp_obstacle = 1;
+}
+
+message HmdGlbRoadMakMap {
+  repeated GlbRoadMark glb_road_mak_map = 1;
+}
+
+message HmdMapCommonHeader {
+  // Id of the map, only valid for MapDataType.kStoredMap
+  int32 map_id = 1;
+  // Map type
+  MapDataType map_type = 2;
+  // Timestamp of map
+  uint64 utc_time = 3;
+  // Latitude (deg * 1e+07) of the map
+  int32 latitude = 4;
+  // Longitude (deg * 1e+07) of the map
+  int32 longitude = 5;
+  //num of trajectory_point
+  uint32 num_glb_trajectory_point = 6;
+  float map_total_height=7;
+  float map_total_floor=8;
+  int32 slot_parking_times = 9;
+}
+
+message HmdMapInfo {
+  HmdMapCommonHeader header = 1;
+  GlbTrajectory global_trajectory = 2;
+  HmdGlbPrcpPrkgSlots global_percep_parking_slots = 3;
+  HmdGlbRoadMakMap global_road_mark_map = 4;
+  HmdGlbPrcpObstacle global_perception_obstacle = 5;
+  float map_distance = 6;
+  float rest_map_distance = 7;
+  int32 num_speed_bumps = 8;
+}
+
+message HmdMapDisplay {
+  HmdMapInfo map_info = 1;
+  bool update_map_info = 2;
+  int32 num_maps = 3;
+  repeated HmdMapCommonHeader all_map_headers = 4;
+}
+
+
+message HmiMapDisplayMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  // data
+  HmdMapDisplay map_display = 3;
+}

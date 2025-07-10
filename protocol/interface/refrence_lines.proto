@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+import "basic.proto";
+import "common.proto";
+import "loc_odo.proto";
+import "ndm_base.proto";
+import "odometry_data.proto";
+import "map_display.proto";
+
+package autodrive.workflow.proto;
+
+message RefLineWayPointGlobal {
+  Vector3f waypoint_position = 1;
+  float waypoint_yaw = 2;
+  float waypoint_curv = 3;
+  float waypoint_curvrate = 4;
+  float waypoint_speed = 5;
+  uint32 waypoint_num = 6;
+  float waypoint_dist = 7;
+  enum WaypointDir {
+    kWaypointDirForward = 0;
+    kWaypointDirBackward = 1;
+  }
+  WaypointDir waypoint_dir = 8;
+  bool waypoint_locked = 9;
+  bool is_map_origin = 10;
+  bool is_intersection = 11;
+  TurningLightStatus left_turning_light_status = 12;
+  TurningLightStatus right_turning_light_status = 13;
+  float waypoint_floor=14;
+  bool is_parking_gate=15;
+  bool is_speed_bump=16;
+  float left_bound_distance=17;
+  float right_bound_distance=18;
+  float waypoint_pitch = 19;
+  float waypoint_roll = 20;
+}
+
+message RefLineWayPointFrameGlobal {
+  uint32 waypoint_id = 1;
+  repeated RefLineWayPointGlobal way_points = 2;
+}
+
+enum VertexType {
+  kVertexTypeUnknown = 0;
+  kVertexTypeNoVertex = 1;
+  kVertexTypeVertexDist = 2;
+  kVertexTypeVertexYaw = 3;
+  kVertexTypeVertexPitch = 4;
+}
+
+message ReferenceLinePoint {
+  loc_odo.Odometry odo = 1;
+  float pitch = 2;
+  int32 num_sates = 3;
+  int32 floor_num = 4;
+  VertexType vertex_type = 5;
+  bool has_map = 6;
+  bool init_loc_region = 7;
+  string str_obj_id = 8;
+}
+
+message RefLine {
+  int32 map_floor_num = 1;
+  string header = 2;
+  repeated ReferenceLinePoint reference_points = 3;
+}
+
+message ReferenceLinesMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  RefLineWayPointFrameGlobal waypoint_frame_global_raw = 3;
+  RefLineWayPointFrameGlobal waypoint_frame_global = 4;
+  GlbPrkgSlot parking_slot = 5;
+  RefLine reference_line = 6;
+  ndm_base.NdmSpec ndm_header = 7;
+}

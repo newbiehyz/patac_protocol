@@ -1,0 +1,39 @@
+syntax = "proto3";
+import "common.proto";
+import "camera_extrinsics.proto";
+package autodrive.workflow.proto;
+
+enum CalibStatus {
+  CALIB_STATE_NONE = 0;
+  CALIB_STATE_RUN = 1;
+  CALIB_STATE_SUCCESS = 2;
+  CALIB_STATE_MODE_ERRROR = 3;
+  CALIB_STATE_PATTERN_ERROR = 4;
+  CALIB_STATE_INTERNAL_PARAM_ERROR = 5;
+  CALIB_STATE_IMG_ERRROR = 6;
+  CALIB_STATE_FIND_CORNERS_ERROR = 7;
+  CALIB_STATE_REPROJECTION_ERROR = 8;
+  CALIB_STATE_PITCH_OUTOF_RANGE = 9;
+  CALIB_STATE_ROLL_OUTOF_RANGE = 10;
+  CALIB_STATE_YAW_OUTOF_RANGE = 11;
+  CALIB_STATE_TIMEOUT_ERROR = 12;
+  CALIB_STATE_RESULT_SAVE_ERROR = 13;
+  CALIB_STATE_ALGORITHM_CANCEL = 14;
+}
+
+message CalibrationResult {
+  CameraID cam_id = 1;
+  CalibStatus calib_status = 2;
+  Extrinsic extrinsic = 3;
+  float progress_rate = 4;
+}
+
+message CalibrationResultMsg {
+  // Header
+	MsgHeader header = 1;
+  // Error
+	Error error = 2;
+  // Calibration
+  uint32 real_camera_amount = 3;
+  repeated CalibrationResult results = 4;
+}

@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "common.proto";
+import "basic.proto";
+
+package autodrive.workflow.proto;
+
+message MapParkingSlot {
+  // slot id
+  int32 slot_id = 1;
+  // slot state
+  int32 slot_state = 2;
+  // slot type
+  int32 slot_type = 3;
+  repeated Vector3f slot_points = 4; // 车位四个角点
+}
+
+message MapParkingSlots {
+  // all map parking slots
+  repeated MapParkingSlot all_map_parking_slots = 1;
+}
+
+message MapParkingSlotsMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  // MapParkingSlots
+  MapParkingSlots map_parking_slots = 3;
+}

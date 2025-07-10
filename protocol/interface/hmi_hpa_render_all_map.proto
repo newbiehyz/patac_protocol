@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+import "common.proto";
+import "hmi_map_display.proto";
+package autodrive.workflow.proto;
+
+message HmiAllMapInfo {
+  HmdMapCommonHeader header = 1;
+  float map_distance = 2;
+  float rest_map_distance = 3;
+  int32 num_speed_bumps = 4;
+}
+
+message HmiAllMapDisplay {
+  HmiAllMapInfo map_info = 1;
+  bool update_map_info = 2;
+  int32 num_maps = 3;
+  bool is_match = 4;
+  int32 map_id = 5;
+  repeated HmdMapCommonHeader all_map_headers = 6;
+}
+
+message HmiHpaAllMapRender {
+  HmiAllMapDisplay hmi_map_display = 1;
+}
+
+
+message HmiHpaRenderAllMapMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  // data
+  HmiHpaAllMapRender hmi_hpa_render = 3;
+}

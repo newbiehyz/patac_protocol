@@ -1,0 +1,93 @@
+syntax = "proto3";
+import "basic.proto";
+package autodrive.workflow.proto;
+
+message PositionResult
+{
+    Vector3f position = 1;
+    Vector3f var = 2;
+    uint32 type = 3;
+}
+
+message PositionDebugInfo
+{
+    int32 in_sensors = 1;
+    int32 use_measures = 2;
+    repeated PositionResult position_results = 3;
+    float speed = 4;
+    PositionResult fusion_pos = 5;
+    PositionResult pre_pos  = 6;
+    PositionResult post_pos = 7;
+    int64 time_gap = 8;
+}
+
+message SpeedResult
+{
+    uint32 speed_type = 1;
+    uint32 measure_type = 2;
+    bool measure_isvalid = 3;
+    float real_size = 4;
+    float img_x = 5;
+    float h = 6;
+    float w = 7;
+    Vector2f raw_position = 8; 
+    Vector2f world_position = 9; 
+    Vector2f pos_noise = 10;
+    Vector2f state_pos = 11;
+    Vector2f state_pos_noise = 12;
+    Vector2f state_speed = 13; 
+    Vector2f state_speed_noise = 14; 
+}
+
+message SpeedDebugInfo
+{
+    repeated SpeedResult speed_results = 1;
+    Vector2f speed = 2;
+    Vector2f speed_noise = 3;
+    Vector2f acc = 4;
+    Vector2f acc_noise = 5;
+}
+
+message SizeDebugInfo
+{
+    uint32 veh_type = 1;
+    float veh_type_conf = 2;
+    float H_measure_raw = 3;
+    float H_measure = 4;
+    float H_measure_noise = 5;
+    float H_wh_measure_raw = 6;
+    float H_wh_measure = 7;
+    float H_wh_measure_noise = 8;
+    float H_3d_measure = 9;
+    float H_3d_measure_noise = 10;
+    float W_3d_measure = 11;
+    float W_3d_measure_noise = 12;
+    float L_3d_measure = 13;
+    float L_3d_measure_noise = 14;
+    float W = 15;
+    float H = 16;
+    float L = 17;
+}
+
+message YawDebugInfo
+{
+    uint32 yaw_type = 1;
+    float vcs_pi_measure_yaw = 2;
+    float world_pi_measure_yaw = 3;
+    float yaw_measure_var = 4;
+    float vcs_pi_yaw = 5;
+    float world_pi_yaw = 6;
+    float yaw_rate = 7;
+    float yaw_var = 8;
+}
+
+message DynamicObstacleDebugInfo
+{
+    int32 id = 1;
+    int32 frame_id = 2;
+    int32 sensor_id = 3;
+    PositionDebugInfo pos_debug_info = 4;
+    SpeedDebugInfo speed_debug_info = 5;
+    SizeDebugInfo size_debug_info = 6;
+    YawDebugInfo yaw_debug_info = 7;
+}

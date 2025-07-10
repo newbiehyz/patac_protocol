@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "common.proto";
+import "sync_cylinder_parsing.proto";
+import "perception_base.proto";
+package autodrive.workflow.proto;
+
+
+message SceneParsingResults {
+  repeated perception_base.SceneParsing scene_parsing_result_data = 1;
+}
+
+message IqaParsing {
+  perception_base.ImageId image_id = 1;
+  CylinderParsingImageData parsing_data = 2;
+}
+
+message IqaParsingResults {
+  repeated IqaParsing iqa_parsing_result_data = 1;
+}
+
+message IqaParsingMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  IqaParsingResults iqa_parsing_data = 3;
+  SceneParsingResults scene_parsing_data = 4;
+}
+

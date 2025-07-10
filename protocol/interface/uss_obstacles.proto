@@ -1,0 +1,214 @@
+syntax = "proto3";
+import "common.proto";
+import "uss_base.proto";
+package autodrive.workflow.proto;
+
+enum PerFusSnsID {
+  kPerFusSnsIDNone = 0;
+  kPerFusSnsID1 = 1;
+  kPerFusSnsID2 = 2;
+  kPerFusSnsID3 = 3;
+  kPerFusSnsID4 = 4;
+  kPerFusSnsID5 = 5;
+  kPerFusSnsID6 = 6;
+  kPerFusSnsID7 = 7;
+  kPerFusSnsID8 = 8;
+  kPerFusSnsID9 = 9;
+  kPerFusSnsID10 = 10;
+  kPerFusSnsID11 = 11;
+  kPerFusSnsID12 = 12;
+  kPerFusSnsIDMax = 13;
+}
+
+enum PerFusEchoMode {
+  kPerFusEchoModeNone = 0;
+  kPerFusEchoModeDE = 1;
+  kPerFusEchoModeCE = 2;
+  kPerFusEchoModeMax = 3;
+}
+
+enum LpAttributesEn {
+  kLpAttributesEnNone = 0;
+  kLpAttributesEnSure = 1;
+  kLpAttributesEnUnsure = 2;
+  kLpAttributesEnUnknown = 3;
+  kLpAttributesEnMax = 4;
+}
+
+enum LpDirEn {
+  kLpDirEnNone = 0;
+  kLpDirEnFront = 1;
+  kLpDirEnRear = 2;
+  kLpDirEnLeft = 3;
+  kLpDirEnRight = 4;
+  kLpDirEnInside = 5;
+  kLpDirEnMax = 6;
+}
+
+enum LpSnsGroupIdEn {
+  kLpSnsGroupIdEnNone = 0;
+  kLpSnsGroupIdEn1_2 = 1;
+  kLpSnsGroupIdEn2_3 = 2;
+  kLpSnsGroupIdEn3_4 = 3;
+  kLpSnsGroupIdEn4_5 = 4;
+  kLpSnsGroupIdEn5_6 = 5;
+  kLpSnsGroupIdEn11_12 = 6;
+  kLpSnsGroupIdEn10_11 = 7;
+  kLpSnsGroupIdEn9_10 = 8;
+  kLpSnsGroupIdEn8_9 = 9;
+  kLpSnsGroupIdEn7_8 = 10;
+  kLpSnsGroupIdEnMax = 11;
+}
+
+enum LpTypeEn {
+  kLpTypeEnNone = 0;
+  kLpTypeEnDe = 1;
+  kLpTypeEnDeDe = 2;
+  kLpTypeEnCe = 3;
+  kLpTypeEnDeCe = 4;
+  kLpTypeEnRound = 5;
+  kLpTypeEnOther = 6;
+  kLpTypeEnMax = 7;
+}
+
+enum UssObjXTypeEn {
+  kUssObjXTypeEnNone = 0;
+  kUssObjXTypeEnPoint = 1;
+  kUssObjXTypeEnStraight0C = 2;
+  kUssObjXTypeEnStraight1C = 3;
+  kUssObjXTypeEnStraight2C = 4;
+  kUssObjXTypeEnMax = 5;
+}
+
+enum UssObjXHeightEn {
+  kUssObjXHeightEnNone = 0;
+  kUssObjXHeightEnLow = 1;
+  kUssObjXHeightEnHigh = 2;
+  kUssObjXHeightEnUnknow = 3;
+  kUssObjXHeightEnMax = 4;
+}
+
+enum UssObjXOnCourseEn {
+  kUssObjXOnCourseEnNone = 0;
+  kUssObjXOnCourseEnOnCourse = 1;
+  kUssObjXOnCourseEnNotOnCourse = 2;
+  kUssObjXOnCourseEnMax = 3;
+}
+
+message PerFusUssRawData {
+  uint32 bind_zone_flag = 1;
+  uint32 ring_time = 2;
+  uint32 bind_zone_dis = 3;
+  uint32 time_diff_tx_rx = 4;
+  uint32 env_noise = 5;
+  repeated uint32 echo_dist = 6;
+  repeated uint32 echo_cfd = 7;
+  repeated uint32 echo_high = 8;
+  repeated uint32 echo_width = 9;
+  repeated uint32 echo_mt = 10;
+  uint64 echo_send_timestamp = 11;
+  PerFusSnsID per_fus_sns_id = 12;
+  PerFusEchoMode per_fus_echo_mode = 13;
+  PerFusSnsID per_fus_echo_source_id = 14;
+}
+
+message PerFusUssLp {
+  uint32 lp_id_ui8 = 1;
+  uint32 lp_de_echo_cnt_ui8 = 2;
+  uint32 lp_ce_echo_cnt_ui8 = 3;
+  LpAttributesEn lp_attributes_en = 4;
+  uint32 lp_dist_sens_a_ui16 = 5;
+  uint32 lp_dist_sens_b_ui16 = 6;
+  uint32 lp_corr_l1_ui16 = 7;
+  uint32 lp_corr_l2_ui16 = 8;
+  LpDirEn lp_dir_en = 9;
+  LpSnsGroupIdEn lp_sns_group_id_en = 10;
+  LpTypeEn lp_type_en = 11;
+  int64 lp_id_finish_timestamp_si64 = 12;
+  UssPoint lp_pos_1_st = 13;
+  UssPoint lp_pos_2_st = 14;
+  UssPoint lp_pos_3_st = 15;
+}
+
+message PerFusUssHisObjFrame {
+  repeated LpTypeEn lp_type_en = 1;
+  repeated int64 finish_timestamp_si64 = 2;
+  repeated UssPoint uss_obj_points = 3;
+}
+
+message PerFusUssObj {
+  uint32 uss_obj_x_id_ui8 = 1;
+  uint32 uss_obj_x_cfd_ui8 = 2;
+  UssObjXTypeEn uss_obj_x_type_en = 3;
+  UssObjXHeightEn uss_obj_x_height_en = 4;
+  UssObjXOnCourseEn uss_obj_x_on_course_en = 5;
+  int64 finish_timestamp_si64 = 6;
+  UssPoint uss_obj_x_pos_1 = 7;
+  UssPoint uss_obj_x_pos_2 = 8;
+  UssPoint uss_obj_x_err_pos_1 = 9;
+  UssPoint uss_obj_x_err_pos_2 = 10;
+  PerFusUssHisObjFrame his_obj_frame = 11;
+  uint32 obj_history_ui8 = 12;
+}
+
+message PerFusUssAllCERawData {
+    uint32 ce1_to_2distance = 1;
+    uint32 ce2_to_1distance = 2;
+    uint32 ce2_to_3distance = 3;
+    uint32 ce3_to_2distance = 4;
+    uint32 ce3_to_4distance = 5;
+    uint32 ce4_to_3distance = 6;
+    uint32 ce4_to_5distance = 7;
+    uint32 ce5_to_4distance = 8;
+    uint32 ce5_to_6distance = 9;
+    uint32 ce6_to_5distance = 10;
+    uint32 ce7_to_8distance = 11;
+    uint32 ce8_to_7distance = 12;
+    uint32 ce8_to_9distance = 13;
+    uint32 ce9_to_8distance = 14;
+    uint32 ce9_to_10distance = 15;
+    uint32 ce10_to_9distance = 16;
+    uint32 ce10_to_11distance = 17;
+    uint32 ce11_to_10distance = 18;
+    uint32 ce11_to_12distance = 19;
+    uint32 ce12_to_11distance = 20;
+    int64 ce1_to_2timestamp = 21;
+    int64 ce2_to_1timestamp = 22;
+    int64 ce2_to_3timestamp = 23;
+    int64 ce3_to_2timestamp = 24;
+    int64 ce3_to_4timestamp = 25;
+    int64 ce4_to_3timestamp = 26;
+    int64 ce4_to_5timestamp = 27;
+    int64 ce5_to_4timestamp = 28;
+    int64 ce5_to_6timestamp = 29;
+    int64 ce6_to_5timestamp = 30;
+    int64 ce7_to_8timestamp = 31;
+    int64 ce8_to_7timestamp = 32;
+    int64 ce8_to_9timestamp = 33;
+    int64 ce9_to_8timestamp = 34;
+    int64 ce9_to_10timestamp = 35;
+    int64 ce10_to_9timestamp = 36;
+    int64 ce10_to_11timestamp = 37;
+    int64 ce11_to_10timestamp = 38;
+    int64 ce11_to_12timestamp = 39;
+    int64 ce12_to_11timestamp = 40;
+  }
+
+message UssObstaclesMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  int32 version = 3;
+  repeated PerFusUssHeader uss_header = 4;
+  repeated PerFusUssRawData uss_raw = 5;
+  repeated PerFusUssLp uss_lp = 6;
+  repeated PerFusUssObj uss_obj = 7;
+  StateMachine state_machine = 8;
+  int64 sensor_stamp = 9;
+  int64 sample_stamp = 10;
+  repeated uint32 raw_array = 11;
+  PerFusUssAllCERawData uss_ce_raw_obj = 12;
+}
+
+

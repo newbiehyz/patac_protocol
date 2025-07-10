@@ -1,0 +1,44 @@
+syntax = "proto3";
+import "common.proto";
+import "system_type_base.proto";
+package autodrive.workflow.proto;
+
+enum ParkingOutDir {
+  KOutUnknow = 0;
+  KVerFrontLeft = 1;
+  KVerFrontCenter = 2;
+  KVerFrontRight = 3;
+  KVerRearLeft = 4;
+  KVerRearCenter = 5;
+  KVerRearRight = 6;
+  KHoriFrontLeft = 7;
+  KHoriFrontRight = 8;
+}
+
+enum PerceptionCtrlStatus {
+  kPerceptionCtrlStatusUnknown = 0;
+  kSwitchParking = 1;
+  kSwitchADAS = 2;
+  kParking = 3;
+  kADAS = 4;
+}
+
+message FusionSystemMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  LockIdType lock_id_type = 3;
+  int32 lock_id = 4;
+  ApaStateInfo apa_states = 5;
+  ParkingOutDir parking_out_dir = 6;
+  WorkModeType work_mode_type = 7;
+  UserSelectedParkingSlot usr_sel_ps = 8;
+  bool enable_backstage_searching = 9;
+  bool enable_normal_searching = 10;
+  bool enable_PEB_PrkgPerception = 11;
+  MirrFoldStsTyp mirr_fold_sts_at_driver = 12;
+  MirrFoldStsTyp mirr_fold_sts_at_pass = 13;
+  VpaStateDetailType vpa_state_detail = 14;
+  PerceptionCtrlStatus perception_ctrl_status = 15;
+}

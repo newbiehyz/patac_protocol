@@ -1,0 +1,58 @@
+syntax = "proto3";
+import "basic.proto";
+import "common.proto";
+package autodrive.workflow.proto;
+
+enum FreespacePointLabel {
+  kFreespacePointLabelRoad = 0;
+  kFreespacePointLabelParkingLockOpen = 11;
+  kFreespacePointLabelParkingLockClosed = 12;
+  kFreespacePointLabelTrafficCone = 13;
+  kFreespacePointLabelParkingRod = 14;
+  kFreespacePointLabelCurb = 15;
+  kFreespacePointLabelCementColumn = 16;
+  kFreespacePointLabelImmovableObstacle = 17;
+  kFreespacePointLabelMovableObstacle = 18;
+  kFreespacePointLabelBackground = 19;
+  kFreespacePointLabelSidewalk = 20;
+  kFreespacePointLabelPedestrian = 21;
+  kFreespacePointLabelDynamicObstacle = 22;
+  kFreespacePointLabelUssObj = 27;
+  kFreespacePointLabelUssCrossPoint = 28;
+  kFreespacePointLabelUnknwn = 100;
+  kFreespacePointLabelInvalid = 255;
+}
+
+message FusionFreespacePoint {
+  // ReservedFields
+  float conf = 1;
+  // Freespace point index
+  float angle = 2;
+  // Distance between freespace point and vehicle rear axis mid point
+  float ray_length = 3;
+  // Identical with label
+  uint32 origin_label = 4;
+  // Freespace point label
+  FreespacePointLabel label = 5;
+  // Freespace point coordinate at VCS
+  Vector2f pt_vcs = 6;
+  // ReservedFields
+  Vector2f vel_vcs = 7;
+  // Freespace point coordinate at WCS
+  Vector2f pt_world = 8;
+  // ReservedFields
+  Vector2f vel_world = 9;
+}
+
+message FreespaceFusion {
+  int64 timestamp = 1;
+  repeated FusionFreespacePoint freespace_points = 2;
+}
+
+message FreespaceFusionMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  FreespaceFusion fusion_freespace = 3;
+}

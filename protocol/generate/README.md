@@ -1,0 +1,1 @@
+# Storage the proto file of generated

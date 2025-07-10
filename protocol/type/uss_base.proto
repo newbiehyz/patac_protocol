@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package autodrive.workflow.proto;
+
+enum UssHeaderGroupIdEn {
+  kUssHeaderGroupIdEnNone = 0;
+  kUssHeaderGroupIdEn1 = 1;
+  kUssHeaderGroupIdEn2 = 2;
+  kUssHeaderGroupIdEn3 = 3;
+  kUssHeaderGroupIdEn4 = 4;
+  kUssHeaderGroupIdEnMax = 255;
+}
+
+enum FreqModeEn {
+  kFreqModeEnNone = 0;
+  kFreqModeEnFixed = 1;
+  kFreqModeEnChirp = 2;
+  kFreqModeEnMax = 255;
+}
+
+enum PlvState {
+  kPlvStateNone = 0;
+  kPlvStateOff = 1;
+  kPlvStateActive = 2;
+  kPlvStateMax = 255;
+}
+
+enum PsuState {
+  kPsuStateNone = 0;
+  kPsuStateOff = 1;
+  kPsuStatePiActive = 2;
+  kPsuStatePoActive = 3;
+  kPsuStateMax = 255;
+}
+
+enum OdoState {
+  kOdoStateNone = 0;
+  kOdoStateReset = 1;
+  kOdoStateActive = 2;
+  kOdoStateResetSuccess = 3;
+  kOdoStateMax = 255;
+}
+
+message PerFusUssHeader {
+  int64 mcu_send_stamp_si64 = 1;
+  int64 mcu_send_wave_stamp_si64 = 2;
+  uint32 mesa_group_tx_mask_ui16 = 3;
+  uint32 mesa_group_rx_mask_ui16 = 4;
+  UssHeaderGroupIdEn uss_header_group_id = 5;
+  FreqModeEn uss_header_freq_mode = 6;
+}
+
+message UssPoint {
+  int32 x_si32 = 1;
+  int32 y_si32 = 2;
+}
+
+message StateMachine {
+  PlvState plv_state = 1;
+  PsuState psu_state = 2;
+  OdoState odo_state = 3;
+}
+
+

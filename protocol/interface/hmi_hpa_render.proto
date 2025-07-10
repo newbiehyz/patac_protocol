@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+import "common.proto";
+import "fusion_obstacle.proto";
+import "localization.proto";
+import "map_display.proto";
+import "vpa_state.proto";
+import "ndm_base.proto";
+
+package autodrive.workflow.proto;
+
+message HmiFusionObstacle {
+  int64 timestamp = 1;
+  repeated FusionObstacleOutPut obstacle_list = 2;
+}
+
+message HmiLocalization {
+  ndm_base.NdmSpec ndm_header = 1;
+  SpLocation location = 2;
+}
+
+message HmiGlbPrcpPrkgSlots {
+  repeated GlbPrkgSlot glb_prkg_slots = 1;
+}
+
+message HmiGlbPrcpObstacle {
+  repeated GlbObstacle glb_prcp_obstacle = 1;
+}
+message HmiMapInfo {
+
+    MapCommonHeader header = 1;
+    GlbTrajectory global_trajectory = 2;
+    HmiGlbPrcpPrkgSlots global_percep_parking_slots = 3;
+    HmiGlbPrcpObstacle global_perception_obstacle = 4;
+    float map_distance = 5;
+    float rest_map_distance = 6;
+    int32 num_speed_bumps = 7;
+  }
+
+message HmiMapDisplay {
+  HmiMapInfo map_info = 1;
+  bool update_map_info = 2;
+  int32 num_maps = 3;
+  int32 new_id = 4;
+  bool is_match = 5;
+  MapCommonHeader header = 6;
+}
+
+message HmiVpaState {
+  VPAEventType vpa_event = 1;
+  HPAState hpa_state = 2;
+  MappingOddType mapping_odd_type = 3;
+  LocOddType loc_odd_type = 4;
+  MapSavingStage map_saving_stage = 5;
+  LocalLocStage local_loc_stage = 6;
+  MapDeletingStage map_deleted_stage = 7;
+  MappingStage map_stage = 8;
+  MapOptimizeStage map_optimized_stage = 9;
+  ErrorCode error_code = 10;
+  int32 target_parking_slot_id = 11;
+  uint32 map_saving_progress = 12;
+  uint32 avaliable_map_id = 13;
+}
+
+message HmiHpaRender {
+  HmiFusionObstacle obstacles = 1;
+  HmiLocalization localization = 2;
+  HmiMapDisplay map_display = 3;
+  HmiVpaState vpa_state = 4;
+}
+
+message HmiHpaRenderMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  // data
+  HmiHpaRender hmi_hpa_render = 3;
+}

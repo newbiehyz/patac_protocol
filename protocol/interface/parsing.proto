@@ -1,0 +1,236 @@
+syntax = "proto3";
+import "common.proto";
+import "perception_base.proto";
+import "parsing_base.proto";
+package autodrive.workflow.proto;
+
+enum CompressionFormat {
+  kOriginalImage = 0;
+  kOriginalImageHalf = 1;
+  kOriginalImageQuarter = 2;
+  kCompressionJPEG = 3;
+  kCompressionH265I = 4;
+  kCompressionH265P = 5;
+}
+
+enum ImageFormat {
+  kImageFormatGray = 0;
+  kImageFormatYV12 = 1;
+  kImageFormatJPEG = 2;
+  kImageFormatPNG = 3;
+  kImageFormatCR12 = 4;
+  kImageFormatBad = 5;
+  kImageFormatNV12 = 6;
+  kImageFormatNV21 = 7;
+  kImageFormatTimeout = 8;
+  kImageFormatBypassOnly = 9;
+  kImageFormatYUYV = 10;
+  kImageFormatUYVY = 11;
+  kImageFormatRaw12Planar = 12;
+  kImageFormatRaw12PlanarJPEG = 13;
+  kImageFormatRaw12PlanarJPEGLossless = 14;
+  kImageFormatRaw12 = 15;
+  kImageFormatRaw12JPEG = 16;
+  kImageFormatRaw12JPEGLossless = 17;
+  kImageFormatRaw16 = 18;
+  kImageFormatRaw16JPEG = 19;
+  kImageFormatRaw16JPEGLossless = 20;
+  kImageFormatRaw20 = 21;
+  kImageFormatRaw20JPEG = 22;
+  kImageFormatRaw20JPEGLossless = 23;
+  kImageFormatRaw20Planar = 24;
+  kImageFormatRaw20PlanarJPEG = 25;
+  kImageFormatRaw20PlanarJPEGLossless = 26;
+  kImageFormatRaw16WithFront = 27;
+  kImageFormatRaw16WithRear = 28;
+  kImageFormatRaw16WithFrontRear = 29;
+  kImageFormatRaw16PlanarJPEGLossless = 30;
+  kImageFormatRaw14PlanarJPEGLossless = 31;
+  kImageFormatBitstream = 32;
+  kImageFormatBitstreamH264 = 33;
+}
+
+enum ParsingFormat {
+  kParsingFormatRaw = 0;
+  kParsingFormatLabel = 1;
+  kParsingFormatLabelRLE = 2;
+}
+
+enum IPMSelect {
+  kIPMSelectNinetyDistant = 0;
+  kIPMSelectFortyDistant = 1;
+  kIPMSelectFortyHalfWidth = 2;
+  kIPMSelectTwentyDistant = 3;
+}
+
+enum PerceptionStatus {
+  kPerceptionStatusNoPerception = 0;
+  kPerceptionStatusWithPerception = 1;
+}
+
+enum ImageStatus {
+  kImageStatusNormal = 0;
+  kImageStatusNoInterrupt = 1;
+}
+
+enum CameraType {
+  kCameraTypePinHole = 0;
+  kCameraTypeFishEye = 1;
+}
+
+enum CameraVersion {
+  kCameraVersionCV = 0;
+  kCameraVersionVCS = 1;
+}
+
+enum ParsingCalibrationStatus {
+  kCalibrationStatusDefault = 0;
+  kCalibrationStatusIntrinsicDone = 1;
+  kCalibrationStatusExtrinsicDone = 2;
+}
+
+enum CalibrationType {
+  kCalibrationTypeUnknown = 0;
+  kCalibrationTypeEOL = 1;
+  kCalibrationTypeAfterSale = 2;
+  kCalibrationTypeBackground = 3;
+}
+
+enum ParsingType {
+  kParsingTypeDefault = 0;
+  kParsingTypeLane = 1;
+  kParsingTypeDepth = 2;
+  kParsingTypeIPM = 3;
+  kParsingTypeBEV = 4;
+  kParsingTypeIQA = 5;
+}
+
+message ParsingImage {
+  int32 width = 1;
+  int32 height = 2;
+  int32 channel = 3;
+  int32 send_mod = 4;
+  int64 time_stamp = 5;
+  int32 format = 6;
+  int32 index = 7;
+  int32 count = 8;
+  int32 depth = 9;
+  int32 align = 10;
+  uint32 image_counter = 11;
+  int32 perception_status = 12;
+  int64 bypass_time_diff = 13;
+  int32 compression_format = 14;
+  int32 status = 15;
+  repeated perception_base.RoiMap roi_map = 16;
+  int32 perception_mode = 17;
+  int32 postprocessor_status = 18;
+  int32 frame_id = 19;
+  int32 step = 20;
+  int64 time_stamp_us = 21;
+  uint64 hw_time_stamp = 22;
+  int64 mcu_time_diff = 23;
+  int64 mcu_board_timediff = 24;
+}
+
+message CameraValidHeight {
+  int32 left_y = 1;
+  int32 right_y = 2;
+}
+
+message VCSParam {
+  repeated float rotation = 1;
+  repeated float translation = 2;
+}
+
+message DistortParam {
+  repeated float param = 1;
+}
+
+message CameraParam {
+  float focal_u = 1;
+  float focal_v = 2;
+  float center_u = 3;
+  float center_v = 4;
+  float camera_x = 5;
+  float camera_y = 6;
+  float camera_z = 7;
+  float pitch = 8;
+  float yaw = 9;
+  float roll = 10;
+  int32 type = 11;
+  float fov = 12;
+  int32 version = 13;
+  ParsingCalibrationStatus cali_status = 14;
+  CameraValidHeight valid_height = 15;
+  DistortParam distort = 16;
+  VCSParam vcs = 17;
+  perception_base.CameraMatrix mat = 18;
+  int64 time_stamp = 19;
+  int32 cam_id = 20;
+  int32 frame_id = 21;
+  int32 image_height = 22;
+  int32 image_width = 23;
+  int32 base_calib_done = 24;
+  CalibrationType calib_src = 25;
+  int64 calib_done_ts = 26;
+}
+
+message ParsingColor {
+  uint32 b = 1;
+  uint32 g = 2;
+  uint32 r = 3;
+}
+
+message RuntimeModelInfo {
+  int32 model_id = 1;
+  string model_name = 2;
+}
+
+message ParsingSetting {
+  perception_base.Header header = 1;
+  int32 parsing_type = 2;
+  int32 parsing_channels = 3;
+  repeated uint64 channel_labels = 4;
+  repeated ParsingColor channel_colors = 5;
+  repeated int32 freespace_channels = 6;
+  repeated int32 boundspace_channels = 7;
+  perception_base.Rect parsing_roi = 8;
+  float parsing_scale = 9;
+  repeated RuntimeModelInfo model_info = 10;
+  repeated perception_base.Category categories = 11;
+}
+
+message DepthSetting {
+  float scale_number = 1;
+  float shift_scale = 2;
+  uint32 mapping_type = 3;
+  uint32 mapping_shift = 4;
+  float confidence_scale = 5;
+  float max_depth = 6;
+  float min_depth = 7;
+  float max_confidence = 8;
+  float min_confidence = 9;
+  CameraParam camera_param = 10;
+}
+
+message ParsingImageData {
+  bytes data = 1;
+  uint32 width = 2;
+  uint32 height = 3;
+  uint32 channel = 4;
+}
+
+message ParsingMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  ParsingImageData free_space = 3;
+  ParsingImageData feature_map = 4;
+  RleCompressedData rle_parsing_compressed = 5;
+  float scale = 6;
+  perception_base.Rect roi_output = 7;
+  ParsingImage image = 8;
+  ParsingSetting parsing_setting = 9;
+  DepthSetting depth_setting = 10;
+}

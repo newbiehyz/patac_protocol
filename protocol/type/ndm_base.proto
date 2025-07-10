@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+import "basic.proto";
+package autodrive.workflow.proto.ndm_base;
+
+enum DrivingSide {
+  kRightHandDriving = 0;
+  kLeftHandDriving = 1;
+}
+
+message NdmSpec {
+  string version = 1;
+  string date = 2;
+  uint64 timestamp = 3;
+  uint64 seq_id = 4;
+  string projection = 5;
+  string utm_zone = 6;
+  Vector3d base_offset = 7;
+}
+
+message Id {
+  uint32 id = 1;
+  bytes name = 2;
+}
+
+message Link {
+  Id id = 1;
+  float offset = 2;
+  float end_offset = 3;
+}
+
+message NdmVehicleType {
+  enum Type {
+    kTypeUnknown = 0;
+    kTypeCar = 1;
+    kTypeMotorcycle = 2;
+    kTypeBicycle = 3;
+    kTypeTruck = 4;
+    kTypeTaxi = 5;
+    kTypeBus = 6;
+    kTypePedestrian = 7;
+    kTypeCableCar = 8;
+  }
+  Type type = 1;
+  float conf = 2;
+}
+
+enum SpeedLimitType {
+  kSpeedLimitTypeUnknown = 0;
+  kSpeedLimitTypeMin = 1;
+  kSpeedLimitTypeMax = 2;
+}
+
+enum SpeedLimitSource {
+  kSpeedLimitSourceUnknown = 0;
+  kSpeedLimitSourceImplicit = 1;
+  kSpeedLimitSourceExplicit = 2;
+}
+
+message SpeedLimit {
+  SpeedLimitType limit_type = 1;
+  SpeedLimitSource source = 2;
+  float speed_value = 3;
+  float offset = 4;
+  float end_offset = 5;
+}
+
+message Number {
+  float value = 1;
+  float cov = 2;
+}
+
+message TimeLimit {
+  float time_begin = 1;
+  float time_end = 2;
+}
+
+message ParkingSpaceRestriction {
+  Number number_limit = 1;
+  repeated TimeLimit time_limits = 2;
+  repeated NdmVehicleType vehicle_types = 3;
+}
+
+message Index {
+  uint64 x = 1;
+  uint64 y = 2;
+  uint64 z = 3;
+}

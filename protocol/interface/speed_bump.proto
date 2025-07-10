@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+import "basic.proto";
+import "common.proto";
+
+package autodrive.workflow.proto;
+
+message SpeedBumps {
+  uint32 speed_bump_id = 1;
+  Vector2f p_0_vcs = 2;
+  Vector2f p_1_vcs = 3;
+  Vector2f p_2_vcs = 4;
+  Vector2f p_3_vcs = 5;
+}
+
+message SpeedBumpsMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  uint32 speed_bump_nums = 3;
+  repeated SpeedBumps speed_bump_list = 4;
+}

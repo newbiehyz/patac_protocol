@@ -1,0 +1,80 @@
+syntax = "proto3";
+import "common.proto";
+import "uss_base.proto";
+package autodrive.workflow.proto;
+
+enum UssPsStatusEn {
+  kUssPsStatusEnNone = 0;
+  kUssPsStatusEnSearch = 1;
+  kUssPsStatusEnCorret = 2;
+  kUssPsStatusEnMax = 3;
+}
+
+enum UssPsTypeEn {
+  kUssPsTypeEnNone = 0;
+  kUssPsTypeEnParallel = 1;
+  kUssPsTypeEnCross = 2;
+  kUssPsTypeEnDiagonal = 3;
+  kUssPsTypeEnMax = 4;
+}
+
+enum UssPsOrientationEn {
+  kUssPsOrientationEnNone = 0;
+  kUssPsOrientationEnLeft = 1;
+  kUssPsOrientationEnRight = 2;
+  kUssPsOrientationEnMax = 3;
+}
+
+enum UssPsBoundaryTypeEn {
+  kPerFusUssPsBoundaryTypeVirtual = 0;
+  kPerFusUssPsBoundaryTypeLow = 1;
+  kPerFusUssPsBoundaryTypeHigh = 2;
+  kPerFusUssPsBoundaryTypeWall = 3;
+  kPerFusUssPsBoundaryTypeCurb = 4;
+  kPerFusUssPsBoundaryTypeMax = 5;
+}
+
+message PerFusUssPs {
+  uint32 uss_ps_id_ui8 = 1;
+  UssPsStatusEn uss_ps_status_en = 2;
+  UssPsTypeEn uss_ps_type_en = 3;
+  UssPsOrientationEn uss_ps_orientation_en = 4;
+
+  UssPsBoundaryTypeEn uss_ps_1st_boundary_type_en = 5;
+  UssPsBoundaryTypeEn uss_ps_2nd_boundary_type_en = 6;
+  UssPsBoundaryTypeEn uss_ps_cross_boundary_type_en = 7;
+
+  uint32 uss_ps_depth_ui16 = 8;
+  uint32 uss_ps_length_ui16 = 9;
+  int32 uss_ps_angle_i16 = 10;
+
+  UssPoint uss_ps_1st_corner = 11;
+  UssPoint uss_ps_2nd_corner = 12;
+  UssPoint uss_ps_3st_corner = 13;
+  UssPoint uss_ps_4nd_corner = 14;
+  UssPoint uss_ps_1st_corner_gcs = 15;
+  UssPoint uss_ps_2nd_corner_gcs = 16;
+  UssPoint uss_ps_3st_corner_gcs = 17;
+  UssPoint uss_ps_4nd_corner_gcs = 18;
+
+  UssPoint uss_ps_boundary_1st_info = 19;
+  UssPoint uss_ps_boundary_2nd_info = 20;
+  int64 uss_ps_finish_timestamp = 21;
+}
+
+message UssParkingSlotsMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  int32 version = 3;
+  repeated PerFusUssHeader uss_header = 4;
+  repeated PerFusUssPs uss_ps = 5;
+  PerFusUssPs uss_correct_ps = 6;
+  StateMachine state_machine = 7;
+  int64 sensor_stamp = 8;
+  int64 sample_stamp = 9;
+  bytes raw_array = 10;
+}
+
+

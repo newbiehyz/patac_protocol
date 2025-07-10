@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+import "basic.proto";
+package autodrive.workflow.proto.loc_odo;
+
+message Quaternion4d {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  double w = 4;
+}
+
+message Odometry {
+  uint64 stamp = 1;
+  Quaternion4d quaternion = 2;
+  Vector3d position = 3;
+  uint32 seq_id = 4;
+  repeated double pose_cov = 5;
+  Vector3d linear_velocity = 6;
+  Vector3d angular_velocity = 7;
+  repeated double twist_cov = 8;
+  Vector3d map_offset = 9;
+  Vector3d velocity = 10;
+  Vector3d acceleration = 11;
+  float floor=12;
+}

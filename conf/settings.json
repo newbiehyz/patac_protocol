@@ -1,0 +1,7 @@
+{
+    "auto_protocol_files": ["autodrive-protocol/src","autodrive-protocol/include","autodrive-protocol/protocol"],
+    "hyper_protocol_files":["hyper-protocol/src","hyper-protocol/include","hyper-protocol/protocol"],
+
+    "exclusion_files":["hyper-protocol/src/model/gnss_data.cpp","hyper-protocol/src/model/imu_data.cpp","hyper-protocol/include/model/gnss_data.h","hyper-protocol/include/model/imu_data.h"]
+
+}

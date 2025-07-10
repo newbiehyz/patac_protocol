@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+import "common.proto";
+import "basic.proto";
+
+package autodrive.workflow.proto;
+
+message LaneLinePoint {
+  Vector2f line_start_point_vcs = 1;
+  Vector2f line_end_point_vcs = 2;
+  uint32 flag = 3;
+}
+
+message LaneLinePoints {
+  LaneLinePoint near_line = 1;
+  LaneLinePoint far_line = 2;
+}
+
+message LaneLinePointsMsg {
+  // Header
+  MsgHeader header = 1;
+  // Error
+  Error error = 2;
+  LaneLinePoints lane_line_points = 3;
+}
