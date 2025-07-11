@@ -6,6 +6,4 @@ output
 cmake-build-debug
 data-logger
 *.bak
-*.pb.h
-*.pb.cc
 lib
