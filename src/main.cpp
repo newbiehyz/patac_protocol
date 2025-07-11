@@ -21,9 +21,12 @@
 #include "interface/parking/serializer/fusion_system_serializer.h"
 #include "interface/parking/fusion_system_data.h"
 #include "protocol/fusion_system.pb.h"
+
+
 #include "protocol/patac_image.pb.h"
 #include "protocol/patac_trajetory.pb.h"
 #include "protocol/patac_slot.pb.h"
+#include "protocol/patac_dr.pb.h"
 
 using namespace autodrive;
 using namespace patac_hpp;
@@ -173,11 +176,8 @@ int main() {
       &fusion_system_msg);
   message::SerializeDataMsg<FusionSystemData> fusion_system_data_in_msg(&fusion_system_data);
   fusion_system_serializer.Serialize(&fusion_system_data_in_msg, &fusion_system_proto_msg);
-
-
-
   
-  // ==================================================PATAC TEST1
+  // ==================================================FIRST TEST
   IpmMultitaskData ipm_multitask_data3;
   ipm_multitask_data3.SetTest(8.8f);
   std::cout << "[Original] confidence = " << ipm_multitask_data3.GetTest() << std::endl;
@@ -187,7 +187,6 @@ int main() {
   message::SerializeDataMsg<IpmMultitaskData> data_msg3(&ipm_multitask_data3);
   message::DeserializeDataMsg<workflow::proto::IpmMultitaskMsg> proto_msg3(&ipm_multitask_msg3);
   
-
   IpmMultitaskSerializer serializer3;
   serializer3.Serialize(&data_msg3, &proto_msg3);  // 执行序列化
 
@@ -199,8 +198,12 @@ int main() {
   std::cout << "[Deserialized] confidence = "
             << ipm_multitask_data_out.GetTest() << std::endl;
 
+            
 
-  // ==================================================PATAC TEST2
+
+  std::cout<<std::endl<<"============= PATAC TEST ============="<<std::endl<<std::endl;         
+
+  // ==================================================PATAC TEST1_image
   patac_hpp::Image image;
   std::string raw_data(1880 * 1650 * 3, 0);
   std::string compressed_data = RLECompress(raw_data);
@@ -235,7 +238,7 @@ int main() {
 
 
 
-    // ==================================================PATAC TEST3
+    // ==================================================PATAC TEST2_trajectory
     patac_hpp::Trajectory trajectory;
     trajectory.set_num_trajectory_point(5);
     for (int i = 0; i < 5; ++i) {
@@ -281,7 +284,7 @@ int main() {
     }
 
 
-    // ==================================================PATAC TEST4
+    // ==================================================PATAC TEST3_parking_slot_list
     patac_hpp::ParkingSlotList parking_slot_list;
     parking_slot_list.set_num_parking_slot(3);
     for (int i = 0; i < 3; ++i) {
@@ -330,6 +333,34 @@ int main() {
     }
 
 
+  // ==================================================PATAC TEST4_DR
+  patac_hpp::DRPose dr_pose;
+  dr_pose.set_timestamp(1234567890);
+  dr_pose.set_x(1.0f);
+  dr_pose.set_y(2.0f);
+  dr_pose.set_z(3.0f);
+  dr_pose.set_yaw(0.1f);
+  dr_pose.set_velocity(0.2f);
+  dr_pose.set_angular_velocity(0.3f);
+
+  {
+    std::ofstream ofs("test_dr_pose.bin", std::ios::binary);
+    dr_pose.SerializeToOstream(&ofs);
+  }
+
+  patac_hpp::DRPose dr_pose_out;
+  {
+    std::ifstream ifs("test_dr_pose.bin", std::ios::binary);
+    if (!dr_pose_out.ParseFromIstream(&ifs)) {
+      std::cerr << "Failed to parse DR pose." << std::endl;
+    }
+  }
+
+  std::cout << "DRPose - Timestamp: " << dr_pose_out.timestamp()
+            << ", Position: (" << dr_pose_out.x() << ", " << dr_pose_out.y() << ", " << dr_pose_out.z() << ")"
+            << ", Yaw: " << dr_pose_out.yaw()
+            << ", Velocity: " << dr_pose_out.velocity()
+            << ", Angular Velocity: " << dr_pose_out.angular_velocity() << std::endl;
 
 
   return 1;
