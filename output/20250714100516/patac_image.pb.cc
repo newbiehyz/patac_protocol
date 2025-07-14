@@ -19,13 +19,13 @@
 #include "third_party/protobuf/version.h"
 #endif
 // @@protoc_insertion_point(includes)
-namespace patac {
+namespace patac_hpp {
 class ImageDefaultTypeInternal {
  public:
   ::google::protobuf::internal::ExplicitlyConstructed<Image>
       _instance;
 } _Image_default_instance_;
-}  // namespace patac
+}  // namespace patac_hpp
 namespace protobuf_patac_5fimage_2eproto {
 void InitDefaultsImageImpl() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -36,11 +36,11 @@ void InitDefaultsImageImpl() {
   ::google::protobuf::internal::InitProtobufDefaults();
 #endif  // GOOGLE_PROTOBUF_ENFORCE_UNIQUENESS
   {
-    void* ptr = &::patac::_Image_default_instance_;
-    new (ptr) ::patac::Image();
+    void* ptr = &::patac_hpp::_Image_default_instance_;
+    new (ptr) ::patac_hpp::Image();
     ::google::protobuf::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::patac::Image::InitAsDefaultInstance();
+  ::patac_hpp::Image::InitAsDefaultInstance();
 }
 
 void InitDefaultsImage() {
@@ -53,23 +53,23 @@ const ::google::protobuf::EnumDescriptor* file_level_enum_descriptors[3];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac::Image, _internal_metadata_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::Image, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac::Image, data_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac::Image, width_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac::Image, height_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac::Image, pos_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac::Image, type_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac::Image, mode_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::Image, data_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::Image, width_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::Image, height_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::Image, pos_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::Image, type_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::Image, mode_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::patac::Image)},
+  { 0, -1, sizeof(::patac_hpp::Image)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::google::protobuf::Message*>(&::patac::_Image_default_instance_),
+  reinterpret_cast<const ::google::protobuf::Message*>(&::patac_hpp::_Image_default_instance_),
 };
 
 void protobuf_AssignDescriptors() {
@@ -94,19 +94,20 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\021patac_image.proto\022\005patac\"\210\001\n\005Image\022\014\n\004"
-      "data\030\001 \001(\014\022\r\n\005width\030\002 \001(\r\022\016\n\006height\030\003 \001("
-      "\r\022\034\n\003pos\030\004 \001(\0162\017.patac.Position\022\031\n\004type\030"
-      "\005 \001(\0162\013.patac.Type\022\031\n\004mode\030\006 \001(\0162\013.patac"
-      ".Mode*e\n\010Position\022\017\n\013AROUND_LEFT\020\000\022\020\n\014AR"
-      "OUND_RIGHT\020\001\022\020\n\014AROUND_FRONT\020\002\022\017\n\013AROUND"
-      "_REAR\020\003\022\t\n\005FRONT\020\004\022\010\n\004REAR\020\005*C\n\004Type\022\010\n\004"
-      "H265\020\000\022\013\n\007YUV420P\020\001\022\007\n\003BGR\020\002\022\007\n\003RGB\020\003\022\010\n"
-      "\004JPEG\020\004\022\010\n\004H264\020\005*)\n\004Mode\022\014\n\010ORIGINAL\020\000\022"
-      "\n\n\006STITCH\020\001\022\007\n\003CYL\020\002b\006proto3"
+      "\n\021patac_image.proto\022\tpatac_hpp\"\224\001\n\005Image"
+      "\022\014\n\004data\030\001 \001(\014\022\r\n\005width\030\002 \001(\r\022\016\n\006height\030"
+      "\003 \001(\r\022 \n\003pos\030\004 \001(\0162\023.patac_hpp.Position\022"
+      "\035\n\004type\030\005 \001(\0162\017.patac_hpp.Type\022\035\n\004mode\030\006"
+      " \001(\0162\017.patac_hpp.Mode*e\n\010Position\022\017\n\013ARO"
+      "UND_LEFT\020\000\022\020\n\014AROUND_RIGHT\020\001\022\020\n\014AROUND_F"
+      "RONT\020\002\022\017\n\013AROUND_REAR\020\003\022\t\n\005FRONT\020\004\022\010\n\004RE"
+      "AR\020\005*C\n\004Type\022\010\n\004H265\020\000\022\013\n\007YUV420P\020\001\022\007\n\003B"
+      "GR\020\002\022\007\n\003RGB\020\003\022\010\n\004JPEG\020\004\022\010\n\004H264\020\005*)\n\004Mod"
+      "e\022\014\n\010ORIGINAL\020\000\022\n\n\006STITCH\020\001\022\007\n\003CYL\020\002b\006pr"
+      "oto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 388);
+      descriptor, 404);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "patac_image.proto", &protobuf_RegisterTypes);
 }
@@ -122,7 +123,7 @@ struct StaticDescriptorInitializer {
   }
 } static_descriptor_initializer;
 }  // namespace protobuf_patac_5fimage_2eproto
-namespace patac {
+namespace patac_hpp {
 const ::google::protobuf::EnumDescriptor* Position_descriptor() {
   protobuf_patac_5fimage_2eproto::protobuf_AssignDescriptorsOnce();
   return protobuf_patac_5fimage_2eproto::file_level_enum_descriptors[0];
@@ -194,7 +195,7 @@ Image::Image()
     ::protobuf_patac_5fimage_2eproto::InitDefaultsImage();
   }
   SharedCtor();
-  // @@protoc_insertion_point(constructor:patac.Image)
+  // @@protoc_insertion_point(constructor:patac_hpp.Image)
 }
 Image::Image(const Image& from)
   : ::google::protobuf::Message(),
@@ -208,7 +209,7 @@ Image::Image(const Image& from)
   ::memcpy(&width_, &from.width_,
     static_cast<size_t>(reinterpret_cast<char*>(&mode_) -
     reinterpret_cast<char*>(&width_)) + sizeof(mode_));
-  // @@protoc_insertion_point(copy_constructor:patac.Image)
+  // @@protoc_insertion_point(copy_constructor:patac_hpp.Image)
 }
 
 void Image::SharedCtor() {
@@ -220,7 +221,7 @@ void Image::SharedCtor() {
 }
 
 Image::~Image() {
-  // @@protoc_insertion_point(destructor:patac.Image)
+  // @@protoc_insertion_point(destructor:patac_hpp.Image)
   SharedDtor();
 }
 
@@ -252,7 +253,7 @@ Image* Image::New(::google::protobuf::Arena* arena) const {
 }
 
 void Image::Clear() {
-// @@protoc_insertion_point(message_clear_start:patac.Image)
+// @@protoc_insertion_point(message_clear_start:patac_hpp.Image)
   ::google::protobuf::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -268,7 +269,7 @@ bool Image::MergePartialFromCodedStream(
     ::google::protobuf::io::CodedInputStream* input) {
 #define DO_(EXPRESSION) if (!GOOGLE_PREDICT_TRUE(EXPRESSION)) goto failure
   ::google::protobuf::uint32 tag;
-  // @@protoc_insertion_point(parse_start:patac.Image)
+  // @@protoc_insertion_point(parse_start:patac_hpp.Image)
   for (;;) {
     ::std::pair< ::google::protobuf::uint32, bool> p = input->ReadTagWithCutoffNoLastTag(127u);
     tag = p.first;
@@ -314,7 +315,7 @@ bool Image::MergePartialFromCodedStream(
         break;
       }
 
-      // .patac.Position pos = 4;
+      // .patac_hpp.Position pos = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(32u /* 32 & 0xFF */)) {
@@ -322,14 +323,14 @@ bool Image::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_pos(static_cast< ::patac::Position >(value));
+          set_pos(static_cast< ::patac_hpp::Position >(value));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // .patac.Type type = 5;
+      // .patac_hpp.Type type = 5;
       case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(40u /* 40 & 0xFF */)) {
@@ -337,14 +338,14 @@ bool Image::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_type(static_cast< ::patac::Type >(value));
+          set_type(static_cast< ::patac_hpp::Type >(value));
         } else {
           goto handle_unusual;
         }
         break;
       }
 
-      // .patac.Mode mode = 6;
+      // .patac_hpp.Mode mode = 6;
       case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(48u /* 48 & 0xFF */)) {
@@ -352,7 +353,7 @@ bool Image::MergePartialFromCodedStream(
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    int, ::google::protobuf::internal::WireFormatLite::TYPE_ENUM>(
                  input, &value)));
-          set_mode(static_cast< ::patac::Mode >(value));
+          set_mode(static_cast< ::patac_hpp::Mode >(value));
         } else {
           goto handle_unusual;
         }
@@ -371,17 +372,17 @@ bool Image::MergePartialFromCodedStream(
     }
   }
 success:
-  // @@protoc_insertion_point(parse_success:patac.Image)
+  // @@protoc_insertion_point(parse_success:patac_hpp.Image)
   return true;
 failure:
-  // @@protoc_insertion_point(parse_failure:patac.Image)
+  // @@protoc_insertion_point(parse_failure:patac_hpp.Image)
   return false;
 #undef DO_
 }
 
 void Image::SerializeWithCachedSizes(
     ::google::protobuf::io::CodedOutputStream* output) const {
-  // @@protoc_insertion_point(serialize_start:patac.Image)
+  // @@protoc_insertion_point(serialize_start:patac_hpp.Image)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -401,19 +402,19 @@ void Image::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteUInt32(3, this->height(), output);
   }
 
-  // .patac.Position pos = 4;
+  // .patac_hpp.Position pos = 4;
   if (this->pos() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       4, this->pos(), output);
   }
 
-  // .patac.Type type = 5;
+  // .patac_hpp.Type type = 5;
   if (this->type() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       5, this->type(), output);
   }
 
-  // .patac.Mode mode = 6;
+  // .patac_hpp.Mode mode = 6;
   if (this->mode() != 0) {
     ::google::protobuf::internal::WireFormatLite::WriteEnum(
       6, this->mode(), output);
@@ -423,13 +424,13 @@ void Image::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
   }
-  // @@protoc_insertion_point(serialize_end:patac.Image)
+  // @@protoc_insertion_point(serialize_end:patac_hpp.Image)
 }
 
 ::google::protobuf::uint8* Image::InternalSerializeWithCachedSizesToArray(
     bool deterministic, ::google::protobuf::uint8* target) const {
   (void)deterministic; // Unused
-  // @@protoc_insertion_point(serialize_to_array_start:patac.Image)
+  // @@protoc_insertion_point(serialize_to_array_start:patac_hpp.Image)
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -450,19 +451,19 @@ void Image::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteUInt32ToArray(3, this->height(), target);
   }
 
-  // .patac.Position pos = 4;
+  // .patac_hpp.Position pos = 4;
   if (this->pos() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       4, this->pos(), target);
   }
 
-  // .patac.Type type = 5;
+  // .patac_hpp.Type type = 5;
   if (this->type() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       5, this->type(), target);
   }
 
-  // .patac.Mode mode = 6;
+  // .patac_hpp.Mode mode = 6;
   if (this->mode() != 0) {
     target = ::google::protobuf::internal::WireFormatLite::WriteEnumToArray(
       6, this->mode(), target);
@@ -472,12 +473,12 @@ void Image::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:patac.Image)
+  // @@protoc_insertion_point(serialize_to_array_end:patac_hpp.Image)
   return target;
 }
 
 size_t Image::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:patac.Image)
+// @@protoc_insertion_point(message_byte_size_start:patac_hpp.Image)
   size_t total_size = 0;
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -506,19 +507,19 @@ size_t Image::ByteSizeLong() const {
         this->height());
   }
 
-  // .patac.Position pos = 4;
+  // .patac_hpp.Position pos = 4;
   if (this->pos() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::EnumSize(this->pos());
   }
 
-  // .patac.Type type = 5;
+  // .patac_hpp.Type type = 5;
   if (this->type() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::EnumSize(this->type());
   }
 
-  // .patac.Mode mode = 6;
+  // .patac_hpp.Mode mode = 6;
   if (this->mode() != 0) {
     total_size += 1 +
       ::google::protobuf::internal::WireFormatLite::EnumSize(this->mode());
@@ -532,22 +533,22 @@ size_t Image::ByteSizeLong() const {
 }
 
 void Image::MergeFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:patac.Image)
+// @@protoc_insertion_point(generalized_merge_from_start:patac_hpp.Image)
   GOOGLE_DCHECK_NE(&from, this);
   const Image* source =
       ::google::protobuf::internal::DynamicCastToGenerated<const Image>(
           &from);
   if (source == NULL) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:patac.Image)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:patac_hpp.Image)
     ::google::protobuf::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:patac.Image)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:patac_hpp.Image)
     MergeFrom(*source);
   }
 }
 
 void Image::MergeFrom(const Image& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:patac.Image)
+// @@protoc_insertion_point(class_specific_merge_from_start:patac_hpp.Image)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::google::protobuf::uint32 cached_has_bits = 0;
@@ -575,14 +576,14 @@ void Image::MergeFrom(const Image& from) {
 }
 
 void Image::CopyFrom(const ::google::protobuf::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:patac.Image)
+// @@protoc_insertion_point(generalized_copy_from_start:patac_hpp.Image)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void Image::CopyFrom(const Image& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:patac.Image)
+// @@protoc_insertion_point(class_specific_copy_from_start:patac_hpp.Image)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -615,6 +616,6 @@ void Image::InternalSwap(Image* other) {
 
 
 // @@protoc_insertion_point(namespace_scope)
-}  // namespace patac
+}  // namespace patac_hpp
 
 // @@protoc_insertion_point(global_scope)

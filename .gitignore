@@ -2,8 +2,8 @@ build
 .idea
 .vscode
 data
-output
 cmake-build-debug
 data-logger
 *.bak
 lib
+protocol/generate

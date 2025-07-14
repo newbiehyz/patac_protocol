@@ -23,7 +23,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='ipm_multitask.proto',
   package='autodrive.workflow.proto',
   syntax='proto3',
-  serialized_pb=_b('\n\x13ipm_multitask.proto\x12\x18\x61utodrive.workflow.proto\x1a\x0b\x62\x61sic.proto\x1a\x0c\x63ommon.proto\x1a\x12parsing_base.proto\"\xe6\x01\n\x10ParkingSlotPoint\x12\x31\n\x05point\x18\x01 \x01(\x0b\x32\".autodrive.workflow.proto.Vector2f\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x42\n\npoint_type\x18\x03 \x01(\x0e\x32..autodrive.workflow.proto.ParkingSlotPointType\x12\x12\n\nvisibility\x18\x04 \x01(\x08\x12\x1b\n\x13point_orientation_x\x18\x05 \x01(\x02\x12\x1b\n\x13point_orientation_y\x18\x06 \x01(\x02\"\x84\x02\n\x0eParkingSlotRaw\x12?\n\x0bslot_points\x18\x01 \x03(\x0b\x32*.autodrive.workflow.proto.ParkingSlotPoint\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x11\n\toccupancy\x18\x03 \x01(\x08\x12<\n\tslot_type\x18\x04 \x01(\x0e\x32).autodrive.workflow.proto.ParkingSlotType\x12\x1a\n\x12slot_orientation_x\x18\x05 \x01(\x02\x12\x1a\n\x12slot_orientation_y\x18\x06 \x01(\x02\x12\x19\n\x11\x63orner_match_flag\x18\x07 \x01(\x05\"W\n\x13IpmWheelGroundPoint\x12\x31\n\x05point\x18\x01 \x01(\x0b\x32\".autodrive.workflow.proto.Vector2f\x12\r\n\x05score\x18\x02 \x01(\x02\"\x83\x02\n\x0fIpmMultitaskMsg\x12\x33\n\x06header\x18\x01 \x01(\x0b\x32#.autodrive.workflow.proto.MsgHeader\x12.\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x1f.autodrive.workflow.proto.Error\x12;\n\tslots_raw\x18\x03 \x03(\x0b\x32(.autodrive.workflow.proto.ParkingSlotRaw\x12N\n\x17ipm_wheel_ground_points\x18\x04 \x03(\x0b\x32-.autodrive.workflow.proto.IpmWheelGroundPoint*[\n\x14ParkingSlotPointType\x12\"\n\x1ekParkingSlotPointTypeTruncated\x10\x00\x12\x1f\n\x1bkParkingSlotPointTypeCorner\x10\x01*\x87\x01\n\x0fParkingSlotType\x12\x1b\n\x17kParkingSlotTypeUnknown\x10\x00\x12\x1c\n\x18kParkingSlotTypeVertical\x10\x01\x12\x1c\n\x18kParkingSlotTypeParallel\x10\x02\x12\x1b\n\x17kParkingSlotTypeOblique\x10\x03\x62\x06proto3')
+  serialized_pb=_b('\n\x13ipm_multitask.proto\x12\x18\x61utodrive.workflow.proto\x1a\x0b\x62\x61sic.proto\x1a\x0c\x63ommon.proto\x1a\x12parsing_base.proto\"\xe6\x01\n\x10ParkingSlotPoint\x12\x31\n\x05point\x18\x01 \x01(\x0b\x32\".autodrive.workflow.proto.Vector2f\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x42\n\npoint_type\x18\x03 \x01(\x0e\x32..autodrive.workflow.proto.ParkingSlotPointType\x12\x12\n\nvisibility\x18\x04 \x01(\x08\x12\x1b\n\x13point_orientation_x\x18\x05 \x01(\x02\x12\x1b\n\x13point_orientation_y\x18\x06 \x01(\x02\"\x84\x02\n\x0eParkingSlotRaw\x12?\n\x0bslot_points\x18\x01 \x03(\x0b\x32*.autodrive.workflow.proto.ParkingSlotPoint\x12\r\n\x05score\x18\x02 \x01(\x02\x12\x11\n\toccupancy\x18\x03 \x01(\x08\x12<\n\tslot_type\x18\x04 \x01(\x0e\x32).autodrive.workflow.proto.ParkingSlotType\x12\x1a\n\x12slot_orientation_x\x18\x05 \x01(\x02\x12\x1a\n\x12slot_orientation_y\x18\x06 \x01(\x02\x12\x19\n\x11\x63orner_match_flag\x18\x07 \x01(\x05\"W\n\x13IpmWheelGroundPoint\x12\x31\n\x05point\x18\x01 \x01(\x0b\x32\".autodrive.workflow.proto.Vector2f\x12\r\n\x05score\x18\x02 \x01(\x02\"\x91\x02\n\x0fIpmMultitaskMsg\x12\x33\n\x06header\x18\x01 \x01(\x0b\x32#.autodrive.workflow.proto.MsgHeader\x12.\n\x05\x65rror\x18\x02 \x01(\x0b\x32\x1f.autodrive.workflow.proto.Error\x12;\n\tslots_raw\x18\x03 \x03(\x0b\x32(.autodrive.workflow.proto.ParkingSlotRaw\x12N\n\x17ipm_wheel_ground_points\x18\x04 \x03(\x0b\x32-.autodrive.workflow.proto.IpmWheelGroundPoint\x12\x0c\n\x04test\x18\x05 \x01(\x02*[\n\x14ParkingSlotPointType\x12\"\n\x1ekParkingSlotPointTypeTruncated\x10\x00\x12\x1f\n\x1bkParkingSlotPointTypeCorner\x10\x01*\x87\x01\n\x0fParkingSlotType\x12\x1b\n\x17kParkingSlotTypeUnknown\x10\x00\x12\x1c\n\x18kParkingSlotTypeVertical\x10\x01\x12\x1c\n\x18kParkingSlotTypeParallel\x10\x02\x12\x1b\n\x17kParkingSlotTypeOblique\x10\x03\x62\x06proto3')
   ,
   dependencies=[basic__pb2.DESCRIPTOR,common__pb2.DESCRIPTOR,parsing__base__pb2.DESCRIPTOR,])
 
@@ -44,8 +44,8 @@ _PARKINGSLOTPOINTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=943,
-  serialized_end=1034,
+  serialized_start=957,
+  serialized_end=1048,
 )
 _sym_db.RegisterEnumDescriptor(_PARKINGSLOTPOINTTYPE)
 
@@ -75,8 +75,8 @@ _PARKINGSLOTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=1037,
-  serialized_end=1172,
+  serialized_start=1051,
+  serialized_end=1186,
 )
 _sym_db.RegisterEnumDescriptor(_PARKINGSLOTTYPE)
 
@@ -302,6 +302,13 @@ _IPMMULTITASKMSG = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='test', full_name='autodrive.workflow.proto.IpmMultitaskMsg.test', index=4,
+      number=5, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -315,7 +322,7 @@ _IPMMULTITASKMSG = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=682,
-  serialized_end=941,
+  serialized_end=955,
 )
 
 _PARKINGSLOTPOINT.fields_by_name['point'].message_type = basic__pb2._VECTOR2F

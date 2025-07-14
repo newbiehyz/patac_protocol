@@ -49,12 +49,12 @@ inline void InitDefaults() {
   InitDefaultsImage();
 }
 }  // namespace protobuf_patac_5fimage_2eproto
-namespace patac {
+namespace patac_hpp {
 class Image;
 class ImageDefaultTypeInternal;
 extern ImageDefaultTypeInternal _Image_default_instance_;
-}  // namespace patac
-namespace patac {
+}  // namespace patac_hpp
+namespace patac_hpp {
 
 enum Position {
   AROUND_LEFT = 0,
@@ -130,7 +130,7 @@ inline bool Mode_Parse(
 }
 // ===================================================================
 
-class Image : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:patac.Image) */ {
+class Image : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:patac_hpp.Image) */ {
  public:
   Image();
   virtual ~Image();
@@ -238,25 +238,25 @@ class Image : public ::google::protobuf::Message /* @@protoc_insertion_point(cla
   ::google::protobuf::uint32 height() const;
   void set_height(::google::protobuf::uint32 value);
 
-  // .patac.Position pos = 4;
+  // .patac_hpp.Position pos = 4;
   void clear_pos();
   static const int kPosFieldNumber = 4;
-  ::patac::Position pos() const;
-  void set_pos(::patac::Position value);
+  ::patac_hpp::Position pos() const;
+  void set_pos(::patac_hpp::Position value);
 
-  // .patac.Type type = 5;
+  // .patac_hpp.Type type = 5;
   void clear_type();
   static const int kTypeFieldNumber = 5;
-  ::patac::Type type() const;
-  void set_type(::patac::Type value);
+  ::patac_hpp::Type type() const;
+  void set_type(::patac_hpp::Type value);
 
-  // .patac.Mode mode = 6;
+  // .patac_hpp.Mode mode = 6;
   void clear_mode();
   static const int kModeFieldNumber = 6;
-  ::patac::Mode mode() const;
-  void set_mode(::patac::Mode value);
+  ::patac_hpp::Mode mode() const;
+  void set_mode(::patac_hpp::Mode value);
 
-  // @@protoc_insertion_point(class_scope:patac.Image)
+  // @@protoc_insertion_point(class_scope:patac_hpp.Image)
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
@@ -286,41 +286,41 @@ inline void Image::clear_data() {
   data_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 inline const ::std::string& Image::data() const {
-  // @@protoc_insertion_point(field_get:patac.Image.data)
+  // @@protoc_insertion_point(field_get:patac_hpp.Image.data)
   return data_.GetNoArena();
 }
 inline void Image::set_data(const ::std::string& value) {
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), value);
-  // @@protoc_insertion_point(field_set:patac.Image.data)
+  // @@protoc_insertion_point(field_set:patac_hpp.Image.data)
 }
 #if LANG_CXX11
 inline void Image::set_data(::std::string&& value) {
   
   data_.SetNoArena(
     &::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:patac.Image.data)
+  // @@protoc_insertion_point(field_set_rvalue:patac_hpp.Image.data)
 }
 #endif
 inline void Image::set_data(const char* value) {
   GOOGLE_DCHECK(value != NULL);
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:patac.Image.data)
+  // @@protoc_insertion_point(field_set_char:patac_hpp.Image.data)
 }
 inline void Image::set_data(const void* value, size_t size) {
   
   data_.SetNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:patac.Image.data)
+  // @@protoc_insertion_point(field_set_pointer:patac_hpp.Image.data)
 }
 inline ::std::string* Image::mutable_data() {
   
-  // @@protoc_insertion_point(field_mutable:patac.Image.data)
+  // @@protoc_insertion_point(field_mutable:patac_hpp.Image.data)
   return data_.MutableNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
 inline ::std::string* Image::release_data() {
-  // @@protoc_insertion_point(field_release:patac.Image.data)
+  // @@protoc_insertion_point(field_release:patac_hpp.Image.data)
   
   return data_.ReleaseNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
 }
@@ -331,7 +331,7 @@ inline void Image::set_allocated_data(::std::string* data) {
     
   }
   data_.SetAllocatedNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), data);
-  // @@protoc_insertion_point(field_set_allocated:patac.Image.data)
+  // @@protoc_insertion_point(field_set_allocated:patac_hpp.Image.data)
 }
 
 // uint32 width = 2;
@@ -339,13 +339,13 @@ inline void Image::clear_width() {
   width_ = 0u;
 }
 inline ::google::protobuf::uint32 Image::width() const {
-  // @@protoc_insertion_point(field_get:patac.Image.width)
+  // @@protoc_insertion_point(field_get:patac_hpp.Image.width)
   return width_;
 }
 inline void Image::set_width(::google::protobuf::uint32 value) {
   
   width_ = value;
-  // @@protoc_insertion_point(field_set:patac.Image.width)
+  // @@protoc_insertion_point(field_set:patac_hpp.Image.width)
 }
 
 // uint32 height = 3;
@@ -353,55 +353,55 @@ inline void Image::clear_height() {
   height_ = 0u;
 }
 inline ::google::protobuf::uint32 Image::height() const {
-  // @@protoc_insertion_point(field_get:patac.Image.height)
+  // @@protoc_insertion_point(field_get:patac_hpp.Image.height)
   return height_;
 }
 inline void Image::set_height(::google::protobuf::uint32 value) {
   
   height_ = value;
-  // @@protoc_insertion_point(field_set:patac.Image.height)
+  // @@protoc_insertion_point(field_set:patac_hpp.Image.height)
 }
 
-// .patac.Position pos = 4;
+// .patac_hpp.Position pos = 4;
 inline void Image::clear_pos() {
   pos_ = 0;
 }
-inline ::patac::Position Image::pos() const {
-  // @@protoc_insertion_point(field_get:patac.Image.pos)
-  return static_cast< ::patac::Position >(pos_);
+inline ::patac_hpp::Position Image::pos() const {
+  // @@protoc_insertion_point(field_get:patac_hpp.Image.pos)
+  return static_cast< ::patac_hpp::Position >(pos_);
 }
-inline void Image::set_pos(::patac::Position value) {
+inline void Image::set_pos(::patac_hpp::Position value) {
   
   pos_ = value;
-  // @@protoc_insertion_point(field_set:patac.Image.pos)
+  // @@protoc_insertion_point(field_set:patac_hpp.Image.pos)
 }
 
-// .patac.Type type = 5;
+// .patac_hpp.Type type = 5;
 inline void Image::clear_type() {
   type_ = 0;
 }
-inline ::patac::Type Image::type() const {
-  // @@protoc_insertion_point(field_get:patac.Image.type)
-  return static_cast< ::patac::Type >(type_);
+inline ::patac_hpp::Type Image::type() const {
+  // @@protoc_insertion_point(field_get:patac_hpp.Image.type)
+  return static_cast< ::patac_hpp::Type >(type_);
 }
-inline void Image::set_type(::patac::Type value) {
+inline void Image::set_type(::patac_hpp::Type value) {
   
   type_ = value;
-  // @@protoc_insertion_point(field_set:patac.Image.type)
+  // @@protoc_insertion_point(field_set:patac_hpp.Image.type)
 }
 
-// .patac.Mode mode = 6;
+// .patac_hpp.Mode mode = 6;
 inline void Image::clear_mode() {
   mode_ = 0;
 }
-inline ::patac::Mode Image::mode() const {
-  // @@protoc_insertion_point(field_get:patac.Image.mode)
-  return static_cast< ::patac::Mode >(mode_);
+inline ::patac_hpp::Mode Image::mode() const {
+  // @@protoc_insertion_point(field_get:patac_hpp.Image.mode)
+  return static_cast< ::patac_hpp::Mode >(mode_);
 }
-inline void Image::set_mode(::patac::Mode value) {
+inline void Image::set_mode(::patac_hpp::Mode value) {
   
   mode_ = value;
-  // @@protoc_insertion_point(field_set:patac.Image.mode)
+  // @@protoc_insertion_point(field_set:patac_hpp.Image.mode)
 }
 
 #ifdef __GNUC__
@@ -410,25 +410,25 @@ inline void Image::set_mode(::patac::Mode value) {
 
 // @@protoc_insertion_point(namespace_scope)
 
-}  // namespace patac
+}  // namespace patac_hpp
 
 namespace google {
 namespace protobuf {
 
-template <> struct is_proto_enum< ::patac::Position> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::patac_hpp::Position> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::patac::Position>() {
-  return ::patac::Position_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::patac_hpp::Position>() {
+  return ::patac_hpp::Position_descriptor();
 }
-template <> struct is_proto_enum< ::patac::Type> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::patac_hpp::Type> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::patac::Type>() {
-  return ::patac::Type_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::patac_hpp::Type>() {
+  return ::patac_hpp::Type_descriptor();
 }
-template <> struct is_proto_enum< ::patac::Mode> : ::google::protobuf::internal::true_type {};
+template <> struct is_proto_enum< ::patac_hpp::Mode> : ::google::protobuf::internal::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::patac::Mode>() {
-  return ::patac::Mode_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::patac_hpp::Mode>() {
+  return ::patac_hpp::Mode_descriptor();
 }
 
 }  // namespace protobuf
