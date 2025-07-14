@@ -1,0 +1,19 @@
+syntax = "proto3";
+package patac_hpp;
+
+message DRPose {
+
+  uint64 timestamp = 1;
+
+  float x = 2;
+
+  float y = 3;
+
+  float z = 4;
+
+  float yaw = 5; 
+
+  float velocity = 6;
+  
+  float angular_velocity = 7;
+}

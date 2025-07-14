@@ -5,17 +5,17 @@ cd ~/Downloads
 wget https://github.com/protocolbuffers/protobuf/releases/download/v3.5.0/protobuf-all-3.5.0.tar.gz
 tar -xzf protobuf-all-3.5.0.tar.gz
 cd protobuf-3.5.0
-```
-# 放在项目里
-```
-./configure --prefix=/YOUR_INSTALL_PATH/
+./configure --prefix=/usr/local
 make -j$(nproc)
-make install
+sudo make install
 ```
 # 验证安装
 ```
-/YOUR_INSTALL_PATH/bin/protoc --version
-输出示例应为：libprotoc 3.5.0
+which protoc
+# 输出应为 /usr/local/bin/protoc
+
+protoc --version
+# 输出应为 libprotoc 3.5.0
 ```
 ___
 

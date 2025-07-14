@@ -5,9 +5,6 @@ DATE=$(date +%Y%m%d%H%M%S)
 OUTDIR="./output/${DATE}"
 mkdir -p "${OUTDIR}"
 
-# 设置protoc路径
-export PATH=/home/hyz/05_LYK/thirdparty/protobuf-3.5.0/bin:$PATH
-export LD_LIBRARY_PATH=/home/hyz/05_LYK/thirdparty/protobuf-3.5.0/lib:${LD_LIBRARY_PATH:-}
 protoc=protoc
 
 # 清理旧生成目录
