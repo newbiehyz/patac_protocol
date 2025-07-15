@@ -59,7 +59,6 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::DRPose, timestamp_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::DRPose, x_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::DRPose, y_),
-  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::DRPose, z_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::DRPose, yaw_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::DRPose, velocity_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::patac_hpp::DRPose, angular_velocity_),
@@ -94,13 +93,13 @@ void protobuf_RegisterTypes(const ::std::string&) {
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\016patac_dr.proto\022\tpatac_hpp\"u\n\006DRPose\022\021\n"
-      "\ttimestamp\030\001 \001(\004\022\t\n\001x\030\002 \001(\002\022\t\n\001y\030\003 \001(\002\022\t"
-      "\n\001z\030\004 \001(\002\022\013\n\003yaw\030\005 \001(\002\022\020\n\010velocity\030\006 \001(\002"
-      "\022\030\n\020angular_velocity\030\007 \001(\002b\006proto3"
+      "\n\016patac_dr.proto\022\tpatac_hpp\"j\n\006DRPose\022\021\n"
+      "\ttimestamp\030\001 \001(\004\022\t\n\001x\030\002 \001(\002\022\t\n\001y\030\003 \001(\002\022\013"
+      "\n\003yaw\030\004 \001(\002\022\020\n\010velocity\030\005 \001(\002\022\030\n\020angular"
+      "_velocity\030\006 \001(\002b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 154);
+      descriptor, 143);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "patac_dr.proto", &protobuf_RegisterTypes);
 }
@@ -126,7 +125,6 @@ void DRPose::InitAsDefaultInstance() {
 const int DRPose::kTimestampFieldNumber;
 const int DRPose::kXFieldNumber;
 const int DRPose::kYFieldNumber;
-const int DRPose::kZFieldNumber;
 const int DRPose::kYawFieldNumber;
 const int DRPose::kVelocityFieldNumber;
 const int DRPose::kAngularVelocityFieldNumber;
@@ -253,24 +251,10 @@ bool DRPose::MergePartialFromCodedStream(
         break;
       }
 
-      // float z = 4;
+      // float yaw = 4;
       case 4: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
             static_cast< ::google::protobuf::uint8>(37u /* 37 & 0xFF */)) {
-
-          DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
-                   float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
-                 input, &z_)));
-        } else {
-          goto handle_unusual;
-        }
-        break;
-      }
-
-      // float yaw = 5;
-      case 5: {
-        if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(45u /* 45 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
@@ -281,10 +265,10 @@ bool DRPose::MergePartialFromCodedStream(
         break;
       }
 
-      // float velocity = 6;
-      case 6: {
+      // float velocity = 5;
+      case 5: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(53u /* 53 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(45u /* 45 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
@@ -295,10 +279,10 @@ bool DRPose::MergePartialFromCodedStream(
         break;
       }
 
-      // float angular_velocity = 7;
-      case 7: {
+      // float angular_velocity = 6;
+      case 6: {
         if (static_cast< ::google::protobuf::uint8>(tag) ==
-            static_cast< ::google::protobuf::uint8>(61u /* 61 & 0xFF */)) {
+            static_cast< ::google::protobuf::uint8>(53u /* 53 & 0xFF */)) {
 
           DO_((::google::protobuf::internal::WireFormatLite::ReadPrimitive<
                    float, ::google::protobuf::internal::WireFormatLite::TYPE_FLOAT>(
@@ -350,24 +334,19 @@ void DRPose::SerializeWithCachedSizes(
     ::google::protobuf::internal::WireFormatLite::WriteFloat(3, this->y(), output);
   }
 
-  // float z = 4;
-  if (this->z() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(4, this->z(), output);
-  }
-
-  // float yaw = 5;
+  // float yaw = 4;
   if (this->yaw() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(5, this->yaw(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(4, this->yaw(), output);
   }
 
-  // float velocity = 6;
+  // float velocity = 5;
   if (this->velocity() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(6, this->velocity(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(5, this->velocity(), output);
   }
 
-  // float angular_velocity = 7;
+  // float angular_velocity = 6;
   if (this->angular_velocity() != 0) {
-    ::google::protobuf::internal::WireFormatLite::WriteFloat(7, this->angular_velocity(), output);
+    ::google::protobuf::internal::WireFormatLite::WriteFloat(6, this->angular_velocity(), output);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -399,24 +378,19 @@ void DRPose::SerializeWithCachedSizes(
     target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(3, this->y(), target);
   }
 
-  // float z = 4;
-  if (this->z() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(4, this->z(), target);
-  }
-
-  // float yaw = 5;
+  // float yaw = 4;
   if (this->yaw() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(5, this->yaw(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(4, this->yaw(), target);
   }
 
-  // float velocity = 6;
+  // float velocity = 5;
   if (this->velocity() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(6, this->velocity(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(5, this->velocity(), target);
   }
 
-  // float angular_velocity = 7;
+  // float angular_velocity = 6;
   if (this->angular_velocity() != 0) {
-    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(7, this->angular_velocity(), target);
+    target = ::google::protobuf::internal::WireFormatLite::WriteFloatToArray(6, this->angular_velocity(), target);
   }
 
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
@@ -453,22 +427,17 @@ size_t DRPose::ByteSizeLong() const {
     total_size += 1 + 4;
   }
 
-  // float z = 4;
-  if (this->z() != 0) {
-    total_size += 1 + 4;
-  }
-
-  // float yaw = 5;
+  // float yaw = 4;
   if (this->yaw() != 0) {
     total_size += 1 + 4;
   }
 
-  // float velocity = 6;
+  // float velocity = 5;
   if (this->velocity() != 0) {
     total_size += 1 + 4;
   }
 
-  // float angular_velocity = 7;
+  // float angular_velocity = 6;
   if (this->angular_velocity() != 0) {
     total_size += 1 + 4;
   }
@@ -511,9 +480,6 @@ void DRPose::MergeFrom(const DRPose& from) {
   if (from.y() != 0) {
     set_y(from.y());
   }
-  if (from.z() != 0) {
-    set_z(from.z());
-  }
   if (from.yaw() != 0) {
     set_yaw(from.yaw());
   }
@@ -552,7 +518,6 @@ void DRPose::InternalSwap(DRPose* other) {
   swap(timestamp_, other->timestamp_);
   swap(x_, other->x_);
   swap(y_, other->y_);
-  swap(z_, other->z_);
   swap(yaw_, other->yaw_);
   swap(velocity_, other->velocity_);
   swap(angular_velocity_, other->angular_velocity_);

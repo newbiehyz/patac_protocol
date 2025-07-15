@@ -9,11 +9,9 @@ message DRPose {
 
   float y = 3;
 
-  float z = 4;
+  float yaw = 4; 
 
-  float yaw = 5; 
-
-  float velocity = 6;
+  float velocity = 5;
   
-  float angular_velocity = 7;
+  float angular_velocity = 6;
 }

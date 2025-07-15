@@ -157,27 +157,21 @@ class DRPose : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   float y() const;
   void set_y(float value);
 
-  // float z = 4;
-  void clear_z();
-  static const int kZFieldNumber = 4;
-  float z() const;
-  void set_z(float value);
-
-  // float yaw = 5;
+  // float yaw = 4;
   void clear_yaw();
-  static const int kYawFieldNumber = 5;
+  static const int kYawFieldNumber = 4;
   float yaw() const;
   void set_yaw(float value);
 
-  // float velocity = 6;
+  // float velocity = 5;
   void clear_velocity();
-  static const int kVelocityFieldNumber = 6;
+  static const int kVelocityFieldNumber = 5;
   float velocity() const;
   void set_velocity(float value);
 
-  // float angular_velocity = 7;
+  // float angular_velocity = 6;
   void clear_angular_velocity();
-  static const int kAngularVelocityFieldNumber = 7;
+  static const int kAngularVelocityFieldNumber = 6;
   float angular_velocity() const;
   void set_angular_velocity(float value);
 
@@ -188,7 +182,6 @@ class DRPose : public ::google::protobuf::Message /* @@protoc_insertion_point(cl
   ::google::protobuf::uint64 timestamp_;
   float x_;
   float y_;
-  float z_;
   float yaw_;
   float velocity_;
   float angular_velocity_;
@@ -249,21 +242,7 @@ inline void DRPose::set_y(float value) {
   // @@protoc_insertion_point(field_set:patac_hpp.DRPose.y)
 }
 
-// float z = 4;
-inline void DRPose::clear_z() {
-  z_ = 0;
-}
-inline float DRPose::z() const {
-  // @@protoc_insertion_point(field_get:patac_hpp.DRPose.z)
-  return z_;
-}
-inline void DRPose::set_z(float value) {
-  
-  z_ = value;
-  // @@protoc_insertion_point(field_set:patac_hpp.DRPose.z)
-}
-
-// float yaw = 5;
+// float yaw = 4;
 inline void DRPose::clear_yaw() {
   yaw_ = 0;
 }
@@ -277,7 +256,7 @@ inline void DRPose::set_yaw(float value) {
   // @@protoc_insertion_point(field_set:patac_hpp.DRPose.yaw)
 }
 
-// float velocity = 6;
+// float velocity = 5;
 inline void DRPose::clear_velocity() {
   velocity_ = 0;
 }
@@ -291,7 +270,7 @@ inline void DRPose::set_velocity(float value) {
   // @@protoc_insertion_point(field_set:patac_hpp.DRPose.velocity)
 }
 
-// float angular_velocity = 7;
+// float angular_velocity = 6;
 inline void DRPose::clear_angular_velocity() {
   angular_velocity_ = 0;
 }
