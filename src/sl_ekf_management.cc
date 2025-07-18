@@ -134,7 +134,7 @@ void SlEKFManagement::erase_pres(const long long timestamp) {
 }
 
 void SlEKFManagement::Update(const long long timestamp, bool zupt) {
-  std::lock_guard<std::mutex> lock(_data_mutex);
+  // std::lock_guard<std::mutex> lock(_data_mutex);
   if (_pre_states.empty()) {
     return;
   }
@@ -244,9 +244,12 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
       auto it_odo = _odo_meas.lower_bound(latest_sl_timestamp);
       _vehicle_w = it_odo->second.y();
       _vehicle_v = it_odo->second.x();
-      _ts = latest_sl_timestamp;
-      _vehicle_P = latest_sl_P;
-      _vehicle_x = latest_sl_x;
+      {
+        std::lock_guard<std::mutex> lock(_data_mutex);
+        _ts = latest_sl_timestamp;
+        _vehicle_P = latest_sl_P;
+        _vehicle_x = latest_sl_x;
+      }
       while (it_odo != _odo_meas.end()) {
         this->Propagate(it_odo->first, it_odo->second.x(), it_odo->second.y());
         ++it_odo;
