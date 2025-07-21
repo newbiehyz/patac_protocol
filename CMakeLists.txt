@@ -1,61 +1,37 @@
-cmake_minimum_required(VERSION 3.5.1)
-project("autodrive" VERSION 2022 LANGUAGES CXX C)
+cmake_minimum_required(VERSION 3.10)
+project(patac_hpp_protocol)
 
-# ==== 工具链配置（保留 ARM 支持）====
-IF(DEFINED TEST_TOOLCHAIN_ROOT_10_3_0)
-  message("compile ARM, toolchain 10.3.0")
-  set(CMAKE_SYSTEM_NAME Linux)
-  set(CMAKE_SYSTEM_PROCESSOR arm)
-  set(TEST_COMPILER_ROOT "${TEST_TOOLCHAIN_ROOT_10_3_0}/gcc-10.3-2021.07-x86_64-aarch64-none-linux-gnu/bin")
-  set(CMAKE_C_COMPILER ${TEST_COMPILER_ROOT}/aarch64-none-linux-gnu-gcc)
-  set(CMAKE_CXX_COMPILER ${TEST_COMPILER_ROOT}/aarch64-none-linux-gnu-g++)
-  set(CMAKE_SYSROOT ${TEST_TOOLCHAIN_ROOT_10_3_0}/targetfs)
-ELSEIF(DEFINED TEST_TOOLCHAIN_ROOT)
-  message("compile ARM, toolchain 6.5.0")
-  set(CMAKE_SYSTEM_NAME Linux)
-  set(CMAKE_SYSTEM_PROCESSOR arm)
-  set(TEST_COMPILER_ROOT "${TEST_TOOLCHAIN_ROOT}/gcc-linaro-6.5.0-2018.12-x86_64_aarch64-linux-gnu/bin")
-  set(CMAKE_C_COMPILER ${TEST_COMPILER_ROOT}/aarch64-linux-gnu-gcc)
-  set(CMAKE_CXX_COMPILER ${TEST_COMPILER_ROOT}/aarch64-linux-gnu-g++)
-  set(CMAKE_SYSROOT ${TEST_TOOLCHAIN_ROOT}/targetfs)
-ENDIF()
+set(CMAKE_CXX_STANDARD 17)
 
-set(CMAKE_CXX_STANDARD 14)
-add_definitions("-Wall -O2")
+find_package(SQLite3 REQUIRED)
+include_directories(${SQLite3_INCLUDE_DIRS})
+# target_link_libraries(${SQLite3_LIBRARIES})
 
-# ==== Protobuf 配置 ====
-set(PROTOBUF_ROOT /usr/local/bin/)
 
-include_directories(
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/include/protocol
-  ${PROTOBUF_ROOT}/include
-)
+find_package(Protobuf REQUIRED)
+message(STATUS "Using protobuf ${Protobuf_VERSION}")
+include_directories(${Protobuf_INCLUDE_DIRS})
+# target_link_libraries(${Protobuf_LIBRARIES})
 
-link_directories(
-  ${PROJECT_SOURCE_DIR}/lib
-  ${PROTOBUF_ROOT}/lib
-)
+find_package(OpenCV REQUIRED)
+include_directories(${OpenCV_INCLUDE_DIRS})
+# target_link_libraries(${OpenCV_LIBS})
 
-# ==== 编译主程序 ====
-file(GLOB PATAC_PROTO_SRCS
-  ${PROJECT_SOURCE_DIR}/src/protocol/*.pb.cc
-)
+find_package(Eigen3 REQUIRED)
+include_directories(${EIGEN3_INCLUDE_DIR})
 
-add_executable(demo
-  ${PROJECT_SOURCE_DIR}/src/main.cpp
-  ${PATAC_PROTO_SRCS}
-)
 
-target_link_libraries(demo
-  protobuf
-)
+file(GLOB PROTOCOL_SOURCE "${CMAKE_CURRENT_SOURCE_DIR}/cpp_gen/*.cc")
+message(PROTOCOL_SOURCE)
 
-# ==== 安装（可选）====
-option(INSTALL "install" ON)
-if(INSTALL)
-  set(OUTPUT "${PROJECT_SOURCE_DIR}/build/output/dataflow")
-  install(TARGETS demo DESTINATION ${OUTPUT}/bin)
-  install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/ DESTINATION ${OUTPUT}/include)
-  install(DIRECTORY ${PROJECT_SOURCE_DIR}/lib/ DESTINATION ${OUTPUT}/lib)
-endif()
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/cpp_gen)
+
+add_library(patac_protocol SHARED ${PROTOCOL_SOURCE})
+target_link_libraries(patac_protocol ${Protobuf_LIBRARIES})
+
+add_library(patac_data_writer SHARED ${CMAKE_CURRENT_SOURCE_DIR}/data_writer.cc)
+target_link_libraries(patac_data_writer patac_protocol ${Protobuf_LIBRARIES} ${SQLite3_LIBRARIES} ${OpenCV_LIBS})
+
+add_executable(test_writer test_writer.cc)
+target_link_libraries(test_writer patac_data_writer ${Protobuf_LIBRARIES} ${SQLite3_LIBRARIES} ${OpenCV_LIBS})
+
