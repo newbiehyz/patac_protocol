@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='patac_image.proto',
   package='patac_hpp',
   syntax='proto3',
-  serialized_pb=_b('\n\x11patac_image.proto\x12\tpatac_hpp\"\x94\x01\n\x05Image\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\r\n\x05width\x18\x02 \x01(\r\x12\x0e\n\x06height\x18\x03 \x01(\r\x12 \n\x03pos\x18\x04 \x01(\x0e\x32\x13.patac_hpp.Position\x12\x1d\n\x04type\x18\x05 \x01(\x0e\x32\x0f.patac_hpp.Type\x12\x1d\n\x04mode\x18\x06 \x01(\x0e\x32\x0f.patac_hpp.Mode*e\n\x08Position\x12\x0f\n\x0b\x41ROUND_LEFT\x10\x00\x12\x10\n\x0c\x41ROUND_RIGHT\x10\x01\x12\x10\n\x0c\x41ROUND_FRONT\x10\x02\x12\x0f\n\x0b\x41ROUND_REAR\x10\x03\x12\t\n\x05\x46RONT\x10\x04\x12\x08\n\x04REAR\x10\x05*C\n\x04Type\x12\x08\n\x04H265\x10\x00\x12\x0b\n\x07YUV420P\x10\x01\x12\x07\n\x03\x42GR\x10\x02\x12\x07\n\x03RGB\x10\x03\x12\x08\n\x04JPEG\x10\x04\x12\x08\n\x04H264\x10\x05*)\n\x04Mode\x12\x0c\n\x08ORIGINAL\x10\x00\x12\n\n\x06STITCH\x10\x01\x12\x07\n\x03\x43YL\x10\x02\x62\x06proto3')
+  serialized_pb=_b('\n\x11patac_image.proto\x12\tpatac_hpp\"\x94\x01\n\x05Image\x12\x0c\n\x04\x64\x61ta\x18\x01 \x01(\x0c\x12\r\n\x05width\x18\x02 \x01(\r\x12\x0e\n\x06height\x18\x03 \x01(\r\x12 \n\x03pos\x18\x04 \x01(\x0e\x32\x13.patac_hpp.Position\x12\x1d\n\x04type\x18\x05 \x01(\x0e\x32\x0f.patac_hpp.Type\x12\x1d\n\x04mode\x18\x06 \x01(\x0e\x32\x0f.patac_hpp.Mode\"W\n\tImageList\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12\x11\n\tnum_image\x18\x02 \x01(\r\x12$\n\nimage_list\x18\x03 \x03(\x0b\x32\x10.patac_hpp.Image*e\n\x08Position\x12\x0f\n\x0b\x41ROUND_LEFT\x10\x00\x12\x10\n\x0c\x41ROUND_RIGHT\x10\x01\x12\x10\n\x0c\x41ROUND_FRONT\x10\x02\x12\x0f\n\x0b\x41ROUND_REAR\x10\x03\x12\t\n\x05\x46RONT\x10\x04\x12\x08\n\x04REAR\x10\x05*C\n\x04Type\x12\x08\n\x04H265\x10\x00\x12\x0b\n\x07YUV420P\x10\x01\x12\x07\n\x03\x42GR\x10\x02\x12\x07\n\x03RGB\x10\x03\x12\x08\n\x04JPEG\x10\x04\x12\x08\n\x04H264\x10\x05*)\n\x04Mode\x12\x0c\n\x08ORIGINAL\x10\x00\x12\n\n\x06STITCH\x10\x01\x12\x07\n\x03\x43YL\x10\x02\x62\x06proto3')
 )
 
 _POSITION = _descriptor.EnumDescriptor(
@@ -56,8 +56,8 @@ _POSITION = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=183,
-  serialized_end=284,
+  serialized_start=272,
+  serialized_end=373,
 )
 _sym_db.RegisterEnumDescriptor(_POSITION)
 
@@ -95,8 +95,8 @@ _TYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=286,
-  serialized_end=353,
+  serialized_start=375,
+  serialized_end=442,
 )
 _sym_db.RegisterEnumDescriptor(_TYPE)
 
@@ -122,8 +122,8 @@ _MODE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=355,
-  serialized_end=396,
+  serialized_start=444,
+  serialized_end=485,
 )
 _sym_db.RegisterEnumDescriptor(_MODE)
 
@@ -211,10 +211,57 @@ _IMAGE = _descriptor.Descriptor(
   serialized_end=181,
 )
 
+
+_IMAGELIST = _descriptor.Descriptor(
+  name='ImageList',
+  full_name='patac_hpp.ImageList',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='timestamp', full_name='patac_hpp.ImageList.timestamp', index=0,
+      number=1, type=4, cpp_type=4, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='num_image', full_name='patac_hpp.ImageList.num_image', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='image_list', full_name='patac_hpp.ImageList.image_list', index=2,
+      number=3, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=183,
+  serialized_end=270,
+)
+
 _IMAGE.fields_by_name['pos'].enum_type = _POSITION
 _IMAGE.fields_by_name['type'].enum_type = _TYPE
 _IMAGE.fields_by_name['mode'].enum_type = _MODE
+_IMAGELIST.fields_by_name['image_list'].message_type = _IMAGE
 DESCRIPTOR.message_types_by_name['Image'] = _IMAGE
+DESCRIPTOR.message_types_by_name['ImageList'] = _IMAGELIST
 DESCRIPTOR.enum_types_by_name['Position'] = _POSITION
 DESCRIPTOR.enum_types_by_name['Type'] = _TYPE
 DESCRIPTOR.enum_types_by_name['Mode'] = _MODE
@@ -226,6 +273,13 @@ Image = _reflection.GeneratedProtocolMessageType('Image', (_message.Message,), d
   # @@protoc_insertion_point(class_scope:patac_hpp.Image)
   ))
 _sym_db.RegisterMessage(Image)
+
+ImageList = _reflection.GeneratedProtocolMessageType('ImageList', (_message.Message,), dict(
+  DESCRIPTOR = _IMAGELIST,
+  __module__ = 'patac_image_pb2'
+  # @@protoc_insertion_point(class_scope:patac_hpp.ImageList)
+  ))
+_sym_db.RegisterMessage(ImageList)
 
 
 # @@protoc_insertion_point(module_scope)

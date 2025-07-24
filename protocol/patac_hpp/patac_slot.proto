@@ -45,8 +45,9 @@ message ParkingSlot {
 }
 
 message ParkingSlotList {
+  uint64 timestamp = 1;
   // num of parking_slot
-  uint32 num_parking_slot = 1;
+  uint32 num_parking_slot = 2;
   // parking_slot_list
-  repeated ParkingSlot parking_slot_list = 2;
+  repeated ParkingSlot parking_slot_list = 3;
 }

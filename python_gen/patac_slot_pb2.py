@@ -20,7 +20,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='patac_slot.proto',
   package='patac_hpp',
   syntax='proto3',
-  serialized_pb=_b('\n\x10patac_slot.proto\x12\tpatac_hpp\"\x1f\n\x07Point2f\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\"\xa8\x02\n\x0bParkingSlot\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05valid\x18\x02 \x01(\x05\x12\x0c\n\x04\x63onf\x18\x03 \x01(\x02\x12(\n\x04type\x18\x04 \x01(\x0e\x32\x1a.patac_hpp.ParkingSlotType\x12-\n\toccupancy\x18\x05 \x01(\x0e\x32\x1a.patac_hpp.OccupancyStatus\x12\"\n\x06points\x18\x06 \x03(\x0b\x32\x12.patac_hpp.Point2f\x12\x16\n\x0eplanning_score\x18\x07 \x01(\x02\x12(\n\x06source\x18\x08 \x01(\x0e\x32\x18.patac_hpp.ParkingSource\x12\x31\n\x0block_status\x18\t \x01(\x0e\x32\x1c.patac_hpp.ParkingLockStatus\"^\n\x0fParkingSlotList\x12\x18\n\x10num_parking_slot\x18\x01 \x01(\r\x12\x31\n\x11parking_slot_list\x18\x02 \x03(\x0b\x32\x16.patac_hpp.ParkingSlot*g\n\x0fParkingSlotType\x12\x13\n\x0fSlotTypeUnknown\x10\x00\x12\x14\n\x10SlotTypeVertical\x10\x01\x12\x14\n\x10SlotTypeParallel\x10\x02\x12\x13\n\x0fSlotTypeOblique\x10\x03*j\n\x0fOccupancyStatus\x12\x1a\n\x16OccupancyStatusUnknown\x10\x00\x12\x1b\n\x17OccupancyStatusOccupied\x10\x01\x12\x1e\n\x1aOccupancyStatusNotOccupied\x10\x02*s\n\rParkingSource\x12\x1c\n\x18ParkingSourceUnspecified\x10\x00\x12\x14\n\x10ParkingSourceIpm\x10\x01\x12\x14\n\x10ParkingSourceUss\x10\x02\x12\x18\n\x14ParkingSourceUserSel\x10\x03*h\n\x11ParkingLockStatus\x12\x1c\n\x18ParkingLockStatusUnknown\x10\x00\x12\x19\n\x15ParkingLockStatusOpen\x10\x01\x12\x1a\n\x16ParkingLockStatusClose\x10\x02\x62\x06proto3')
+  serialized_pb=_b('\n\x10patac_slot.proto\x12\tpatac_hpp\"\x1f\n\x07Point2f\x12\t\n\x01x\x18\x01 \x01(\x02\x12\t\n\x01y\x18\x02 \x01(\x02\"\xa8\x02\n\x0bParkingSlot\x12\n\n\x02id\x18\x01 \x01(\x05\x12\r\n\x05valid\x18\x02 \x01(\x05\x12\x0c\n\x04\x63onf\x18\x03 \x01(\x02\x12(\n\x04type\x18\x04 \x01(\x0e\x32\x1a.patac_hpp.ParkingSlotType\x12-\n\toccupancy\x18\x05 \x01(\x0e\x32\x1a.patac_hpp.OccupancyStatus\x12\"\n\x06points\x18\x06 \x03(\x0b\x32\x12.patac_hpp.Point2f\x12\x16\n\x0eplanning_score\x18\x07 \x01(\x02\x12(\n\x06source\x18\x08 \x01(\x0e\x32\x18.patac_hpp.ParkingSource\x12\x31\n\x0block_status\x18\t \x01(\x0e\x32\x1c.patac_hpp.ParkingLockStatus\"q\n\x0fParkingSlotList\x12\x11\n\ttimestamp\x18\x01 \x01(\x04\x12\x18\n\x10num_parking_slot\x18\x02 \x01(\r\x12\x31\n\x11parking_slot_list\x18\x03 \x03(\x0b\x32\x16.patac_hpp.ParkingSlot*g\n\x0fParkingSlotType\x12\x13\n\x0fSlotTypeUnknown\x10\x00\x12\x14\n\x10SlotTypeVertical\x10\x01\x12\x14\n\x10SlotTypeParallel\x10\x02\x12\x13\n\x0fSlotTypeOblique\x10\x03*j\n\x0fOccupancyStatus\x12\x1a\n\x16OccupancyStatusUnknown\x10\x00\x12\x1b\n\x17OccupancyStatusOccupied\x10\x01\x12\x1e\n\x1aOccupancyStatusNotOccupied\x10\x02*s\n\rParkingSource\x12\x1c\n\x18ParkingSourceUnspecified\x10\x00\x12\x14\n\x10ParkingSourceIpm\x10\x01\x12\x14\n\x10ParkingSourceUss\x10\x02\x12\x18\n\x14ParkingSourceUserSel\x10\x03*h\n\x11ParkingLockStatus\x12\x1c\n\x18ParkingLockStatusUnknown\x10\x00\x12\x19\n\x15ParkingLockStatusOpen\x10\x01\x12\x1a\n\x16ParkingLockStatusClose\x10\x02\x62\x06proto3')
 )
 
 _PARKINGSLOTTYPE = _descriptor.EnumDescriptor(
@@ -48,8 +48,8 @@ _PARKINGSLOTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=459,
-  serialized_end=562,
+  serialized_start=478,
+  serialized_end=581,
 )
 _sym_db.RegisterEnumDescriptor(_PARKINGSLOTTYPE)
 
@@ -75,8 +75,8 @@ _OCCUPANCYSTATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=564,
-  serialized_end=670,
+  serialized_start=583,
+  serialized_end=689,
 )
 _sym_db.RegisterEnumDescriptor(_OCCUPANCYSTATUS)
 
@@ -106,8 +106,8 @@ _PARKINGSOURCE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=672,
-  serialized_end=787,
+  serialized_start=691,
+  serialized_end=806,
 )
 _sym_db.RegisterEnumDescriptor(_PARKINGSOURCE)
 
@@ -133,8 +133,8 @@ _PARKINGLOCKSTATUS = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=789,
-  serialized_end=893,
+  serialized_start=808,
+  serialized_end=912,
 )
 _sym_db.RegisterEnumDescriptor(_PARKINGLOCKSTATUS)
 
@@ -289,15 +289,22 @@ _PARKINGSLOTLIST = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='num_parking_slot', full_name='patac_hpp.ParkingSlotList.num_parking_slot', index=0,
-      number=1, type=13, cpp_type=3, label=1,
+      name='timestamp', full_name='patac_hpp.ParkingSlotList.timestamp', index=0,
+      number=1, type=4, cpp_type=4, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='parking_slot_list', full_name='patac_hpp.ParkingSlotList.parking_slot_list', index=1,
-      number=2, type=11, cpp_type=10, label=3,
+      name='num_parking_slot', full_name='patac_hpp.ParkingSlotList.num_parking_slot', index=1,
+      number=2, type=13, cpp_type=3, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='parking_slot_list', full_name='patac_hpp.ParkingSlotList.parking_slot_list', index=2,
+      number=3, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -315,7 +322,7 @@ _PARKINGSLOTLIST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=363,
-  serialized_end=457,
+  serialized_end=476,
 )
 
 _PARKINGSLOT.fields_by_name['type'].enum_type = _PARKINGSLOTTYPE

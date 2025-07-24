@@ -42,3 +42,11 @@ message Image {
   // camera mode
   Mode mode = 6;
 }
+
+message ImageList {
+  uint64 timestamp = 1;
+  // num of image
+  uint32 num_image = 2;
+  // image_list
+  repeated Image image_list = 3;
+}

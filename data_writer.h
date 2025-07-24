@@ -36,12 +36,14 @@ public:
   void WriteDrPoseMsg(const long long timestamp, const Eigen::Vector3d &pose);
 
   void WriteFrontImageMsg(const long long timestamp, const cv::Mat &img);
+  void WriteFrontImageMsg(const long long timestamp, const class patac_hpp::ImageList &img_list);
 
   void WriteDataSeq(const long long timestamp, const DataType &type);
 
   void WriteSlotMsg(const long long timestamp,
                     const std::vector<Eigen::MatrixXd> &slot_uv);
-
+  void WriteSlotMsg(const long long timestamp,
+                    const class patac_hpp::ParkingSlotList &slot_uv);
 private:
   void create_tables();
   sqlite3 *_db;
