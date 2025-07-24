@@ -102,7 +102,29 @@ void ParkingSlotLandmark::InitializeLandmark(const long long timestamp,
 
   SetInitializeFlag(true);
 
-  SetAttribute(slot_mea->GetAttribute());
+  int true_count = 0, false_count = 0;
+  std::map<ParkingSlotType, int> type_counts = {
+      {Vertical, 0},
+      {Horizontal, 0},
+      {Oblique, 0}
+  };
+
+  for (const auto &kv : _meas) {
+      auto mea_iter = std::dynamic_pointer_cast<ParkingSlotMea>(kv.second.second);
+      const ParkingSlotAttribute &attr = mea_iter->GetAttribute();
+      attr.parkable ? ++true_count : ++false_count;
+      ++type_counts[attr.slot_type];
+  }
+
+  bool final_parkable = (true_count >= false_count);
+
+  auto max_type = std::max_element(type_counts.begin(), type_counts.end(),
+      [](const auto &a, const auto &b) { return a.second < b.second; });
+  ParkingSlotType final_slot_type = max_type->first;
+
+  ParkingSlotAttribute final_attr{final_parkable, final_slot_type};
+  SetAttribute(final_attr);
+  // SetAttribute(slot_mea->GetAttribute());
 }
 
 void ParkingSlotLandmark::InitializeLandmark(const Eigen::VectorXd& state,
