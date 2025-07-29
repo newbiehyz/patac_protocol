@@ -104,7 +104,7 @@ std::vector<patac_hpp::ParkingSlotList> DataReader::ReadParkingSlots() {
 std::vector<patac_hpp::ImageList> DataReader::ReadImgs(){
 
     std::vector<patac_hpp::ImageList> result;
-    std::string query = "SELECT timestamp, data FROM fisheye_front ORDER BY timestamp;";
+    std::string query = "SELECT timestamp, data FROM fisheye_images ORDER BY timestamp;";
     
     sqlite3_stmt* stmt;
     _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &stmt, nullptr);

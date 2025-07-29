@@ -84,8 +84,8 @@ int main(int argc, char** argv) {
             cv::Mat imgdecode = cv::imdecode(buffer, cv::IMREAD_COLOR);
 
             cv::Mat display_img = imgdecode.clone();
-            cv::imshow("BGR Image", display_img);
-            cv::waitKey(0); 
+            cv::imwrite("BGRImage.png", display_img);
+            // cv::waitKey(0); 
 
         }
     }
