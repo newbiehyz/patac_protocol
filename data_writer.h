@@ -11,7 +11,7 @@
 #include <Eigen/Eigen>
 #include <memory>
 #include <opencv2/opencv.hpp>
-#include <sqlite3.h>
+#include "sqlite3.h"
 
 #include "patac_dr.pb.h"
 #include "patac_image.pb.h"
@@ -19,7 +19,7 @@
 
 namespace apa_slam {
 
-enum DataType : std::uint8_t { Pose = 0, DR = 1, SLOT = 2, FISH_FRONT = 3 };
+enum DataType : std::uint8_t { DataTypePose = 0, DataTypeDR = 1, DataTypeSLOT = 2, DataTypeFISHEYE = 3 };
 
 class DataWriter {
 public:
@@ -35,8 +35,7 @@ public:
 
   void WriteDrPoseMsg(const long long timestamp, const Eigen::Vector3d &pose);
 
-  void WriteFrontImageMsg(const long long timestamp, const cv::Mat &img);
-  void WriteFrontImageMsg(const long long timestamp, const class patac_hpp::ImageList &img_list);
+  void WriteImageList(const long long timestamp, const std::vector<cv::Mat> &imgs);
 
   void WriteDataSeq(const long long timestamp, const DataType &type);
 
