@@ -26,17 +26,19 @@ public:
     std::vector<std::pair<int64_t, DataType>> ReadDataSeq();
     
     // 读取DR姿态数据
-    std::vector<patac_hpp::DRPose> ReadDrPose();
+    std::vector<patac_hpp::DRPose> ReadDrPose(int&rc );
     
     // 读取停车位数据
     std::vector<patac_hpp::ParkingSlotList> ReadParkingSlots();
   
     // 读取img数据
-    std::vector<patac_hpp::ImageList> ReadImgs();
+    std::vector<patac_hpp::ImageList> ReadImgs(int&rc);
     
 private:
     sqlite3* _db;
     int _rc;
     char* _errMsg;
+    sqlite3_stmt* _stmt_imgs = nullptr;  // 保存图片查询状态
+    bool _initialized_imgs = false;      // 标记图片是否已初始化查询
 };
 } // namespace apa_slam
