@@ -151,6 +151,8 @@ void SlidingWindow::Propagate(
   }
 
   refresh_propagate_window_status(ts, x_cur, PP, lm_pos);
+
+  data_check();
 } // namespace apa_slam
 
 void SlidingWindow::construct_x_and_P(
@@ -353,6 +355,8 @@ void SlidingWindow::UpdateEKF(
 
     marginalization(marginalization_list);
   }
+
+  data_check();
 }
 
 void SlidingWindow::ConstructEKF(
@@ -403,7 +407,6 @@ void SlidingWindow::ConstructEKF(
   }
 
   marginalization_list = margin_list;
-  
 
   int state_sz = this->get_state_size(ekf_lm_pos);
   construct_x_and_P(x, P, state_sz, ekf_lm_pos);
@@ -439,8 +442,8 @@ void SlidingWindow::ConstructEKF(
                                      J_landmark);
         // J_landmark.setZero();
 
-        std::cout << "residual: " << r.transpose() << " winid: " << i
-                  << " lmid: " << lm_id << std::endl;
+        // std::cout << "residual: " << r.transpose() << " winid: " << i
+        //           << " lmid: " << lm_id << std::endl;
         residual.segment(residual_pos, r.size()) = r;
         R.block(residual_pos, residual_pos, r.size(), r.size()) =
             SemanticMap::GetInstance()
@@ -474,8 +477,6 @@ void SlidingWindow::ConstructEKF(
           // H.block(residual_pos, window_pos, r.size(),
           // STATE_VEHICLE_SIZE).setZero();
           R.block(residual_pos, residual_pos, r.size(), r.size()) *= 0.01;
-
-          
         }
 
         residual_pos += r.size();
@@ -488,9 +489,9 @@ void SlidingWindow::ConstructEKF(
   // std::cout << "R\n" << residual.transpose() << std::endl;
   // std::cout << "#############################\n";
 
-  // #ifdef ENABLE_OPENGL
+  #ifdef ENABLE_OPENGL
   {
-    std::lock_guard<std::mutex> lock(gl_slw.mutex);
+    std::unique_lock<std::shared_mutex> lock(gl_slw.mutex);
     gl_slw.sl_pose.clear();
     gl_slw.sl_meas.clear();
     gl_slw.sl_pose.resize(this->GetCurWindowSz());
@@ -527,7 +528,7 @@ void SlidingWindow::ConstructEKF(
     }
   }
 
-  // #endif
+  #endif
 }
 
 SlidingWindow &SlidingWindow::GetInstance() {
@@ -669,11 +670,41 @@ void SlidingWindow::marginalization(
       }
     }
   }
-
+  // map
   for (auto it = marginalization_list.begin(); it != marginalization_list.end();
        ++it) {
     for (auto itt = it->second.begin(); itt != it->second.end(); ++itt) {
-      SemanticMap::GetInstance().MarginLandmark(it->first, *itt);
+      SemanticMap::GetInstance().MarginLandmark(it->first, *itt); // map
+      // private members
+      auto it_lm = _lm_cross_correlation.begin();
+      while (it_lm != _lm_cross_correlation.end()) {
+        auto type0 = static_cast<SensorType>(it_lm->first.first.type);
+        auto id0 = it_lm->first.first.id;
+        auto type1 = static_cast<SensorType>(it_lm->first.second.type);
+        auto id1 = it_lm->first.second.id;
+        if ((type0 == it->first && id0 == *itt) ||
+            (type1 == it->first && id1 == *itt)) {
+          it_lm = _lm_cross_correlation.erase(it_lm);
+        } else {
+          ++it_lm;
+        }
+      }
+
+      for (size_t i = 0; i < _window_lm_cross_correlation.size(); ++i) {
+        if (_window_lm_cross_correlation.at(i).empty()) {
+          continue;
+        } 
+        auto it_w_lm = _window_lm_cross_correlation.at(i).begin();
+        while (it_w_lm != _window_lm_cross_correlation.at(i).end()) {
+          auto type = static_cast<SensorType>(it_w_lm->first.type);
+          auto id = it_w_lm->first.id;
+          if (type == it->first && id == *itt) {
+            it_w_lm = _window_lm_cross_correlation.at(i).erase(it_w_lm);
+          } else {
+            ++it_w_lm;
+          }
+        }
+      }
     }
   }
 
@@ -799,6 +830,73 @@ void SlidingWindow::initialize_landmark(
           landmark_state_augmentation(type, landmark_id, i, Jx);
         }
       }
+    }
+  }
+}
+
+void SlidingWindow::data_check() {
+  int n = this->GetCurWindowSz();
+  if (n == 0) {
+    return;
+  }
+
+  for (int i = 0; i < n - 1; ++i) {
+    for (int j = i + 1; j < n; ++j) {
+      std::pair<int, int> window_id = {i, j};
+      if (!_window_cross_correlation.count(window_id)) {
+        std::cout
+            << "FUCKINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG WRONG1\n";
+      }
+    }
+  }
+
+  std::vector<std::pair<SensorType, int>> lm_vector;
+  std::map<std::pair<SensorType, int>, bool> lm_vector_flag0, lm_vector_flag1;
+
+  for (auto it = _state_landmark.begin(); it != _state_landmark.end(); ++it) {
+    for (auto itt = it->second.begin(); itt != it->second.end(); ++itt) {
+      int landmark_id = *itt;
+      lm_vector.push_back({it->first, landmark_id});
+      lm_vector_flag0[{it->first, landmark_id}] = false;
+      lm_vector_flag1[{it->first, landmark_id}] = false;
+    }
+  }
+
+  if (_state_landmark.size() > 1) {
+    for (auto it = _lm_cross_correlation.begin();
+         it != _lm_cross_correlation.end(); ++it) {
+      auto type0 = static_cast<SensorType>(it->first.first.type);
+      auto id0 = it->first.first.id;
+      auto type1 = static_cast<SensorType>(it->first.second.type);
+      auto id1 = it->first.second.id;
+
+      lm_vector_flag0.at({type0, id0}) = true;
+      lm_vector_flag0.at({type1, id1}) = true;
+    }
+
+    for (auto it = lm_vector_flag0.begin(); it != lm_vector_flag0.end(); ++it) {
+      if (it->second == false) {
+        std::cout
+            << "FUCKINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG WRONG2\n";
+        std::cout << it->first.second << std::endl;
+      }
+    }
+  }
+
+  for (int i = 0; i < n; ++i) {
+    for (auto it = _window_lm_cross_correlation.at(i).begin();
+         it != _window_lm_cross_correlation.at(i).end(); ++it) {
+      auto type = static_cast<SensorType>(it->first.type);
+      auto id = it->first.id;
+      lm_vector_flag1.at({type, id}) = true;
+    }
+  }
+
+  for (auto it = lm_vector_flag1.begin(); it != lm_vector_flag1.end(); ++it) {
+    if (it->second == false) {
+      std::cout
+          << "FUCKINGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG WRONG3\n";
+      std::cout << it->first.second << std::endl;
     }
   }
 }

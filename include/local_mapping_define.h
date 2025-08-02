@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <mutex>
 #include <set>
+#include <shared_mutex>
 
 #include "cross_correlation_id.h"
 // x0 x1 x2 x3
@@ -144,7 +145,7 @@ struct VisualizationMeas {
 extern VisualizationMeas vis_meas;
 
 struct SlwVisualization {
-  std::mutex mutex;
+  std::shared_mutex mutex;
 
   std::vector<Eigen::VectorXd> sl_pose;
   std::vector<std::vector<Eigen::VectorXd>> sl_meas;

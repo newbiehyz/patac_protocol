@@ -62,6 +62,7 @@ class SlidingWindow {
   void Reset();
 
  private:
+  void data_check();
   void landmark_state_augmentation(const SensorType &type, const int &lm_id,
                                    const int &sw_id, const Eigen::MatrixXd &Jx);
 

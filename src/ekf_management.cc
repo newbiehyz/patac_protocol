@@ -161,7 +161,7 @@ void EKFManagement::ekf_update(
           .GetLandmark(semantic_type, landmark_id)
           ->GetLatestResidualAndJacobian(_vehicle_x, r, Jacobian_vehicle,
                                          Jacobian_landmark);
-      std::cout << " residual: " << r.transpose() << std::endl;
+      // std::cout << " residual: " << r.transpose() << std::endl;
 
 #ifdef ENABLE_OPENGL
       {
@@ -185,13 +185,13 @@ void EKFManagement::ekf_update(
 
       int residual_size, landmark_size;
       switch (semantic_type) {
-        case SEMANTIC_TYPE_PARKING_SLOT:
-          residual_size = RESIDUAL_PARKING_SLOT_SIZE;
-          landmark_size = STATE_PARKING_SLOT_SIZE;
-          break;
+      case SEMANTIC_TYPE_PARKING_SLOT:
+        residual_size = RESIDUAL_PARKING_SLOT_SIZE;
+        landmark_size = STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
 
       residual.segment(pos, residual_size) = r;
@@ -239,7 +239,7 @@ void EKFManagement::ekf_update(
             .GetLandmark(semantic_type, landmark_id)
             ->GetLatestResidualAndJacobian(_vehicle_x, r, Jacobian_vehicle,
                                            Jacobian_landmark);
-        std::cout << " residual: " << r.transpose() << std::endl;
+        // std::cout << " residual: " << r.transpose() << std::endl;
       }
     }
 
@@ -254,12 +254,12 @@ int EKFManagement::get_residual_size(
     const SensorType &semantic_type = it->first;
     int size;
     switch (semantic_type) {
-      case SEMANTIC_TYPE_PARKING_SLOT:
-        size = STATE_PARKING_SLOT_SIZE;
-        break;
+    case SEMANTIC_TYPE_PARKING_SLOT:
+      size = STATE_PARKING_SLOT_SIZE;
+      break;
 
-      default:
-        break;
+    default:
+      break;
     }
 
     residual_size += size * it->second.size();
@@ -305,12 +305,12 @@ void EKFManagement::update_mean_and_cov(
       CrossCorrelationId correlation_id(semantic_type, semantic_id);
       int size;
       switch (semantic_type) {
-        case SEMANTIC_TYPE_PARKING_SLOT:
-          size = STATE_PARKING_SLOT_SIZE;
-          break;
+      case SEMANTIC_TYPE_PARKING_SLOT:
+        size = STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
       _state_lm_cross_correlation.at(correlation_id) =
           P.block(0, pos, STATE_VEHICLE_SIZE, size);
@@ -343,21 +343,21 @@ void EKFManagement::update_mean_and_cov(
             int pos1 = ekf_lm_pos.at(type1).at(id1);
             int size0, size1;
             switch (type0) {
-              case SEMANTIC_TYPE_PARKING_SLOT:
-                size0 = STATE_PARKING_SLOT_SIZE;
-                break;
+            case SEMANTIC_TYPE_PARKING_SLOT:
+              size0 = STATE_PARKING_SLOT_SIZE;
+              break;
 
-              default:
-                break;
+            default:
+              break;
             }
 
             switch (type1) {
-              case SEMANTIC_TYPE_PARKING_SLOT:
-                size1 = STATE_PARKING_SLOT_SIZE;
-                break;
+            case SEMANTIC_TYPE_PARKING_SLOT:
+              size1 = STATE_PARKING_SLOT_SIZE;
+              break;
 
-              default:
-                break;
+            default:
+              break;
             }
 
             Eigen::MatrixXd correlation = P.block(pos0, pos1, size0, size1);
@@ -380,15 +380,15 @@ int EKFManagement::get_state_size(
   for (auto it = _lm_state_list.begin(); it != _lm_state_list.end(); ++it) {
     for (auto itt = it->second.begin(); itt != it->second.end(); ++itt) {
       switch (it->first) {
-        case SEMANTIC_TYPE_PARKING_SLOT: {
-          const int id = *itt;
-          ekf_lm_pos[it->first].insert({id, n_state_size});
-          n_state_size += STATE_PARKING_SLOT_SIZE;
-          break;
-        }
+      case SEMANTIC_TYPE_PARKING_SLOT: {
+        const int id = *itt;
+        ekf_lm_pos[it->first].insert({id, n_state_size});
+        n_state_size += STATE_PARKING_SLOT_SIZE;
+        break;
+      }
 
-        default:
-          break;
+      default:
+        break;
       }
     }
   }
@@ -420,12 +420,12 @@ void EKFManagement::construct_x_and_P(
           SemanticMap::GetInstance().GetLandmarkCov(type0, id0);
       int size0;
       switch (type0) {
-        case SEMANTIC_TYPE_PARKING_SLOT:
-          size0 = STATE_PARKING_SLOT_SIZE;
-          break;
+      case SEMANTIC_TYPE_PARKING_SLOT:
+        size0 = STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
 
       // cross_correlation with vehicle
@@ -437,12 +437,12 @@ void EKFManagement::construct_x_and_P(
 
         int size1;
         switch (type1) {
-          case SEMANTIC_TYPE_PARKING_SLOT:
-            size1 = STATE_PARKING_SLOT_SIZE;
-            break;
+        case SEMANTIC_TYPE_PARKING_SLOT:
+          size1 = STATE_PARKING_SLOT_SIZE;
+          break;
 
-          default:
-            break;
+        default:
+          break;
         }
 
         auto j_start = (it_type0 == it_type1) ? it_i : set1.begin();
@@ -497,12 +497,12 @@ void EKFManagement::aug_update_covariance(const SensorType &type, const int &id,
   // std::cout << P << std::endl;
   int size;
   switch (type) {
-    case SEMANTIC_TYPE_PARKING_SLOT:
-      size = STATE_PARKING_SLOT_SIZE;
-      break;
+  case SEMANTIC_TYPE_PARKING_SLOT:
+    size = STATE_PARKING_SLOT_SIZE;
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
   int rows = P.rows();
   int cols = P.cols();
@@ -530,12 +530,12 @@ void EKFManagement::aug_update_covariance(const SensorType &type, const int &id,
       CrossCorrelationId correlation_id0(type0, lm_id0);
       int correlation_rows;
       switch (type0) {
-        case SEMANTIC_TYPE_PARKING_SLOT:
-          correlation_rows = STATE_PARKING_SLOT_SIZE;
-          break;
+      case SEMANTIC_TYPE_PARKING_SLOT:
+        correlation_rows = STATE_PARKING_SLOT_SIZE;
+        break;
 
-        default:
-          break;
+      default:
+        break;
       }
       Eigen::MatrixXd correlation = P.block(pos, cols, correlation_rows, size);
       CrossCorrelationKey key =
@@ -574,17 +574,17 @@ void EKFManagement::state_augmentation(
         continue;
       }
       switch (semantic_type) {
-        case SEMANTIC_TYPE_PARKING_SLOT: {
-          Eigen::MatrixXd Jx;
-          SemanticMap::GetInstance().InitializeLandmark(
-              semantic_type, landmark_id, _vehicle_x, _vehicle_P, Jx);
-          std::cout << "Augmenting: id " << landmark_id << std::endl;
-          aug_update_covariance(semantic_type, landmark_id, Jx);
-          break;
-        }
+      case SEMANTIC_TYPE_PARKING_SLOT: {
+        Eigen::MatrixXd Jx;
+        SemanticMap::GetInstance().InitializeLandmark(
+            semantic_type, landmark_id, _vehicle_x, _vehicle_P, Jx);
+        std::cout << "Augmenting: id " << landmark_id << std::endl;
+        aug_update_covariance(semantic_type, landmark_id, Jx);
+        break;
+      }
 
-        default:
-          break;
+      default:
+        break;
       }
     }
   }
@@ -603,8 +603,9 @@ void EKFManagement::state_marginalization(
   }
 }
 
-CrossCorrelationKey EKFManagement::make_lm_cross_correlation_key(
-    const CrossCorrelationId &id0, const CrossCorrelationId &id1) {
+CrossCorrelationKey
+EKFManagement::make_lm_cross_correlation_key(const CrossCorrelationId &id0,
+                                             const CrossCorrelationId &id1) {
   return CrossCorrelationKey(id0, id1);
 }
 
@@ -620,9 +621,10 @@ void EKFManagement::set_cross_correlation(const CrossCorrelationId &id0,
   }
 }
 
-Eigen::MatrixXd EKFManagement::get_cross_correlation(
-    const CrossCorrelationId &id0, const CrossCorrelationId &id1,
-    bool &transpose) {
+Eigen::MatrixXd
+EKFManagement::get_cross_correlation(const CrossCorrelationId &id0,
+                                     const CrossCorrelationId &id1,
+                                     bool &transpose) {
   CrossCorrelationKey key = make_lm_cross_correlation_key(id0, id1);
   if (id0.type == key.first.type && id0.id == key.first.id) {
     transpose = false;
@@ -633,8 +635,9 @@ Eigen::MatrixXd EKFManagement::get_cross_correlation(
   }
 }
 
-Eigen::MatrixXd EKFManagement::get_cross_correlation(
-    const CrossCorrelationId &id0, const CrossCorrelationId &id1) {
+Eigen::MatrixXd
+EKFManagement::get_cross_correlation(const CrossCorrelationId &id0,
+                                     const CrossCorrelationId &id1) {
   CrossCorrelationKey key = make_lm_cross_correlation_key(id0, id1);
   if (id0.type == key.first.type && id0.id == key.first.id) {
     return _lm_cross_correlation.at(key);
@@ -732,4 +735,4 @@ void EKFManagement::Propagate(const long long timestamp, const double v,
   // std::cout << "===================\n";
 }
 
-}  // namespace apa_slam
+} // namespace apa_slam

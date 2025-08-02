@@ -17,6 +17,7 @@
 
 # 构建目录
 build/
+release/
 bin/
 Debug/
 Release/

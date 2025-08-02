@@ -18,8 +18,8 @@ PangolinDrawer::PangolinDrawer() {
 
   std::random_device rd;
   std::mt19937 gen(rd());
-  std::uniform_real_distribution<> sat_dist(0.7, 1.0);  // 饱和度范围
-  std::uniform_real_distribution<> val_dist(0.8, 1.0);  // 亮度范围
+  std::uniform_real_distribution<> sat_dist(0.7, 1.0); // 饱和度范围
+  std::uniform_real_distribution<> val_dist(0.8, 1.0); // 亮度范围
 
   // 黄金角度近似，确保色相均匀分布
   const double golden_ratio = 0.618033988749895;
@@ -41,36 +41,36 @@ PangolinDrawer::PangolinDrawer() {
     double t = v * (1 - (1 - f) * s);
 
     switch (hi % 6) {
-      case 0:
-        r = v;
-        g = t;
-        b = p;
-        break;
-      case 1:
-        r = q;
-        g = v;
-        b = p;
-        break;
-      case 2:
-        r = p;
-        g = v;
-        b = t;
-        break;
-      case 3:
-        r = p;
-        g = q;
-        b = v;
-        break;
-      case 4:
-        r = t;
-        g = p;
-        b = v;
-        break;
-      case 5:
-        r = v;
-        g = p;
-        b = q;
-        break;
+    case 0:
+      r = v;
+      g = t;
+      b = p;
+      break;
+    case 1:
+      r = q;
+      g = v;
+      b = p;
+      break;
+    case 2:
+      r = p;
+      g = v;
+      b = t;
+      break;
+    case 3:
+      r = p;
+      g = q;
+      b = v;
+      break;
+    case 4:
+      r = t;
+      g = p;
+      b = v;
+      break;
+    case 5:
+      r = v;
+      g = p;
+      b = q;
+      break;
     }
 
     _sl_color.emplace_back(r, g, b);
@@ -81,15 +81,15 @@ void PangolinDrawer::draw_traj() {
   glColor3f(1.0, 1.0, 1.0);
   glPointSize(3.0);
   glBegin(GL_POINTS);
-  for (const auto& pt : _traj) {
+  for (const auto &pt : _traj) {
     glVertex3f(pt.second.x, pt.second.y, .0);
   }
   glEnd();
 }
 
-void PangolinDrawer::draw_parking_slot(const int& id,
-                                       const Eigen::MatrixXd& data,
-                                       const bool& is_tar) {
+void PangolinDrawer::draw_parking_slot(const int &id,
+                                       const Eigen::MatrixXd &data,
+                                       const bool &is_tar) {
   glPointSize(8.0);
 
   glBegin(GL_POINTS);
@@ -108,8 +108,7 @@ void PangolinDrawer::draw_parking_slot(const int& id,
 
   if (!is_tar) {
     glColor3f(.0f, .0f, 1.0f);
-  }
-  else {
+  } else {
     glColor3f(1.0f, 0.5f, 0.f);
   }
   glLineWidth(5.0);
@@ -159,8 +158,12 @@ void PangolinDrawer::draw_vehicle_bbox() {
 
 void PangolinDrawer::draw_sliding_window() {
   SlwVisualization sw;
-  sw.sl_pose = gl_slw.sl_pose;
-  sw.sl_meas = gl_slw.sl_meas;
+
+  {
+    std::shared_lock<std::shared_mutex> lock(gl_slw.mutex);
+    sw.sl_pose = gl_slw.sl_pose;
+    sw.sl_meas = gl_slw.sl_meas;
+  }
 
   for (size_t i = 0; i < sw.sl_pose.size(); ++i) {
     Eigen::Matrix3d Rwb =
@@ -194,7 +197,7 @@ void PangolinDrawer::draw_sliding_window() {
   }
 }
 
-void PangolinDrawer::DrawAPA(pangolin::OpenGlRenderState& s_cam) {
+void PangolinDrawer::DrawAPA(pangolin::OpenGlRenderState &s_cam) {
   std::map<SensorType, std::vector<SemanticMea::Ptr>> cur_meas;
   std::map<SensorType, std::vector<int>> cur_matching;
   if (EkfEstimator::GetInstance().Initialized()) {
@@ -232,11 +235,11 @@ void PangolinDrawer::draw_local_meas() {
   }
 }
 
-void PangolinDrawer::draw_local_map(const Pose& pose) {
+void PangolinDrawer::draw_local_map(const Pose &pose) {
   if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
     return;
   }
-  const auto& slot_map =
+  const auto &slot_map =
       SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
   for (auto it = slot_map.begin(); it != slot_map.end(); ++it) {
     if (it->second->Initialized()) {
@@ -255,8 +258,8 @@ void PangolinDrawer::draw_local_map(const Pose& pose) {
   }
 }
 
-void PangolinDrawer::draw_vehicle(const Pose& latest_pose,
-                                  const Eigen::MatrixXd& latest_cov) {
+void PangolinDrawer::draw_vehicle(const Pose &latest_pose,
+                                  const Eigen::MatrixXd &latest_cov) {
   Eigen::Vector3d twb(latest_pose.x, latest_pose.y, .0);
   Eigen::AngleAxisd axang(latest_pose.yaw, Eigen::Vector3d::UnitZ());
   Eigen::Matrix3d Rwb = axang.toRotationMatrix();
@@ -295,4 +298,4 @@ void PangolinDrawer::draw_vehicle(const Pose& latest_pose,
   //   glEnd();
 }
 
-}  // namespace apa_slam
+} // namespace apa_slam
