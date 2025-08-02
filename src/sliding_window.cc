@@ -489,7 +489,7 @@ void SlidingWindow::ConstructEKF(
   // std::cout << "R\n" << residual.transpose() << std::endl;
   // std::cout << "#############################\n";
 
-  #ifdef ENABLE_OPENGL
+#ifdef ENABLE_OPENGL
   {
     std::unique_lock<std::shared_mutex> lock(gl_slw.mutex);
     gl_slw.sl_pose.clear();
@@ -528,7 +528,7 @@ void SlidingWindow::ConstructEKF(
     }
   }
 
-  #endif
+#endif
 }
 
 SlidingWindow &SlidingWindow::GetInstance() {
@@ -693,7 +693,7 @@ void SlidingWindow::marginalization(
       for (size_t i = 0; i < _window_lm_cross_correlation.size(); ++i) {
         if (_window_lm_cross_correlation.at(i).empty()) {
           continue;
-        } 
+        }
         auto it_w_lm = _window_lm_cross_correlation.at(i).begin();
         while (it_w_lm != _window_lm_cross_correlation.at(i).end()) {
           auto type = static_cast<SensorType>(it_w_lm->first.type);
@@ -862,7 +862,11 @@ void SlidingWindow::data_check() {
     }
   }
 
-  if (_state_landmark.size() > 1) {
+  if (!_state_landmark.empty() && _state_landmark.begin()->second.size() > 1) {
+    std::cout << "********************************************************\n";
+    std::cout << "********************************************************\n";
+    std::cout << "********************************************************\n";
+
     for (auto it = _lm_cross_correlation.begin();
          it != _lm_cross_correlation.end(); ++it) {
       auto type0 = static_cast<SensorType>(it->first.first.type);
@@ -899,6 +903,9 @@ void SlidingWindow::data_check() {
       std::cout << it->first.second << std::endl;
     }
   }
+
+  std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
+  std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
 }
 
 void SlidingWindow::landmark_state_augmentation(const SensorType &type,
