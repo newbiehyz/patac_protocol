@@ -863,9 +863,7 @@ void SlidingWindow::data_check() {
   }
 
   if (!_state_landmark.empty() && _state_landmark.begin()->second.size() > 1) {
-    std::cout << "********************************************************\n";
-    std::cout << "********************************************************\n";
-    std::cout << "********************************************************\n";
+
 
     for (auto it = _lm_cross_correlation.begin();
          it != _lm_cross_correlation.end(); ++it) {
@@ -904,8 +902,7 @@ void SlidingWindow::data_check() {
     }
   }
 
-  std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
-  std::cout << "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n";
+
 }
 
 void SlidingWindow::landmark_state_augmentation(const SensorType &type,
