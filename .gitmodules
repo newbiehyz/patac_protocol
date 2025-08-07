@@ -1,0 +1,3 @@
+[submodule "patac_protocol"]
+	path = patac_protocol
+	url = git@github.com:newbiehyz/patac_protocol.git
