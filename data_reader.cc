@@ -16,52 +16,77 @@ DataReader::~DataReader() {
     if (_stmt_imgs) {
         sqlite3_finalize(_stmt_imgs);
     }
+    if (_stmt_seq) {
+        sqlite3_finalize(_stmt_seq);
+    }
+    if (_stmt_dr) {
+        sqlite3_finalize(_stmt_dr);
+    }
+    if (_stmt_slots) {
+        sqlite3_finalize(_stmt_slots);
+    }
+    _initialized_seq = false;
+    _initialized_dr = false;
+    _initialized_slots = false;
+    _initialized_imgs = false;
+    for (int i = 0; i < 4; ++i) {
+        _initialized_query[i] = false;
+        if (_stmt_query[i]) {
+            sqlite3_finalize(_stmt_query[i]);
+        }
+    }  
 }
 
-std::vector<std::pair<int64_t, DataType>> DataReader::ReadDataSeq() {
+std::vector<std::pair<int64_t, DataType>> DataReader::ReadDataSeq(int&rc) {
     std::vector<std::pair<int64_t, DataType>> result;
-    std::string query = "SELECT timestamp, type FROM data_seq ORDER BY timestamp;";
-    
-    sqlite3_stmt* stmt;
-    _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &stmt, nullptr);
-    
-    if (_rc != SQLITE_OK) {
-        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
-        return result;
+    // 第一次调用时准备查询
+    if (!_initialized_seq) {
+        std::string query = "SELECT timestamp, type FROM data_seq ORDER BY timestamp;";
+        _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_seq, nullptr);
+            
+        if (_rc != SQLITE_OK) {
+            std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
+            return result;
+        }
+        _initialized_seq = true;
     }
     
-    while ((_rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        int64_t timestamp = sqlite3_column_int64(stmt, 0);
-        int type = sqlite3_column_int(stmt, 1);
+    if ((_rc = sqlite3_step(_stmt_seq)) == SQLITE_ROW) {
+        int64_t timestamp = sqlite3_column_int64(_stmt_seq, 0);
+        int type = sqlite3_column_int(_stmt_seq, 1);
         result.emplace_back(timestamp, static_cast<DataType>(type));
     }
-    
-    sqlite3_finalize(stmt);
+    rc = _rc;
+    // 如果到达结果集末尾，清理资源
+    if (_rc != SQLITE_ROW) {
+        sqlite3_finalize(_stmt_seq);
+        _stmt_seq = nullptr;
+        _initialized_seq = false;
+    }
     return result;
 }
 
 std::vector<patac_hpp::DRPose> DataReader::ReadDrPose(int&rc) {
     std::vector<patac_hpp::DRPose> result;
-    std::string query = "SELECT timestamp, data FROM dr_pose ORDER BY timestamp;";
-    
-    sqlite3_stmt* stmt;
-    _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &stmt, nullptr);
-    
-    if (_rc != SQLITE_OK) {
-        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
-        return result;
+    // 第一次调用时准备查询
+    if (!_initialized_dr) {
+        std::string query = "SELECT timestamp, data FROM dr_pose ORDER BY timestamp;";
+        _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_dr, nullptr);
+            
+        if (_rc != SQLITE_OK) {
+            std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
+            return result;
+        }
+        _initialized_dr = true;
     }
-    // std::cout << "read _rc: "<<sqlite3_step(stmt)<<" SQLITE_ROW: "<<SQLITE_ROW<<"\n";
-    while ((_rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        // if ((_rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        rc = _rc;
-        int64_t timestamp = sqlite3_column_int64(stmt, 0);
-        const void* blob_data = sqlite3_column_blob(stmt, 1);
-        int blob_size = sqlite3_column_bytes(stmt, 1);
 
-        // std::cout << "read loc size: "<<blob_size<<"\n";
+    if ((_rc = sqlite3_step(_stmt_dr)) == SQLITE_ROW) {
 
-        patac_hpp::DRPose pose;
+        int64_t timestamp = sqlite3_column_int64(_stmt_dr, 0);
+        const void* blob_data = sqlite3_column_blob(_stmt_dr, 1);
+        int blob_size = sqlite3_column_bytes(_stmt_dr, 1);
+
+        patac_hpp::DRPose pose;   
         if (blob_data && blob_size > 0) {
             if (pose.ParseFromArray(blob_data, blob_size)) {
                 result.push_back(pose);
@@ -69,100 +94,76 @@ std::vector<patac_hpp::DRPose> DataReader::ReadDrPose(int&rc) {
                 std::cerr << "Failed to parse DRPose at timestamp: " << timestamp << "\n";
             }
         }
+    }    
+    rc = _rc;
+    // 如果到达结果集末尾，清理资源
+    if (_rc != SQLITE_ROW) {
+        sqlite3_finalize(_stmt_dr);
+        _stmt_dr = nullptr;
+        _initialized_dr = false;
     }
-    
-    sqlite3_finalize(stmt);
     return result;
 }
 
-std::vector<patac_hpp::ParkingSlotList> DataReader::ReadParkingSlots() {
+std::vector<patac_hpp::ParkingSlotList> DataReader::ReadParkingSlots(int&rc) {
     std::vector<patac_hpp::ParkingSlotList> result;
-    std::string query = "SELECT timestamp, data FROM slot_list ORDER BY timestamp;";
-    
-    sqlite3_stmt* stmt;
-    _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &stmt, nullptr);
-    
-    if (_rc != SQLITE_OK) {
-        std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
-        return result;
+    // 第一次调用时准备查询
+    if (!_initialized_slots) {
+        std::string query = "SELECT timestamp, data FROM slot_list ORDER BY timestamp;";
+        _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_slots, nullptr);
+            
+        if (_rc != SQLITE_OK) {
+            std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
+            return result;
+        }
+        _initialized_slots = true;
     }
-    
-    while ((_rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-        int64_t timestamp = sqlite3_column_int64(stmt, 0);
-        const void* blob_data = sqlite3_column_blob(stmt, 1);
-        int blob_size = sqlite3_column_bytes(stmt, 1);
         
+    if ((_rc = sqlite3_step(_stmt_slots)) == SQLITE_ROW) {
+
+        int64_t timestamp = sqlite3_column_int64(_stmt_slots, 0);
+        const void* blob_data = sqlite3_column_blob(_stmt_slots, 1);
+        int blob_size = sqlite3_column_bytes(_stmt_slots, 1);
+
         patac_hpp::ParkingSlotList slots;
+        
         if (blob_data && blob_size > 0) {
             if (slots.ParseFromArray(blob_data, blob_size)) {
+                slots.set_timestamp(timestamp);// db col[0](timestamp)  
                 result.push_back(slots);
             } else {
                 std::cerr << "Failed to parse ParkingSlotList at timestamp: " << timestamp << "\n";
             }
         }
+    }   
+    rc = _rc;
+    // 如果到达结果集末尾，清理资源
+    if (_rc != SQLITE_ROW) {
+        sqlite3_finalize(_stmt_slots);
+        _stmt_slots = nullptr;
+        _initialized_slots = false;
     }
-    
-    sqlite3_finalize(stmt);
     return result;
 }
 
 std::vector<patac_hpp::ImageList> DataReader::ReadImgs(int&rc){
-
-//     std::vector<patac_hpp::ImageList> result;
-//     std::string query = "SELECT timestamp, data FROM fisheye_images ORDER BY timestamp;";
-    
-//     sqlite3_stmt* stmt;
-//     _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &stmt, nullptr);
-    
-//     if (_rc != SQLITE_OK) {
-//         std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
-//         return result;
-//     }
-    
-//     // while ((_rc = sqlite3_step(stmt)) == SQLITE_ROW && result.size() <= 20) {
-//     if ((_rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-//         rc = _rc;
-//         int64_t timestamp = sqlite3_column_int64(stmt, 0);
-//         const void* blob_data = sqlite3_column_blob(stmt, 1);
-//         int blob_size = sqlite3_column_bytes(stmt, 1);
-//         std::cout <<"img timestamp: "<<timestamp<< std::endl;
-
-//         patac_hpp::ImageList imgs;
-        
-//         if (blob_data && blob_size > 0) {
-//             if (imgs.ParseFromArray(blob_data, blob_size)) {
-//                 imgs.set_timestamp(timestamp);
-//                 result.push_back(imgs);
-//             } else {
-//                 std::cerr << "Failed to parse ParkingSlotList at timestamp: " << timestamp << "\n";
-//             }
-//         }
-//     }
-    
-//     sqlite3_finalize(stmt);
-//     return result;
-
-// }
     std::vector<patac_hpp::ImageList> result;
-        // 第一次调用时准备查询
-        if (!_initialized_imgs) {
-            std::string query = "SELECT timestamp, data FROM fisheye_images ORDER BY timestamp;";
-            _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_imgs, nullptr);
+    // 第一次调用时准备查询
+    if (!_initialized_imgs) {
+        std::string query = "SELECT timestamp, data FROM fisheye_images ORDER BY timestamp;";
+        _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_imgs, nullptr);
             
-            if (_rc != SQLITE_OK) {
-                std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
-                return result;
-            }
-            _initialized_imgs = true;
+        if (_rc != SQLITE_OK) {
+            std::cerr << "Failed to prepare statement: " << sqlite3_errmsg(_db) << "\n";
+            return result;
         }
+        _initialized_imgs = true;
+    }
     
-    // while ((_rc = sqlite3_step(stmt)) == SQLITE_ROW && result.size() <= 20) {
     if ((_rc = sqlite3_step(_stmt_imgs)) == SQLITE_ROW) {
-
         int64_t timestamp = sqlite3_column_int64(_stmt_imgs, 0);
         const void* blob_data = sqlite3_column_blob(_stmt_imgs, 1);
         int blob_size = sqlite3_column_bytes(_stmt_imgs, 1);
-        std::cout <<"img timestamp: "<<timestamp<< std::endl;
 
         patac_hpp::ImageList imgs;
         
@@ -186,5 +187,6 @@ std::vector<patac_hpp::ImageList> DataReader::ReadImgs(int&rc){
     return result;
 
 }
+
 
 } // namespace apa_slam
