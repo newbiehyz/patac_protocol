@@ -198,6 +198,13 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
       std::map<SensorType, std::set<int>> marginalization_list;
       SlidingWindow::GetInstance().ConstructEKF(
           x, P, residual, Hx, R, ekf_lm_pos, marginalization_list);
+
+      save_slot_map_cache(timestamp);
+
+      if (!marginalization_list.empty()) {
+        save_marginalization_cache(timestamp, marginalization_list);
+      }
+
       if (residual.size() != 0) {
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(
             Hx, Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -257,5 +264,179 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
     }
   }
 }
+
+void SlEKFManagement::save_marginalization_cache(const long long ts, 
+                                               const std::map<SensorType, std::set<int>>& marginalization_list) {
+  
+  if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
+    return;
+  }
+  
+  // 只保存 marginalization slot 数据
+  patac_hpp::ParkingSlotList margin_slot_list;
+  margin_slot_list.set_timestamp(ts);
+  
+  const auto& marginalized_slot_ids = marginalization_list.at(SEMANTIC_TYPE_PARKING_SLOT);
+  const auto& slot_map = SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
+  
+  uint32_t margin_slot_count = 0;
+
+  for (int slot_id : marginalized_slot_ids) {
+    auto it = slot_map.find(slot_id);
+    if (it != slot_map.end() && it->second->Initialized()) {
+      auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
+      if (!slot) {
+        continue; 
+      }
+      
+      Eigen::MatrixXd slot_data = slot->GetLandmarkData();
+      Eigen::MatrixXd slot_cov = slot->GetCov();
+      int id = it->second->GetId();
+      
+      patac_hpp::ParkingSlot* parking_slot = margin_slot_list.add_parking_slot_list();
+      parking_slot->set_id(id);
+      parking_slot->set_valid(1);
+      
+      auto attr = slot->GetAttribute();
+      switch (attr.slot_type) {
+        case Vertical:
+          parking_slot->set_type(patac_hpp::SlotTypeVertical);
+          break;
+        case Horizontal:
+          parking_slot->set_type(patac_hpp::SlotTypeParallel);
+          break;
+        case Oblique:
+          parking_slot->set_type(patac_hpp::SlotTypeOblique);
+          break;
+        default:
+          parking_slot->set_type(patac_hpp::SlotTypeUnknown);
+          break;
+      }
+      
+      if (attr.parkable) {
+        parking_slot->set_occupancy(patac_hpp::OccupancyStatusNotOccupied);
+      } else {
+        parking_slot->set_occupancy(patac_hpp::OccupancyStatusOccupied);
+      }
+      
+      patac_hpp::Point2f* point0 = parking_slot->add_points();
+      point0->set_x(slot_data(0,0));
+      point0->set_y(slot_data(1,0));
+      patac_hpp::Point2f* point1 = parking_slot->add_points();
+      point1->set_x(slot_data(0,1));
+      point1->set_y(slot_data(1,1));
+      
+      parking_slot->set_source(patac_hpp::ParkingSourceIpm);
+      
+      margin_slot_count++;
+    }
+  }
+  
+  margin_slot_list.set_num_parking_slot(margin_slot_count);
+  
+  if (margin_slot_count > 0) {
+    std::lock_guard<std::mutex> lock(_marginalization_data_mutex);
+    _marginalization_data_cache.push_back(margin_slot_list);
+  }
+}
+
+
+void SlEKFManagement::save_slot_map_cache(const long long ts) {
+  if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
+    return;
+  }
+
+  const auto& slot_map = SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
+  
+  patac_hpp::ParkingSlotList slot_map_list;
+  slot_map_list.set_timestamp(ts);
+  uint32_t slot_map_count = 0;
+
+  for (const auto& slot_pair : slot_map) {
+    int slot_id = slot_pair.first;
+    const auto& slot_landmark = slot_pair.second;
+    
+    if (!slot_landmark->Initialized()) {
+      continue;
+    }
+    
+    auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(slot_landmark);
+    if (!slot) {
+      continue;
+    }
+
+    Eigen::MatrixXd slot_data = slot->GetLandmarkData();
+    Eigen::MatrixXd slot_cov = slot->GetCov();
+    
+    patac_hpp::ParkingSlot* parking_slot = slot_map_list.add_parking_slot_list();
+    parking_slot->set_id(slot_id);
+    parking_slot->set_valid(1);
+
+    auto attr = slot->GetAttribute();
+    switch (attr.slot_type) {
+      case Vertical:
+        parking_slot->set_type(patac_hpp::SlotTypeVertical);
+        break;
+      case Horizontal:
+        parking_slot->set_type(patac_hpp::SlotTypeParallel);
+        break;
+      case Oblique:
+        parking_slot->set_type(patac_hpp::SlotTypeOblique);
+        break;
+      default:
+        parking_slot->set_type(patac_hpp::SlotTypeUnknown);
+        break;
+    }
+    
+    if (attr.parkable) {
+      parking_slot->set_occupancy(patac_hpp::OccupancyStatusNotOccupied);
+    } else {
+      parking_slot->set_occupancy(patac_hpp::OccupancyStatusOccupied);
+    }
+    
+    patac_hpp::Point2f* point0 = parking_slot->add_points();
+    point0->set_x(slot_data(0,0));
+    point0->set_y(slot_data(1,0));
+    patac_hpp::Point2f* point1 = parking_slot->add_points();
+    point1->set_x(slot_data(0,1));
+    point1->set_y(slot_data(1,1));
+    
+    parking_slot->set_source(patac_hpp::ParkingSourceIpm);
+     
+    slot_map_count++;
+  }
+  
+  slot_map_list.set_num_parking_slot(slot_map_count);
+
+  if (slot_map_count > 0) {
+    std::lock_guard<std::mutex> lock(_slot_map_data_mutex);
+    _slot_map_data_cache.push_back(slot_map_list);
+  }
+}
+
+
+std::vector<patac_hpp::ParkingSlotList> SlEKFManagement::GetCachedMarginalizationData() {
+  std::lock_guard<std::mutex> lock(_marginalization_data_mutex);
+  return _marginalization_data_cache;
+}
+
+void SlEKFManagement::ClearMarginalizationDataCache() {
+  std::lock_guard<std::mutex> lock(_marginalization_data_mutex);
+  _marginalization_data_cache.clear();
+}
+
+
+std::vector<patac_hpp::ParkingSlotList> SlEKFManagement::GetCachedSlotMapData() {
+  std::lock_guard<std::mutex> lock(_slot_map_data_mutex);
+  return _slot_map_data_cache;
+}
+
+void SlEKFManagement::ClearSlotMapDataCache() {
+  std::lock_guard<std::mutex> lock(_slot_map_data_mutex);
+  _slot_map_data_cache.clear();
+}
+
+
+
 
 }  // namespace apa_slam

@@ -18,6 +18,10 @@
 #include "math_utils.h"
 #include "matrix_plot.h"
 #include "semantic_map.h"
+
+#include "patac_dr.pb.h"
+
+
 using WindowCrossCorrelation =
     std::map<std::pair<int, int>,
              Eigen::MatrixXd>;  // std::pair<id0, id1> P01, id0 < id1,
@@ -61,6 +65,10 @@ class SlidingWindow {
 
   void Reset();
 
+  //protobuf cache
+  std::vector<patac_hpp::DRPose> GetCachedDeletedWindowData();
+  void ClearDeletedWindowCache();
+
  private:
   void data_check();
   void landmark_state_augmentation(const SensorType &type, const int &lm_id,
@@ -76,6 +84,8 @@ class SlidingWindow {
 
   void initialize_landmark(
       const std::vector<std::map<SensorType, std::vector<int>>> &sw_lm_list);
+
+  void save_deleted_window_cache(const long long &timestamp);
 
   void refresh_window_cross_correlation(const Eigen::MatrixXd &P);
 
@@ -139,5 +149,9 @@ class SlidingWindow {
   LMCrossCorrelation _lm_cross_correlation;
 
   std::map<SensorType, std::set<int>> _state_landmark;
+
+  //protobuf cache
+  std::vector<patac_hpp::DRPose> _deleted_window_cache;
+  std::mutex _deleted_window_mutex;
 };
 }  // namespace apa_slam

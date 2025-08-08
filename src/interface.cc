@@ -219,4 +219,101 @@ void LocalMappingInterface::Reset() {
   ActionQueue::GetInstance().PushAction(RESET);
 }
 
+
+void LocalMappingInterface::SaveMappingData() {
+  std::time_t now = std::time(nullptr);
+  std::tm* local_time = std::localtime(&now);
+  std::ostringstream time_str;
+  time_str << std::put_time(local_time, "%Y-%m-%d_%H-%M-%S");
+  
+  // 1. save margin
+  auto ekf_margin_data_list = SlEKFManagement::GetInstance().GetCachedMarginalizationData();
+  if (!ekf_margin_data_list.empty()) {
+    
+    // save .bin
+    std::string ekf_margin_filename = time_str.str() + "_marginalization_data.bin";
+    std::ofstream ekf_margin_file(ekf_margin_filename, std::ios::binary);
+    
+    if (ekf_margin_file.is_open()) {
+      for (const auto& margin_data : ekf_margin_data_list) {
+        std::string serialized_data;
+        if (margin_data.SerializeToString(&serialized_data)) {
+          uint32_t data_length = serialized_data.size();
+          ekf_margin_file.write(reinterpret_cast<const char*>(&data_length), sizeof(data_length));
+          ekf_margin_file.write(serialized_data.data(), serialized_data.size());
+        }
+      }
+      ekf_margin_file.close();
+    } else {
+      std::cerr << "Failed to open " << ekf_margin_filename << " for writing" << std::endl;
+    }
+
+  } else {
+    std::cout << "No EKF marginalization data to save" << std::endl;
+  }
+
+  // 2. save sliding window
+  auto deleted_window_list = SlidingWindow::GetInstance().GetCachedDeletedWindowData();
+  if (!deleted_window_list.empty()) {
+
+    // save .bin
+    std::string deleted_filename = time_str.str() + "_deleted_window_data.bin";  // 修复：去掉多余的+
+    std::ofstream deleted_file(deleted_filename, std::ios::binary);
+    
+    if (deleted_file.is_open()) {
+      for (const auto& deleted_data : deleted_window_list) {
+        std::string serialized_data;
+        if (deleted_data.SerializeToString(&serialized_data)) {
+          // 写入数据长度（用于后续读取）
+          uint32_t data_length = serialized_data.size();
+          deleted_file.write(reinterpret_cast<const char*>(&data_length), sizeof(data_length));
+          // 写入序列化数据
+          deleted_file.write(serialized_data.data(), serialized_data.size());
+        }
+      }
+      deleted_file.close();
+    } else {
+      std::cerr << "Failed to open " << deleted_filename << " for writing" << std::endl;
+    }
+    
+  } else {
+    std::cout << "No deleted window data to save" << std::endl;
+  }
+
+  // 3. save semantic map (slot map)
+  auto slot_map_data_list = SlEKFManagement::GetInstance().GetCachedSlotMapData();
+  if (!slot_map_data_list.empty()) {
+    
+    // save .bin
+    std::string slot_map_data_filename = time_str.str() + "_slot_map_data.bin";
+    std::ofstream slot_map_data_file(slot_map_data_filename, std::ios::binary);
+    
+    if (slot_map_data_file.is_open()) {
+      for (const auto& slot_map_data : slot_map_data_list) {
+        std::string serialized_data;
+        if (slot_map_data.SerializeToString(&serialized_data)) {
+          uint32_t data_length = serialized_data.size();
+          slot_map_data_file.write(reinterpret_cast<const char*>(&data_length), sizeof(data_length));
+          slot_map_data_file.write(serialized_data.data(), serialized_data.size());
+        }
+      }
+      slot_map_data_file.close();
+      std::cout << "Saved " << slot_map_data_list.size() << " slot map entries to " << slot_map_data_filename << std::endl;
+    } else {
+      std::cerr << "Failed to open " << slot_map_data_filename << " for writing" << std::endl;
+    }
+
+  } else {
+    std::cout << "No slot map data to save" << std::endl;
+  }
+  
+  // 4. clear cache
+  SlEKFManagement::GetInstance().ClearMarginalizationDataCache();
+  SlidingWindow::GetInstance().ClearDeletedWindowCache();
+  SlEKFManagement::GetInstance().ClearSlotMapDataCache();
+
+  LocalMappingInterface::GetInstance().Reset();
+}
+
+
 }  // namespace apa_slam

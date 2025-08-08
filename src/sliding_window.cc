@@ -790,6 +790,8 @@ void SlidingWindow::refresh_propagate_window_status(
     _sl_timestamp.push_back(timestamp);
 
   } else {
+    save_deleted_window_cache(timestamp);
+
     for (size_t i = 0; i < cur_win_sz - 1; ++i) {
       std::swap(_sl_pose.at(i), _sl_pose.at(i + 1));
       std::swap(_sl_P.at(i), _sl_P.at(i + 1));
@@ -1008,6 +1010,35 @@ bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
   }
 
   return false;
+}
+
+void SlidingWindow::save_deleted_window_cache(const long long &timestamp) {
+  patac_hpp::DRPose deleted_window_pose;
+
+  if (this->GetCurWindowSz() > 0) {
+    Eigen::VectorXd oldest_x = _sl_pose[0];
+
+    deleted_window_pose.set_x(oldest_x[0]);
+    deleted_window_pose.set_y(oldest_x[1]);
+    deleted_window_pose.set_yaw(oldest_x[2]);
+    
+    deleted_window_pose.set_timestamp(_sl_timestamp[0]);
+  }
+  
+  {
+    std::lock_guard<std::mutex> lock(_deleted_window_mutex);
+    _deleted_window_cache.push_back(deleted_window_pose);
+  }
+}
+
+std::vector<patac_hpp::DRPose> SlidingWindow::GetCachedDeletedWindowData() {
+  std::lock_guard<std::mutex> lock(_deleted_window_mutex);
+  return _deleted_window_cache;
+}
+
+void SlidingWindow::ClearDeletedWindowCache() {
+  std::lock_guard<std::mutex> lock(_deleted_window_mutex);
+  _deleted_window_cache.clear();
 }
 
 } // namespace apa_slam

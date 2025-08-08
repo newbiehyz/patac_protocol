@@ -48,6 +48,7 @@ void PangolinViewer::run() {
       {
         std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
         vis_meas.saveMap = true;
+        save_map_button.Reset();
       }
     }
     _drawer->DrawAPA(s_cam);

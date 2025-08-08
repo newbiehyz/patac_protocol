@@ -95,6 +95,12 @@ int main(int argc, char** argv) {
         LocalMappingInterface::GetInstance().SetTargetSlotId(tar_id);
         LocalMappingInterface::GetInstance().NotifyTargetStatus();
       }
+
+      if (vis_meas.saveMap == true){
+        LocalMappingInterface::GetInstance().SaveMappingData();
+        vis_meas.saveMap = false;
+      }
+
     }
     fin.close();
 

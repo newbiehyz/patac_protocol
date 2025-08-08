@@ -18,6 +18,8 @@
 #include "apa_parameters.h"
 #include "sliding_window.h"
 
+#include "patac_slot.pb.h"
+
 namespace apa_slam {
 class SlEKFManagement {
 public:
@@ -31,6 +33,12 @@ public:
   bool GetLatestVechileState(long long &timestamp, Eigen::VectorXd &mean,
                              Eigen::MatrixXd &cov);
   void Reset();
+
+  //protobuf cache
+  std::vector<patac_hpp::ParkingSlotList> GetCachedMarginalizationData();
+  void ClearMarginalizationDataCache();
+  std::vector<patac_hpp::ParkingSlotList> GetCachedSlotMapData();
+  void ClearSlotMapDataCache();
 
 private:
   void erase_pres(const long long timestamp);
@@ -46,6 +54,16 @@ private:
   std::map<long long, std::pair<Eigen::VectorXd, Eigen::MatrixXd>> _pre_states;
 
   std::mutex _data_mutex;
+
+  //protobuf cache
+  void save_slot_map_cache(const long long ts);
+  void save_marginalization_cache(const long long ts, 
+                                  const std::map<SensorType, std::set<int>>& marginalization_list);
+  
+  std::vector<patac_hpp::ParkingSlotList> _marginalization_data_cache;
+  std::mutex _marginalization_data_mutex;
+  std::vector<patac_hpp::ParkingSlotList> _slot_map_data_cache;
+  std::mutex _slot_map_data_mutex;
 
 };
 

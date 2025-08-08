@@ -24,6 +24,7 @@ class LocalMappingInterface {
   LocalMappingInterface();
   static LocalMappingInterface& GetInstance();
   void Reset();
+  void SaveMappingData();
   void Init(const std::string& cfg_json);
   void ProcDrPose(long long timestamp, const Eigen::VectorXd& pose);
   void ProcSlotData(long long timestamp_d,
