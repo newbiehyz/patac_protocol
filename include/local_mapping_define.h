@@ -140,6 +140,7 @@ struct FilterInfo {
 struct VisualizationMeas {
   std::mutex meas_mutex;
   std::vector<Eigen::VectorXd> slot_meas;
+  bool saveMap{false};
 };
 
 extern VisualizationMeas vis_meas;
