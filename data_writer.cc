@@ -15,7 +15,7 @@ void DataWriter::Init() {
   oss << std::put_time(localTime, "%Y-%m-%d_%H-%M-%S");
   //   _output_file_name = "/userdata/apatest/" + oss.str() + ".db";
   // _output_file_name = "/home/yukan/Desktop/" + oss.str() + ".db";
-  _output_file_name = "./" + oss.str() + ".db";
+  _output_file_name = "/userdata/apatest/" + oss.str() + ".db";
   _rc = sqlite3_open(_output_file_name.c_str(), &_db);
   if (_rc) {
     std::cerr << "Can't open database: " << sqlite3_errmsg(_db) << "\n";
@@ -162,8 +162,10 @@ void DataWriter::WriteImageList(const long long timestamp,
     auto image = img_list.add_image_list();
     image->set_width(imgs.at(i).cols);
     image->set_height(imgs.at(i).rows);
-    size_t data_size = imgs.at(i).total() * imgs.at(i).elemSize();
-    image->set_data(imgs.at(i).data, data_size);
+    std::vector<uchar> buffer;
+    cv::imencode(".png", imgs.at(i), buffer);
+    // size_t data_size = imgs.at(i).total() * imgs.at(i).elemSize();
+    image->set_data(buffer.data(), buffer.size());
   }
 
   std::string serialized;
@@ -235,37 +237,6 @@ void DataWriter::WriteSlotMsg(const long long timestamp,
   sqlite3_finalize(stmt_seq);
 }
 
-void DataWriter::WriteSlotMsg(const long long timestamp,
-                              const class patac_hpp::ParkingSlotList &slot_uv) {
-  std::string insert_data_slot =
-      "INSERT INTO slot_list (timestamp, data) VALUES (?, ?);";
 
-  patac_hpp::ParkingSlotList ps_list;
-  ps_list = slot_uv;
-  std::string serialized;
-  ps_list.SerializeToString(&serialized);
-  sqlite3_stmt *stmt_seq = nullptr;
-  sqlite3_prepare_v2(_db, insert_data_slot.c_str(), -1, &stmt_seq, nullptr);
-
-  sqlite3_bind_int64(stmt_seq, 1, timestamp);
-  sqlite3_bind_blob(stmt_seq, 2, serialized.data(), serialized.size(),
-                    SQLITE_TRANSIENT);
-
-  int rc = sqlite3_step(stmt_seq);
-  if (rc != SQLITE_DONE) {
-    std::cerr << "Insert into slot_list failed: " << sqlite3_errmsg(_db)
-              << std::endl;
-  } else {
-    // std::cout << "Successfully inserted pose at " << timestamp << std::endl;
-  }
-
-  // if (sqlite3_step(stmt_seq) != SQLITE_DONE) {
-  //   std::cerr << "Insert into dr_pose failed: " << sqlite3_errmsg(_db)
-  //             << std::endl;
-  // }
-
-  sqlite3_reset(stmt_seq);
-  sqlite3_finalize(stmt_seq);
-}
 
 }  // namespace apa_slam
