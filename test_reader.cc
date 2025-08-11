@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
                     
                     patac_hpp::DRPose dr_posestmp;
                     reader.QueryDataByTimestamp("dr_pose", data_seq[0].first, dr_posestmp,1);
-                    std::cout <<"drtime: "<<dr_posestmp.timestamp()<<dr_posestmp.x()*1000<<","<<dr_posestmp.y()*1000<<","<<dr_posestmp.yaw()/3.1415926*180<< std::endl;
+                    std::cout <<"drtime: "<<dr_posestmp.timestamp()<<","<<dr_posestmp.x()*1000<<","<<dr_posestmp.y()*1000<<","<<dr_posestmp.yaw()/3.1415926*180<< std::endl;
                     //粗暴顺序回放-dr
                     // auto dr_posestmp = reader.ReadDrPose(dr_rc);
                     // std::cout <<"drtime: "<<dr_posestmp[0].timestamp()<<dr_posestmp[0].x()*1000<<","<<dr_posestmp[0].y()*1000<<","<<dr_posestmp[0].yaw()/3.1415926*180<< std::endl;
