@@ -394,7 +394,6 @@ void SlidingWindow::ConstructEKF(
   // }
 
   // sw_lm_list_copy = sw_lm_list;
-
   initialize_landmark(sw_lm_list);
   if (only_localization) {
     margin_list.clear();
@@ -415,14 +414,14 @@ void SlidingWindow::ConstructEKF(
   // std::cout << P << std::endl;
   // std::cout << "======================\n";
   // getchar();
-
   int residual_sz = get_residual_sz(sw_lm_list);
   residual = Eigen::VectorXd::Zero(residual_sz);
   H = Eigen::MatrixXd::Zero(residual_sz, state_sz);
   R = Eigen::MatrixXd::Zero(residual_sz, residual_sz);
 
   int residual_pos = 0;
-  for (size_t i = 0; i < sw_lm_list.size(); ++i) {
+  for (size_t i = 0; i < sw_lm_list.size(); ++i)
+  {
     int window_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
     for (auto it_type = sw_lm_list.at(i).begin();
          it_type != sw_lm_list.at(i).end(); ++it_type) {
@@ -790,7 +789,9 @@ void SlidingWindow::refresh_propagate_window_status(
     _sl_timestamp.push_back(timestamp);
 
   } else {
-    save_deleted_window_cache(timestamp);
+    if(vis_meas.startMapping && !vis_meas.startLocalization){
+      save_deleted_window_cache(timestamp);
+    }
 
     for (size_t i = 0; i < cur_win_sz - 1; ++i) {
       std::swap(_sl_pose.at(i), _sl_pose.at(i + 1));

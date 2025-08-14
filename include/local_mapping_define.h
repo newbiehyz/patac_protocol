@@ -137,10 +137,14 @@ struct FilterInfo {
   double ts;
 };
 
-struct VisualizationMeas {
+struct  VisualizationMeas {
   std::mutex meas_mutex;
   std::vector<Eigen::VectorXd> slot_meas;
   bool saveMap{false};
+  bool startMapping{false};
+  bool IsLoadMap{false};
+  bool startLocalization{false};
+  std::string slot_map_data_filename{"marginalization_data.bin"};
 };
 
 extern VisualizationMeas vis_meas;

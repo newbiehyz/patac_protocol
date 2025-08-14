@@ -39,21 +39,31 @@ int main(int argc, char** argv) {
     fin.open(data_file, std::ios::in);
     std::string line;
     double t;
-    while (getline(fin, line)) {
+    if (!vis_meas.startMapping && !vis_meas.startLocalization)
+    {
+      continue;
+    }
+    if (vis_meas.startLocalization && !vis_meas.IsLoadMap)
+    {
+      SemanticMap::GetInstance().LoadMappingData(SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
+      vis_meas.IsLoadMap = true;
+    }
+    while (getline(fin, line))
+    {
       std::stringstream ss(line);
       std::string type;
       ss >> type;
-
+      // if (type == "pose" && (vis_meas.startMapping || vis_meas.startLocalization)) {
       if (type == "pose") {
         Eigen::VectorXd pose = Eigen::VectorXd::Zero(3);
         double ts;
         ss >> ts >> pose[0] >> pose[1] >> pose[2];
         long long tsll = static_cast<long long>(ts * 1000);
         LocalMappingInterface::GetInstance().ProcDrPose(tsll, pose);
-        
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
       }
 
+      // if (type == "slot" && (vis_meas.startMapping || vis_meas.startLocalization)) {
       if (type == "slot") {
         double ts;
         int n;
@@ -99,9 +109,9 @@ int main(int argc, char** argv) {
     }
     fin.close();
 
-    while(true) {
+    // while(true) {
       
-    }
+    // }
   }
 
   return 0;

@@ -29,6 +29,8 @@ void PangolinViewer::run() {
   pangolin::CreatePanel("ui").SetBounds(0.0, 1.0, 0.0, 0.2);
 
   pangolin::Var<bool> save_map_button("ui.SaveMap", false, false);
+  pangolin::Var<bool> start_mapping_button("ui.StartMapping", false, false);
+  pangolin::Var<bool> start_localization_button("ui.StartLocalization", false, false);
 
   pangolin::OpenGlRenderState s_cam(
       pangolin::ProjectionMatrix(1024, 768, 500, 500, 512, 389, 0.1, 1000),
@@ -56,6 +58,23 @@ void PangolinViewer::run() {
         ActionQueue::GetInstance().PushAction(RESET);
       }
     }
+    if (pangolin::Pushed(start_mapping_button)) {
+      std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+      vis_meas.startMapping = true;
+      only_localization = false;
+      vis_meas.startLocalization = false;
+      vis_meas.IsLoadMap = false;
+      start_mapping_button.Reset();
+    }
+    if (pangolin::Pushed(start_localization_button)) {
+      std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+      vis_meas.startLocalization = true;
+      only_localization = true;
+      vis_meas.startMapping = false;
+      vis_meas.IsLoadMap = false;
+      start_localization_button.Reset();
+    }
+
     _drawer->DrawAPA(s_cam);
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));

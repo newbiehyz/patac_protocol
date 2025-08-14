@@ -39,28 +39,36 @@ void MapManagement::process_slot_matching(
       continue;
     }
 
-    if (SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,
+    if(vis_meas.startMapping){
+      if (SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,
                                                map_id)) {
       SemanticMap::GetInstance().AddMea(SEMANTIC_TYPE_PARKING_SLOT, map_id, meas.at(i), mea_pose);                                   
-    } else {
-      Eigen::MatrixXd lm_data =
-          Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
+      } else {
+        Eigen::MatrixXd lm_data =
+            Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
 
-      Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
-      Eigen::Rotation2Dd rot(mea_pose.yaw);
-      Eigen::Matrix2d Rwb = rot.toRotationMatrix();
+        Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
+        Eigen::Rotation2Dd rot(mea_pose.yaw);
+        Eigen::Matrix2d Rwb = rot.toRotationMatrix();
 
-      lm_data = Rwb * meas.at(i)->GetMeaData().topLeftCorner(2, 2) +
-                twb.replicate(1, 2);
+        lm_data = Rwb * meas.at(i)->GetMeaData().topLeftCorner(2, 2) +
+                  twb.replicate(1, 2);
 
-      int id = SemanticMap::GetInstance().GetMapLandmarkNum(
-          SEMANTIC_TYPE_PARKING_SLOT);
-      SemanticLandmark::Ptr slot_lm =
-          std::make_shared<ParkingSlotLandmark>(id, lm_data.data());
-      slot_lm->AddSemanticMea(meas.at(i)->GetMeaTimestamp(), mea_pose,
-                              meas.at(i));
-      SemanticMap::GetInstance().AddLandmark(SEMANTIC_TYPE_PARKING_SLOT,
-                                             slot_lm);
+        int id = SemanticMap::GetInstance().GetMapLandmarkNum(
+            SEMANTIC_TYPE_PARKING_SLOT);
+        SemanticLandmark::Ptr slot_lm =
+            std::make_shared<ParkingSlotLandmark>(id, lm_data.data());
+        slot_lm->AddSemanticMea(meas.at(i)->GetMeaTimestamp(), mea_pose,
+                                meas.at(i));
+        SemanticMap::GetInstance().AddLandmark(SEMANTIC_TYPE_PARKING_SLOT,
+                                              slot_lm);
+      }
+    }
+    else{
+      if(!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)){
+        only_localization = true;
+        SemanticMap::GetInstance().LoadMappingData(SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
+      }
     }
   }
 }

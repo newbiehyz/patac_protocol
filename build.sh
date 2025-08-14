@@ -21,5 +21,5 @@ cp patac_protocol/cpp_gen/*.pb.cc patac_protocol/src/protocol/
 echo "Protocol buffers (patac_hpp) generated and saved to ${CPP_DIR}"
 
 cd build
-cmake ..
+cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j$(nproc)

@@ -17,6 +17,7 @@
 #include "local_mapping_define.h"
 #include "parking_slot_landmark.h"
 #include "semantic_landmark.h"
+#include "patac_slot.pb.h"
 
 namespace apa_slam {
 class SemanticMap {
@@ -73,7 +74,9 @@ class SemanticMap {
 
   void SetTargetSlotId(const int id);
 
- private:
+  void LoadMappingData(const SensorType type, const std::string& slot_map_data_filename);
+
+private:
   std::map<SensorType, std::map<int, SemanticLandmark::Ptr>> _map;
 
   std::mutex _data_mutex;

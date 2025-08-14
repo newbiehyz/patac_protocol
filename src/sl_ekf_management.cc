@@ -198,12 +198,14 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
       std::map<SensorType, std::set<int>> marginalization_list;
       SlidingWindow::GetInstance().ConstructEKF(
           x, P, residual, Hx, R, ekf_lm_pos, marginalization_list);
+      if (vis_meas.startMapping && !vis_meas.startLocalization)
+        save_slot_map_cache(timestamp);
 
-      save_slot_map_cache(timestamp);
-
-      if (!marginalization_list.empty()) {
+      if (vis_meas.startMapping && !vis_meas.startLocalization && !marginalization_list.empty()) {
+      // if (!marginalization_list.empty()) {
         save_marginalization_cache(timestamp, marginalization_list);
       }
+      // }
 
       if (residual.size() != 0) {
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(
