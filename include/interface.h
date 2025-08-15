@@ -18,6 +18,7 @@
 #include "odo_measurement.h"
 #include "parking_slot_measurement.h"
 #include "semantic_measurement.h"
+#include "data_writer.h"
 namespace apa_slam {
 class LocalMappingInterface {
  public:
@@ -38,7 +39,9 @@ class LocalMappingInterface {
   void SetTargetSlotId(const int id);
 
   void NotifyTargetStatus();
- private:
+  void ProcImages(long long timestamp,
+                  const std::vector<cv::Mat> &imgs);
+private:
   void set_id_th();
   std::string _output_file_name;
   std::string _cfg;

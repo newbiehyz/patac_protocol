@@ -54,6 +54,7 @@ struct DatasetParams {
   bool use_udp;
   std::string udp_ip;
   int udp_port;
+  int recordmode;
 };
 
 enum ParkingSlotType { Vertical = 0, Horizontal = 1, Oblique = 2};

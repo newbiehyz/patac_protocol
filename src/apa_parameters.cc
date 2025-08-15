@@ -121,7 +121,7 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _dataset_params.use_udp = data["fillback"]["use_udp"];
     _dataset_params.udp_ip = data["fillback"]["network_ip"];
     _dataset_params.udp_port = data["fillback"]["port"];
-
+    _dataset_params.recordmode = data["dataproto"]["recordmode"];
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;
     return false;

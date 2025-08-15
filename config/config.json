@@ -39,8 +39,8 @@
     "use_udp": true,
     "network_ip": "192.168.2.101",
     "port": 8888
+  },
+  "dataproto": {
+    "recordmode": 1
   }
-
-
-
 }
