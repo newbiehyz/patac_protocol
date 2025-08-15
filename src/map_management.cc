@@ -11,41 +11,42 @@
 namespace apa_slam {
 MapManagement::MapManagement() {}
 
-MapManagement& MapManagement::GetInstance() {
+MapManagement &MapManagement::GetInstance() {
   static MapManagement instance;
   return instance;
 }
 
-void MapManagement::ProcessMatching(const std::vector<SemanticMea::Ptr>& meas,
-                                    const std::vector<int>& map_matching,
-                                    const Pose& mea_pose,
-                                    const SensorType& type) {
+void MapManagement::ProcessMatching(const std::vector<SemanticMea::Ptr> &meas,
+                                    const std::vector<int> &map_matching,
+                                    const Pose &mea_pose,
+                                    const SensorType &type) {
   switch (type) {
-    case SEMANTIC_TYPE_PARKING_SLOT:
-      process_slot_matching(meas, map_matching, mea_pose);
-      break;
+  case SEMANTIC_TYPE_PARKING_SLOT:
+    process_slot_matching(meas, map_matching, mea_pose);
+    break;
 
-    default:
-      break;
+  default:
+    break;
   }
 }
 
 void MapManagement::process_slot_matching(
-    const std::vector<SemanticMea::Ptr>& meas,
-    const std::vector<int>& map_matching, const Pose& mea_pose) {
+    const std::vector<SemanticMea::Ptr> &meas,
+    const std::vector<int> &map_matching, const Pose &mea_pose) {
   for (size_t i = 0; i < map_matching.size(); ++i) {
     int map_id = map_matching.at(i);
     if (map_id == -2) {
       continue;
     }
 
-    if(vis_meas.startMapping){
+    if (vis_meas.startMapping) {
       if (SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,
-                                               map_id)) {
-      SemanticMap::GetInstance().AddMea(SEMANTIC_TYPE_PARKING_SLOT, map_id, meas.at(i), mea_pose);                                   
+                                                 map_id)) {
+        SemanticMap::GetInstance().AddMea(SEMANTIC_TYPE_PARKING_SLOT, map_id,
+                                          meas.at(i), mea_pose);
       } else {
-        Eigen::MatrixXd lm_data =
-            Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
+        Eigen::MatrixXd lm_data = Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT,
+                                                        DATA_COLS_PARKING_SLOT);
 
         Eigen::Vector2d twb(mea_pose.x, mea_pose.y);
         Eigen::Rotation2Dd rot(mea_pose.yaw);
@@ -61,15 +62,21 @@ void MapManagement::process_slot_matching(
         slot_lm->AddSemanticMea(meas.at(i)->GetMeaTimestamp(), mea_pose,
                                 meas.at(i));
         SemanticMap::GetInstance().AddLandmark(SEMANTIC_TYPE_PARKING_SLOT,
-                                              slot_lm);
+                                               slot_lm);
       }
-    }
-    else{
-      if(!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)){
+    } else {
+      if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
         only_localization = true;
-        SemanticMap::GetInstance().LoadMappingData(SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
+        SemanticMap::GetInstance().LoadMappingData(
+            SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
+      }
+
+      if (SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,
+                                                 map_id)) {
+        SemanticMap::GetInstance().AddMea(SEMANTIC_TYPE_PARKING_SLOT, map_id,
+                                          meas.at(i), mea_pose);
       }
     }
   }
 }
-}  // namespace apa_slam
+} // namespace apa_slam

@@ -394,7 +394,11 @@ void SlidingWindow::ConstructEKF(
   // }
 
   // sw_lm_list_copy = sw_lm_list;
-  initialize_landmark(sw_lm_list);
+
+  if (!only_localization) {
+    initialize_landmark(sw_lm_list);
+  }
+
   if (only_localization) {
     margin_list.clear();
   }
@@ -420,15 +424,14 @@ void SlidingWindow::ConstructEKF(
   R = Eigen::MatrixXd::Zero(residual_sz, residual_sz);
 
   int residual_pos = 0;
-  for (size_t i = 0; i < sw_lm_list.size(); ++i)
-  {
+  for (size_t i = 0; i < sw_lm_list.size(); ++i) {
     int window_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
     for (auto it_type = sw_lm_list.at(i).begin();
          it_type != sw_lm_list.at(i).end(); ++it_type) {
       const auto &type = it_type->first;
       for (size_t j = 0; j < it_type->second.size(); ++j) {
         int lm_id = it_type->second.at(j);
-        int lm_pos = ekf_lm_pos.at(type).at(lm_id);
+
         SemanticMea::Ptr mea;
         SemanticMap::GetInstance()
             .GetLandmark(type, lm_id)
@@ -441,8 +444,13 @@ void SlidingWindow::ConstructEKF(
                                      J_landmark);
         // J_landmark.setZero();
 
-        // std::cout << "residual: " << r.transpose() << " winid: " << i
-        //           << " lmid: " << lm_id << std::endl;
+        if (!only_localization) {
+          int lm_pos = ekf_lm_pos.at(type).at(lm_id);
+          H.block(residual_pos, lm_pos, r.size(), STATE_PARKING_SLOT_SIZE) =
+              J_landmark;
+        }
+        std::cout << "residual: " << r.transpose() << " winid: " << i
+                  << " lmid: " << lm_id << std::endl;
         residual.segment(residual_pos, r.size()) = r;
         R.block(residual_pos, residual_pos, r.size(), r.size()) =
             SemanticMap::GetInstance()
@@ -452,31 +460,30 @@ void SlidingWindow::ConstructEKF(
 
         H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE) =
             J_window;
-        H.block(residual_pos, lm_pos, r.size(), STATE_PARKING_SLOT_SIZE) =
-            J_landmark;
-        bool is_tar = false;
-        if (type == SensorType::SEMANTIC_TYPE_PARKING_SLOT) {
-          auto ps_ptr = std::dynamic_pointer_cast<ParkingSlotLandmark>(
-              SemanticMap::GetInstance().GetLandmark(type, lm_id));
-          if (ps_ptr->IsTarget()) {
-            is_tar = true;
-          }
-        }
-        if (only_localization) {
-          H.block(residual_pos, lm_pos, r.size(), STATE_PARKING_SLOT_SIZE)
-              .setZero();
-        }
+
+        // bool is_tar = false;
+        // if (type == SensorType::SEMANTIC_TYPE_PARKING_SLOT) {
+        //   auto ps_ptr = std::dynamic_pointer_cast<ParkingSlotLandmark>(
+        //       SemanticMap::GetInstance().GetLandmark(type, lm_id));
+        //   if (ps_ptr->IsTarget()) {
+        //     is_tar = true;
+        //   }
+        // }
+        // if (only_localization) {
+        //   H.block(residual_pos, lm_pos, r.size(), STATE_PARKING_SLOT_SIZE)
+        //       .setZero();
+        // }
 
         // if (only_localization && !is_tar) {
         //   H.block(residual_pos, window_pos, r.size(), STATE_VEHICLE_SIZE)
         //       .setZero();
         // }
 
-        if (only_localization && is_tar) {
-          // H.block(residual_pos, window_pos, r.size(),
-          // STATE_VEHICLE_SIZE).setZero();
-          R.block(residual_pos, residual_pos, r.size(), r.size()) *= 0.01;
-        }
+        // if (only_localization && is_tar) {
+        //   // H.block(residual_pos, window_pos, r.size(),
+        //   // STATE_VEHICLE_SIZE).setZero();
+        //   R.block(residual_pos, residual_pos, r.size(), r.size()) *= 0.01;
+        // }
 
         residual_pos += r.size();
       }
@@ -789,7 +796,7 @@ void SlidingWindow::refresh_propagate_window_status(
     _sl_timestamp.push_back(timestamp);
 
   } else {
-    if(vis_meas.startMapping && !vis_meas.startLocalization){
+    if (vis_meas.startMapping && !vis_meas.startLocalization) {
       save_deleted_window_cache(timestamp);
     }
 
@@ -867,7 +874,6 @@ void SlidingWindow::data_check() {
 
   if (!_state_landmark.empty() && _state_landmark.begin()->second.size() > 1) {
 
-
     for (auto it = _lm_cross_correlation.begin();
          it != _lm_cross_correlation.end(); ++it) {
       auto type0 = static_cast<SensorType>(it->first.first.type);
@@ -904,8 +910,6 @@ void SlidingWindow::data_check() {
       std::cout << it->first.second << std::endl;
     }
   }
-
-
 }
 
 void SlidingWindow::landmark_state_augmentation(const SensorType &type,
@@ -1022,10 +1026,10 @@ void SlidingWindow::save_deleted_window_cache(const long long &timestamp) {
     deleted_window_pose.set_x(oldest_x[0]);
     deleted_window_pose.set_y(oldest_x[1]);
     deleted_window_pose.set_yaw(oldest_x[2]);
-    
+
     deleted_window_pose.set_timestamp(_sl_timestamp[0]);
   }
-  
+
   {
     std::lock_guard<std::mutex> lock(_deleted_window_mutex);
     _deleted_window_cache.push_back(deleted_window_pose);
