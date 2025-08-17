@@ -41,6 +41,6 @@
     "port": 8888
   },
   "dataproto": {
-    "recordmode": 1
+    "recordmode": 0
   }
 }
