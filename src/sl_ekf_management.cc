@@ -359,10 +359,10 @@ void SlEKFManagement::save_slot_map_cache(const long long ts) {
     int slot_id = slot_pair.first;
     const auto& slot_landmark = slot_pair.second;
 
-    // // for finding already cached
-    // if (_cached_slot_ids.find(slot_id) != _cached_slot_ids.end()) {
-    //   continue;
-    // }
+    // for finding already cached
+    if (_cached_slot_ids.find(slot_id) != _cached_slot_ids.end()) {
+      continue;
+    }
     
     if (!slot_landmark->Initialized()) {
       continue;
@@ -411,7 +411,7 @@ void SlEKFManagement::save_slot_map_cache(const long long ts) {
     
     parking_slot->set_source(patac_hpp::ParkingSourceIpm);
      
-    // _cached_slot_ids.insert(slot_id); // for finding already cached
+    _cached_slot_ids.insert(slot_id); // for finding already cached
     slot_map_count++;
   }
   

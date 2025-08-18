@@ -65,7 +65,7 @@ private:
   std::vector<patac_hpp::ParkingSlotList> _slot_map_data_cache;
   std::mutex _slot_map_data_mutex;
 
-  // std::set<int> _cached_slot_ids; // for finding already cached
+  std::set<int> _cached_slot_ids; // for finding already cached
 
 };
 
