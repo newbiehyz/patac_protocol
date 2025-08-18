@@ -6,7 +6,6 @@
 #include "interface.h"
 #include "odo_measurement.h"
 #include "parking_slot_measurement.h"
-#include "data_reader.h"
 #ifdef ENABLE_OPENGL
 #include "visualization/pangolin_viewer.h"
 #endif
@@ -19,6 +18,7 @@ void ResetFunc();
 int main(int argc, char** argv) {
   const std::string cfg = argv[1];
   std::string data_file = argv[2];
+
   LocalMappingInterface::GetInstance().Init(cfg);
 
 #ifdef ENABLE_OPENGL
@@ -32,83 +32,53 @@ int main(int argc, char** argv) {
 #endif
 
   LocalMappingInterface::GetInstance().Init(cfg);
-  apa_slam::DataReader reader(data_file); //读取数据库文件名
+
   while (true) {
     LocalMappingInterface::GetInstance().Reset();
-    // std::ifstream fin;
-    // fin.open(data_file, std::ios::in);
-    // std::string line;
-    // double t;
-    int seq_rc = SQLITE_ROW;
-    // while (getline(fin, line)) {
-    while (true) {
-      // std::stringstream ss(line);
-      // std::string type;
-      // ss >> type;
-      auto data_seq = reader.ReadDataSeq(seq_rc);
-      if(!data_seq.empty()){
-       if(1 == data_seq[0].second){
-        patac_hpp::DRPose dr_posestmp;
-        reader.QueryDataByTimestamp("dr_pose", data_seq[0].first, dr_posestmp,1);
     std::ifstream fin;
     fin.open(data_file, std::ios::in);
     std::string line;
     double t;
-    if (!vis_meas.startMapping && !vis_meas.startLocalization)
-    {
-      continue;
-    }
-    if (vis_meas.startLocalization && !vis_meas.IsLoadMap)
-    {
-      SemanticMap::GetInstance().LoadMappingData(SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
-      vis_meas.IsLoadMap = true;
-    }
-    while (getline(fin, line))
-    {
+    while (getline(fin, line)) {
       std::stringstream ss(line);
       std::string type;
       ss >> type;
-      // if (type == "pose" && (vis_meas.startMapping || vis_meas.startLocalization)) {
+
       if (type == "pose") {
         Eigen::VectorXd pose = Eigen::VectorXd::Zero(3);
-        pose[0] = dr_posestmp.x();
-        pose[1] = dr_posestmp.y();
-        pose[2] = dr_posestmp.yaw();
-        long long tsll = static_cast<long long>(dr_posestmp.timestamp());
+        double ts;
+        ss >> ts >> pose[0] >> pose[1] >> pose[2];
+        long long tsll = static_cast<long long>(ts * 1000);
         LocalMappingInterface::GetInstance().ProcDrPose(tsll, pose);
+        
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-       }else if(2 == data_seq[0].second){
-        patac_hpp::ParkingSlotList slots;
-        reader.QueryDataByTimestamp("slot_list", data_seq[0].first, slots,2);
-        long long tsll = static_cast<long long>(data_seq[0].first);
       }
 
-      // if (type == "slot" && (vis_meas.startMapping || vis_meas.startLocalization)) {
       if (type == "slot") {
         double ts;
         int n;
         ss >> ts >> n;
         std::vector<Eigen::VectorXd> slot_data;
         std::vector<ParkingSlotAttribute> slot_attribute;
-        for(int i=0;i<slots.parking_slot_list_size();i++){
+        long long tsll = static_cast<long long>(ts * 1000);
+        // std::vector<SemanticMea::Ptr> mea_vector;
+        for (int i = 0; i < n; ++i) {
           Eigen::MatrixXd mea_data = Eigen::MatrixXd::Zero(2, 2);
-          int type=0, parkabel=1;
+          double u0, v0, u1, v1;
+          int type, parkabel;
+          ss >> u0 >> v0 >> u1 >> v1 >> parkabel >> type;
           Eigen::VectorXd uv = Eigen::VectorXd::Zero(4);
-          uv[0] = slots.parking_slot_list(i).points(0).x();
-          uv[1] = slots.parking_slot_list(i).points(0).y();
-          uv[2] = slots.parking_slot_list(i).points(1).x();
-          uv[3] = slots.parking_slot_list(i).points(1).y();
-          using namespace std; 
-          // cout << "uv[0]: " << uv[0] << endl;
-          // cout << "uv[1]: " << uv[1] << endl;
-          // cout << "uv[2]: " << uv[2] << endl;
-          // cout << "uv[3]: " << uv[3] << endl;
+          uv[0] = u0;
+          uv[1] = v0;
+          uv[2] = u1;
+          uv[3] = v1;
+
           slot_data.push_back(uv);
           apa_slam::ParkingSlotAttribute attr;
           attr.parkable = parkabel;
           attr.slot_type = static_cast<apa_slam::ParkingSlotType>(type);
           slot_attribute.push_back(attr);
-        }        
+        }
         LocalMappingInterface::GetInstance().ProcSlotData(tsll, slot_data,
                                                           slot_attribute);
         std::cout << "Update Size: " << slot_data.size() << std::endl;
@@ -116,15 +86,23 @@ int main(int argc, char** argv) {
         // LocalMappingInterface::ProcSlotData()
 
         std::this_thread::sleep_for(std::chrono::milliseconds(10));
-       }//else if() (set_target_id){
-        // int tar_id;
-        // ss >> tar_id;
-        // LocalMappingInterface::GetInstance().SetTargetSlotId(tar_id);
-        // LocalMappingInterface::GetInstance().NotifyTargetStatus();
-        // }
+      }
+
+
+      if (type == "set_target_id") {
+        int tar_id;
+        ss >> tar_id;
+        LocalMappingInterface::GetInstance().SetTargetSlotId(tar_id);
+        LocalMappingInterface::GetInstance().NotifyTargetStatus();
       }
     }
+    fin.close();
+
+    while(true) {
+      
+    }
   }
+
   return 0;
 }
 
