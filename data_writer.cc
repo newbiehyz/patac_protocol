@@ -21,6 +21,19 @@ void DataWriter::Init() {
     std::cerr << "Can't open database: " << sqlite3_errmsg(_db) << "\n";
     return;
   }
+  // 1. 配置数据库参数（提升写入速度）
+  char* errMsg = nullptr;
+  if (sqlite3_exec(_db, "PRAGMA synchronous = NORMAL;", nullptr, nullptr, &errMsg) != SQLITE_OK) {
+    std::cerr << "Failed to disable synchronous: " << errMsg << std::endl;
+    sqlite3_free(errMsg);
+  }
+  if (sqlite3_exec(_db, "PRAGMA journal_mode = WAL;", nullptr, nullptr, &errMsg) != SQLITE_OK) {
+    std::cerr << "Failed to set journal_mode: " << errMsg << std::endl;
+    sqlite3_free(errMsg);
+  }
+  //增大页面大小和缓存,减少磁盘访问频率
+  sqlite3_exec(_db, "PRAGMA page_size = 4096;", nullptr, nullptr, &errMsg);  // 默认 1024
+  sqlite3_exec(_db, "PRAGMA cache_size = -10000;", nullptr, nullptr, &errMsg);  // 10MB 缓存
 
   create_tables();
 

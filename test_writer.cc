@@ -1,6 +1,9 @@
 #include <Eigen/Eigen>
 
 #include "data_writer.h"
+#include <iostream>
+#include <chrono>
+#include <thread>
 using namespace apa_slam;
 
 cv::Mat generate_random_shape_image(int width = 640, int height = 480) {
@@ -36,15 +39,33 @@ int main() {
   long long timestamp = 1e16;
 
   for (size_t i = 0; i < 10; ++i) {
+
+
     DataWriter::GetInstance().WriteDataSeq(timestamp,
                                            static_cast<apa_slam::DataType>(1));
 
     Eigen::Vector3d random_pose = Eigen::Vector3d::Random() * 10.0;
+
+    // 获取当前时间点（系统时钟）
+    auto now = std::chrono::system_clock::now();
+    // 转换为毫秒时间戳（Unix 时间戳，毫秒级）
+    auto millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+        now.time_since_epoch()
+    ).count();
     DataWriter::GetInstance().WriteDrPoseMsg(timestamp, random_pose);
+    // 获取当前时间点（系统时钟）
+    auto end_now = std::chrono::system_clock::now();
+    // 转换为毫秒时间戳（Unix 时间戳，毫秒级）
+    auto end_millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_now.time_since_epoch()
+    ).count();
+    std::cout<<"dr save time: "<<end_millisec_since_epoch-millisec_since_epoch<<","<<millisec_since_epoch<<","<<end_millisec_since_epoch<<std::endl;
     timestamp += 200;
   }
 
+
   for (size_t i = 0; i < 10; ++i) {
+
     std::vector<cv::Mat> imgs;
     for (size_t j = 0; j < 4; ++j) {
       cv::Mat img = generate_random_shape_image();
@@ -53,12 +74,22 @@ int main() {
 
     DataWriter::GetInstance().WriteDataSeq(timestamp,
                                            static_cast<apa_slam::DataType>(3));
+                                              
+    auto startnow = std::chrono::system_clock::now();
+    auto millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+    startnow.time_since_epoch()
+    ).count();
     DataWriter::GetInstance().WriteImageList(timestamp, imgs);
-
+    auto end_now = std::chrono::system_clock::now();
+    auto end_millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_now.time_since_epoch()
+    ).count();
+    std::cout<<"img save time: "<<end_millisec_since_epoch-millisec_since_epoch<<","<<millisec_since_epoch<<","<<end_millisec_since_epoch<<std::endl;
     timestamp += 200;
     // cv::imshow("random", imgs.at(0));
     // cv::waitKey(1);
   }
+
 
   int cnt = 0;
   for (size_t i = 0; i < 10; ++i) {
@@ -86,7 +117,20 @@ int main() {
     }
     DataWriter::GetInstance().WriteDataSeq(timestamp,
                                            static_cast<apa_slam::DataType>(2));
+    // 获取当前时间点（系统时钟）
+    auto now = std::chrono::system_clock::now();
+    // 转换为毫秒时间戳（Unix 时间戳，毫秒级）
+    auto millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+        now.time_since_epoch()
+    ).count();
     DataWriter::GetInstance().WriteSlotMsg(timestamp, set_ps_list);
+        // 获取当前时间点（系统时钟）
+    auto end_now = std::chrono::system_clock::now();
+    // 转换为毫秒时间戳（Unix 时间戳，毫秒级）
+    auto end_millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_now.time_since_epoch()
+    ).count();
+    std::cout<<"slots save time: "<<end_millisec_since_epoch-millisec_since_epoch<<","<<millisec_since_epoch<<","<<end_millisec_since_epoch<<std::endl;
     // std::cout << random_pose.transpose()<< std::endl;
     timestamp += 200;
   }
