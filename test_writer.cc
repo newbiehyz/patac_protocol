@@ -84,7 +84,8 @@ int main() {
       point.set_y(i + 1.0f + cnt);
       *slot1->add_points() = point;  // 拷贝赋值
     }
-
+    DataWriter::GetInstance().WriteDataSeq(timestamp,
+                                           static_cast<apa_slam::DataType>(2));
     DataWriter::GetInstance().WriteSlotMsg(timestamp, set_ps_list);
     // std::cout << random_pose.transpose()<< std::endl;
     timestamp += 200;

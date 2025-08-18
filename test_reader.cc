@@ -80,6 +80,9 @@ int main(int argc, char** argv) {
     {
         auto data_seq = reader.ReadDataSeq(seq_rc);
         seq_cnt++;
+        std::cout <<"dataseq cnt: "<<seq_cnt<<" dataseqtime: " <<data_seq[0].first<<" dataseq type: "<<data_seq[0].second<< std::endl;
+
+        continue;
         if(!data_seq.empty()){
             std::cout <<"dataseq cnt: "<<seq_cnt<<" dataseqtime: " <<data_seq[0].first<<" dataseq type: "<<data_seq[0].second<< std::endl;
             int dr_rc,slots_rc,imgs_rc;

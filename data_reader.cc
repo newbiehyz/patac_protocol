@@ -12,7 +12,6 @@ DataReader::DataReader(const std::string& db_path) {
 }
 
 DataReader::~DataReader() {
-    sqlite3_close(_db);
     if (_stmt_imgs) {
         sqlite3_finalize(_stmt_imgs);
     }
@@ -34,14 +33,15 @@ DataReader::~DataReader() {
         if (_stmt_query[i]) {
             sqlite3_finalize(_stmt_query[i]);
         }
-    }  
+    }
+    sqlite3_close(_db);  
 }
 
 std::vector<std::pair<int64_t, DataType>> DataReader::ReadDataSeq(int&rc) {
     std::vector<std::pair<int64_t, DataType>> result;
     // 第一次调用时准备查询
     if (!_initialized_seq) {
-        std::string query = "SELECT timestamp, type FROM data_seq ORDER BY timestamp;";
+        std::string query = "SELECT timestamp, type FROM data_seq;";
         _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_seq, nullptr);
             
         if (_rc != SQLITE_OK) {
@@ -70,7 +70,7 @@ std::vector<patac_hpp::DRPose> DataReader::ReadDrPose(int&rc) {
     std::vector<patac_hpp::DRPose> result;
     // 第一次调用时准备查询
     if (!_initialized_dr) {
-        std::string query = "SELECT timestamp, data FROM dr_pose ORDER BY timestamp;";
+        std::string query = "SELECT timestamp, data FROM dr_pose;";
         _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_dr, nullptr);
             
         if (_rc != SQLITE_OK) {
@@ -109,7 +109,7 @@ std::vector<patac_hpp::ParkingSlotList> DataReader::ReadParkingSlots(int&rc) {
     std::vector<patac_hpp::ParkingSlotList> result;
     // 第一次调用时准备查询
     if (!_initialized_slots) {
-        std::string query = "SELECT timestamp, data FROM slot_list ORDER BY timestamp;";
+        std::string query = "SELECT timestamp, data FROM slot_list;";
         _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_slots, nullptr);
             
         if (_rc != SQLITE_OK) {
@@ -150,7 +150,7 @@ std::vector<patac_hpp::ImageList> DataReader::ReadImgs(int&rc){
     std::vector<patac_hpp::ImageList> result;
     // 第一次调用时准备查询
     if (!_initialized_imgs) {
-        std::string query = "SELECT timestamp, data FROM fisheye_images ORDER BY timestamp;";
+        std::string query = "SELECT timestamp, data FROM fisheye_images;";
         _rc = sqlite3_prepare_v2(_db, query.c_str(), -1, &_stmt_imgs, nullptr);
             
         if (_rc != SQLITE_OK) {

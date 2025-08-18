@@ -16,10 +16,8 @@
 #include "patac_dr.pb.h"
 #include "patac_image.pb.h"
 #include "patac_slot.pb.h"
-
+#include "data_type.h"
 namespace apa_slam {
-
-enum DataType : std::uint8_t { DataTypePose = 0, DataTypeDR = 1, DataTypeSLOT = 2, DataTypeFISHEYE = 3 };
 
 class DataWriter {
 public:
@@ -49,5 +47,13 @@ private:
   char *_errMsg{0};
   std::string _output_file_name;
   int _rc;
+  sqlite3_stmt* _stmt_imgs = nullptr;  // 保存图片查询状态
+  bool _initialized_imgs = false;      // 标记图片是否已初始化查询
+  sqlite3_stmt* _stmt_seq = nullptr;  // 保存seq查询状态
+  bool _initialized_seq = false;      // 标记seq是否已初始化查询
+  sqlite3_stmt* _stmt_dr = nullptr;  // 保存dr片查询状态
+  bool _initialized_dr = false;      // 标记dr是否已初始化查询
+  sqlite3_stmt* _stmt_slots = nullptr;  // 保存车位查询状态
+  bool _initialized_slots = false;      // 标记车位是否已初始化查询
 };
 } // namespace apa_slam

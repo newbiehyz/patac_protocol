@@ -14,7 +14,7 @@ void DataWriter::Init() {
   std::ostringstream oss;
   oss << std::put_time(localTime, "%Y-%m-%d_%H-%M-%S");
   //   _output_file_name = "/userdata/apatest/" + oss.str() + ".db";
-  // _output_file_name = "/home/yukan/Desktop/" + oss.str() + ".db";
+  // _output_file_name = "./" + oss.str() + ".db";
   _output_file_name = "/userdata/apatest/" + oss.str() + ".db";
   _rc = sqlite3_open(_output_file_name.c_str(), &_db);
   if (_rc) {
@@ -94,32 +94,54 @@ void DataWriter::create_tables() {
 }
 
 void DataWriter::WriteDataSeq(const long long timestamp, const DataType &type) {
+  if (!_initialized_seq) {
   std::string insert_data_seq =
       "INSERT INTO data_seq (timestamp, type) VALUES (?, ?);";
-  sqlite3_stmt *stmt_seq = nullptr;
-  sqlite3_prepare_v2(_db, insert_data_seq.c_str(), -1, &stmt_seq, nullptr);
+  sqlite3_prepare_v2(_db, insert_data_seq.c_str(), -1, &_stmt_seq, nullptr);
+      _initialized_seq = true;
+  }
 
-  sqlite3_bind_int64(stmt_seq, 1, timestamp);
-  sqlite3_bind_int(stmt_seq, 2, type);
+  sqlite3_bind_int64(_stmt_seq, 1, timestamp);
+  sqlite3_bind_int(_stmt_seq, 2, type);
 
-  if (sqlite3_step(stmt_seq) != SQLITE_DONE) {
+  if (sqlite3_step(_stmt_seq) != SQLITE_DONE) {
     std::cerr << "Insert into data_seq failed: " << sqlite3_errmsg(_db)
               << std::endl;
   }
 
-  sqlite3_reset(stmt_seq);
-  sqlite3_finalize(stmt_seq);
+  sqlite3_reset(_stmt_seq);
 }
 
 void DataWriter::Reset() {
+  if (_stmt_imgs) {
+      sqlite3_finalize(_stmt_imgs);
+  }
+  if (_stmt_seq) {
+      sqlite3_finalize(_stmt_seq);
+  }
+  if (_stmt_dr) {
+      sqlite3_finalize(_stmt_dr);
+  }
+  if (_stmt_slots) {
+      sqlite3_finalize(_stmt_slots);
+  }
+  _initialized_seq = false;
+  _initialized_dr = false;
+  _initialized_slots = false;
+  _initialized_imgs = false;
   sqlite3_close(_db);
   Init();
-}
+} 
 
 void DataWriter::WriteDrPoseMsg(const long long timestamp,
                                 const Eigen::Vector3d &pose) {
+  if (!_initialized_dr) {
   std::string insert_data_dr =
       "INSERT INTO dr_pose (timestamp, data) VALUES (?, ?);";
+  sqlite3_prepare_v2(_db, insert_data_dr.c_str(), -1, &_stmt_dr, nullptr);
+  _initialized_dr = true;
+  }
+
   patac_hpp::DRPose dr_pose;
   dr_pose.set_timestamp(timestamp);
   dr_pose.set_x(pose.x());
@@ -128,14 +150,11 @@ void DataWriter::WriteDrPoseMsg(const long long timestamp,
   std::string serialized;
   dr_pose.SerializeToString(&serialized);
 
-  sqlite3_stmt *stmt_seq = nullptr;
-  sqlite3_prepare_v2(_db, insert_data_dr.c_str(), -1, &stmt_seq, nullptr);
-
-  sqlite3_bind_int64(stmt_seq, 1, timestamp);
-  sqlite3_bind_blob(stmt_seq, 2, serialized.data(), serialized.size(),
+  sqlite3_bind_int64(_stmt_dr, 1, timestamp);
+  sqlite3_bind_blob(_stmt_dr, 2, serialized.data(), serialized.size(),
                     SQLITE_TRANSIENT);
 
-  int rc = sqlite3_step(stmt_seq);
+  int rc = sqlite3_step(_stmt_dr);
   if (rc != SQLITE_DONE) {
     std::cerr << "Insert into dr_pose failed: " << sqlite3_errmsg(_db)
               << std::endl;
@@ -143,20 +162,17 @@ void DataWriter::WriteDrPoseMsg(const long long timestamp,
     // std::cout << "Successfully inserted pose at " << timestamp << std::endl;
   }
 
-  // if (sqlite3_step(stmt_seq) != SQLITE_DONE) {
-  //   std::cerr << "Insert into dr_pose failed: " << sqlite3_errmsg(_db)
-  //             << std::endl;
-  // }
-
-  sqlite3_reset(stmt_seq);
-  sqlite3_finalize(stmt_seq);
+  sqlite3_reset(_stmt_dr);
 }
 
 void DataWriter::WriteImageList(const long long timestamp,
                                 const std::vector<cv::Mat> &imgs) {
+  if (!_initialized_imgs) {
   std::string insert_data_img =
       "INSERT INTO fisheye_images (timestamp, data) VALUES (?, ?);";
-
+  sqlite3_prepare_v2(_db, insert_data_img.c_str(), -1, &_stmt_imgs, nullptr);
+    _initialized_imgs = true;
+  }
   patac_hpp::ImageList img_list;
   for (size_t i = 0; i < imgs.size(); ++i) {
     auto image = img_list.add_image_list();
@@ -164,21 +180,16 @@ void DataWriter::WriteImageList(const long long timestamp,
     image->set_height(imgs.at(i).rows);
     std::vector<uchar> buffer;
     cv::imencode(".png", imgs.at(i), buffer);
-    // size_t data_size = imgs.at(i).total() * imgs.at(i).elemSize();
     image->set_data(buffer.data(), buffer.size());
   }
 
   std::string serialized;
   img_list.SerializeToString(&serialized);
-
-  sqlite3_stmt *stmt_seq = nullptr;
-  sqlite3_prepare_v2(_db, insert_data_img.c_str(), -1, &stmt_seq, nullptr);
-
-  sqlite3_bind_int64(stmt_seq, 1, timestamp);
-  sqlite3_bind_blob(stmt_seq, 2, serialized.data(), serialized.size(),
+  sqlite3_bind_int64(_stmt_imgs, 1, timestamp);
+  sqlite3_bind_blob(_stmt_imgs, 2, serialized.data(), serialized.size(),
                     SQLITE_TRANSIENT);
 
-  int rc = sqlite3_step(stmt_seq);
+  int rc = sqlite3_step(_stmt_imgs);
   if (rc != SQLITE_DONE) {
     std::cerr << "Insert into fisheye_images failed: " << sqlite3_errmsg(_db)
               << std::endl;
@@ -186,19 +197,18 @@ void DataWriter::WriteImageList(const long long timestamp,
     // std::cout << "Successfully inserted pose at " << timestamp << std::endl;
   }
 
-  // if (sqlite3_step(stmt_seq) != SQLITE_DONE) {
-  //   std::cerr << "Insert into dr_pose failed: " << sqlite3_errmsg(_db)
-  //             << std::endl;
-  // }
-
-  sqlite3_reset(stmt_seq);
-  sqlite3_finalize(stmt_seq);
+  sqlite3_reset(_stmt_imgs);
 }
 
 void DataWriter::WriteSlotMsg(const long long timestamp,
                               const std::vector<Eigen::MatrixXd> &slot_uv) {
+  if (!_initialized_slots) {
   std::string insert_data_ps =
       "INSERT INTO slot_list (timestamp, data) VALUES (?, ?);";
+  sqlite3_prepare_v2(_db, insert_data_ps.c_str(), -1, &_stmt_slots, nullptr);
+    _initialized_slots = true;
+  }
+
   patac_hpp::ParkingSlotList ps_list;
   for (size_t i = 0; i < slot_uv.size(); ++i) {
     auto *ps = ps_list.add_parking_slot_list();
@@ -212,15 +222,11 @@ void DataWriter::WriteSlotMsg(const long long timestamp,
 
   std::string serialized;
   ps_list.SerializeToString(&serialized);
-
-  sqlite3_stmt *stmt_seq = nullptr;
-  sqlite3_prepare_v2(_db, insert_data_ps.c_str(), -1, &stmt_seq, nullptr);
-
-  sqlite3_bind_int64(stmt_seq, 1, timestamp);
-  sqlite3_bind_blob(stmt_seq, 2, serialized.data(), serialized.size(),
+  sqlite3_bind_int64(_stmt_slots, 1, timestamp);
+  sqlite3_bind_blob(_stmt_slots, 2, serialized.data(), serialized.size(),
                     SQLITE_TRANSIENT);
 
-  int rc = sqlite3_step(stmt_seq);
+  int rc = sqlite3_step(_stmt_slots);
   if (rc != SQLITE_DONE) {
     std::cerr << "Insert into slot_list failed: " << sqlite3_errmsg(_db)
               << std::endl;
@@ -228,13 +234,7 @@ void DataWriter::WriteSlotMsg(const long long timestamp,
     // std::cout << "Successfully inserted pose at " << timestamp << std::endl;
   }
 
-  // if (sqlite3_step(stmt_seq) != SQLITE_DONE) {
-  //   std::cerr << "Insert into dr_pose failed: " << sqlite3_errmsg(_db)
-  //             << std::endl;
-  // }
-
-  sqlite3_reset(stmt_seq);
-  sqlite3_finalize(stmt_seq);
+  sqlite3_reset(_stmt_slots);
 }
 
 void DataWriter::WriteSlotMsg(const long long timestamp,

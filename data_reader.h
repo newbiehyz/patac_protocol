@@ -12,10 +12,8 @@
 #include "patac_dr.pb.h"
 #include "patac_image.pb.h"
 #include "patac_slot.pb.h"
-
+#include "data_type.h"
 namespace apa_slam {
-
-enum DataType : std::uint8_t { Pose = 0, DR = 1, SLOT = 2, FISH_FRONT = 3 };
 
 class DataReader {
 public:
