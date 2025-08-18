@@ -20,25 +20,17 @@ MapIO &MapIO::GetInstance() {
 }
 
 bool MapIO::SaveMapData() {
-
-  // timestamp for filename
-  std::time_t now = std::time(nullptr);
-  std::tm *local_time = std::localtime(&now);
-  std::ostringstream time_str;
-  time_str << std::put_time(local_time, "%Y-%m-%d_%H-%M-%S");
-  std::string timestamp = time_str.str();
-
   CollectDataFromManagers();
 
   if (margin_data_list_.empty() && slot_map_data_list_.empty() &&
-      deleted_window_data_list_.empty()) {
+      deleted_window_data_list_.trajectory_point_list_size() == 0) {
     std::cout << "No data to save" << std::endl;
     return true;
   }
 
   // 1. save margin + slot map
   if (!margin_data_list_.empty() || !slot_map_data_list_.empty()) {
-    std::string map_file_path = timestamp + "_map_data.bin";
+    std::string map_file_path = "sematic_map.bin";
     if (!WriteMapDataToBinary(map_file_path)) {
       std::cerr << "Failed to save map data" << std::endl;
       return false;
@@ -46,8 +38,8 @@ bool MapIO::SaveMapData() {
   }
 
   // 2. save deleted window data
-  if (!deleted_window_data_list_.empty()) {
-    std::string window_file_path = timestamp + "_deleted_window_data.bin";
+  if (deleted_window_data_list_.trajectory_point_list_size() > 0) {
+    std::string window_file_path = "trajectory.bin";
     if (!WriteWindowDataToBinary(window_file_path)) {
       std::cerr << "Failed to save window data" << std::endl;
       return false;
@@ -86,17 +78,15 @@ bool MapIO::LoadMapData(const std::string &map_file_path,
 }
 
 void MapIO::CollectDataFromManagers() {
-  margin_data_list_ =
-      SlEKFManagement::GetInstance().GetCachedMarginalizationData();
+  margin_data_list_ = SlEKFManagement::GetInstance().GetCachedMarginalizationData();
   slot_map_data_list_ = SlEKFManagement::GetInstance().GetCachedSlotMapData();
-  deleted_window_data_list_ =
-      SlidingWindow::GetInstance().GetCachedDeletedWindowData();
+  deleted_window_data_list_ = SlidingWindow::GetInstance().GetCachedDeletedWindowData();
 }
 
 void MapIO::ClearCollectedData() {
   margin_data_list_.clear();
   slot_map_data_list_.clear();
-  deleted_window_data_list_.clear();
+  deleted_window_data_list_.Clear();
 }
 
 void MapIO::ClearManagerCache() {
@@ -135,10 +125,22 @@ bool MapIO::WriteWindowDataToBinary(const std::string &file_path) {
     return false;
   }
 
-  bool success = SerializeAndWrite(file, deleted_window_data_list_);
+  std::string serialized_data;
+  if (!deleted_window_data_list_.SerializeToString(&serialized_data)) {
+    std::cerr << "Failed to serialize trajectory data" << std::endl;
+    file.close();
+    return false;
+  }
+
+  // 写入数据长度
+  uint32_t data_length = serialized_data.size();
+  file.write(reinterpret_cast<const char *>(&data_length), sizeof(data_length));
+
+  // 写入序列化数据
+  file.write(serialized_data.data(), serialized_data.size());
 
   file.close();
-  return success;
+  return true;
 }
 
 bool MapIO::ReadMapDataFromBinary(const std::string &file_path) {
@@ -171,10 +173,28 @@ bool MapIO::ReadWindowDataFromBinary(const std::string &file_path) {
     return false;
   }
 
-  bool success = ReadAndDeserialize(file, deleted_window_data_list_);
+  // 读取数据长度
+  uint32_t data_length;
+  file.read(reinterpret_cast<char *>(&data_length), sizeof(data_length));
+
+  if (file.eof()) {
+    file.close();
+    return false;
+  }
+
+  // 读取序列化数据
+  std::vector<char> buffer(data_length);
+  file.read(buffer.data(), data_length);
+
+  // 反序列化
+  if (!deleted_window_data_list_.ParseFromArray(buffer.data(), data_length)) {
+    std::cerr << "Failed to deserialize trajectory data" << std::endl;
+    file.close();
+    return false;
+  }
 
   file.close();
-  return success;
+  return true;
 }
 
 template <typename T>

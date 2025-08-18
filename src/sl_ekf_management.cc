@@ -17,6 +17,7 @@ void SlEKFManagement::Reset() {
   _initialized = false;
   _odo_meas.clear();
   _pre_states.clear();
+  // _cached_slot_ids.clear();
   this->Init();
 }
 
@@ -357,6 +358,11 @@ void SlEKFManagement::save_slot_map_cache(const long long ts) {
   for (const auto& slot_pair : slot_map) {
     int slot_id = slot_pair.first;
     const auto& slot_landmark = slot_pair.second;
+
+    // // for finding already cached
+    // if (_cached_slot_ids.find(slot_id) != _cached_slot_ids.end()) {
+    //   continue;
+    // }
     
     if (!slot_landmark->Initialized()) {
       continue;
@@ -405,6 +411,7 @@ void SlEKFManagement::save_slot_map_cache(const long long ts) {
     
     parking_slot->set_source(patac_hpp::ParkingSourceIpm);
      
+    // _cached_slot_ids.insert(slot_id); // for finding already cached
     slot_map_count++;
   }
   

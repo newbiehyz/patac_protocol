@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include "patac_dr.pb.h"
+#include "patac_trajetory.pb.h"
 #include "patac_slot.pb.h"
 
 namespace apa_slam {
@@ -26,8 +26,8 @@ public:
 private:
   std::vector<patac_hpp::ParkingSlotList> margin_data_list_;
   std::vector<patac_hpp::ParkingSlotList> slot_map_data_list_;
-  std::vector<patac_hpp::DRPose> deleted_window_data_list_;
-  
+  patac_hpp::Trajectory deleted_window_data_list_;
+
   // 内部序列化和写入方法
   bool WriteMapDataToBinary(const std::string& file_path);
   bool WriteWindowDataToBinary(const std::string& file_path);

@@ -1018,32 +1018,52 @@ bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
 }
 
 void SlidingWindow::save_deleted_window_cache(const long long &timestamp) {
-  patac_hpp::DRPose deleted_window_pose;
+  patac_hpp::TrajectoryPoint trajectory_point;
 
   if (this->GetCurWindowSz() > 0) {
     Eigen::VectorXd oldest_x = _sl_pose[0];
 
-    deleted_window_pose.set_x(oldest_x[0]);
-    deleted_window_pose.set_y(oldest_x[1]);
-    deleted_window_pose.set_yaw(oldest_x[2]);
-
-    deleted_window_pose.set_timestamp(_sl_timestamp[0]);
+    trajectory_point.set_timestamp(_sl_timestamp[0]);
+    trajectory_point.set_id(_trajectory_point_id_counter++);
+    trajectory_point.set_x(oldest_x[0]);
+    trajectory_point.set_y(oldest_x[1]);
+    trajectory_point.set_z(0.0f);
+    
+    double yaw = oldest_x[2];
+    float qw = static_cast<float>(std::cos(yaw / 2.0));
+    float qx = 0.0f;
+    float qy = 0.0f;
+    float qz = static_cast<float>(std::sin(yaw / 2.0));
+    
+    trajectory_point.set_qx(qx);
+    trajectory_point.set_qy(qy);
+    trajectory_point.set_qz(qz);
+    trajectory_point.set_qw(qw);
+    
+    trajectory_point.set_velocity(0.0f);
+    trajectory_point.set_angular_velocity(0.0f);
   }
 
   {
-    std::lock_guard<std::mutex> lock(_deleted_window_mutex);
-    _deleted_window_cache.push_back(deleted_window_pose);
+    std::lock_guard<std::mutex> lock(_trajectory_mutex);
+
+    auto* new_point = _trajectory_cache.add_trajectory_point_list();
+    *new_point = trajectory_point;
+    
+    _trajectory_cache.set_num_trajectory_point(_trajectory_cache.trajectory_point_list_size());
   }
 }
 
-std::vector<patac_hpp::DRPose> SlidingWindow::GetCachedDeletedWindowData() {
-  std::lock_guard<std::mutex> lock(_deleted_window_mutex);
-  return _deleted_window_cache;
+const patac_hpp::Trajectory& SlidingWindow::GetCachedDeletedWindowData() {
+  std::lock_guard<std::mutex> lock(_trajectory_mutex);
+  return _trajectory_cache;
 }
 
 void SlidingWindow::ClearDeletedWindowCache() {
-  std::lock_guard<std::mutex> lock(_deleted_window_mutex);
-  _deleted_window_cache.clear();
+  std::lock_guard<std::mutex> lock(_trajectory_mutex);
+  _trajectory_cache.clear_trajectory_point_list();
+  _trajectory_cache.set_num_trajectory_point(0);
+  _trajectory_point_id_counter = 0;
 }
 
 } // namespace apa_slam

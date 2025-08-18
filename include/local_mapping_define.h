@@ -145,7 +145,7 @@ struct  VisualizationMeas {
   bool startMapping{false};
   bool IsLoadMap{false};
   bool startLocalization{false};
-  std::string slot_map_data_filename{"marginalization_data.bin"};
+  std::string slot_map_data_filename{"sematic_map.bin"};
 };
 
 extern VisualizationMeas vis_meas;

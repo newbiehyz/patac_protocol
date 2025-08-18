@@ -19,7 +19,7 @@
 #include "matrix_plot.h"
 #include "semantic_map.h"
 
-#include "patac_dr.pb.h"
+#include "patac_trajetory.pb.h"
 
 
 using WindowCrossCorrelation =
@@ -66,7 +66,7 @@ class SlidingWindow {
   void Reset();
 
   //protobuf cache
-  std::vector<patac_hpp::DRPose> GetCachedDeletedWindowData();
+  const patac_hpp::Trajectory& GetCachedDeletedWindowData();
   void ClearDeletedWindowCache();
 
  private:
@@ -151,7 +151,8 @@ class SlidingWindow {
   std::map<SensorType, std::set<int>> _state_landmark;
 
   //protobuf cache
-  std::vector<patac_hpp::DRPose> _deleted_window_cache;
-  std::mutex _deleted_window_mutex;
+  patac_hpp::Trajectory _trajectory_cache;
+  std::mutex _trajectory_mutex;
+  uint32_t _trajectory_point_id_counter{0};
 };
 }  // namespace apa_slam
