@@ -28,6 +28,7 @@
 
 #include "sl_ekf_management.h"
 #include "action_queue.h"
+#include "map_io.h"
 
 namespace apa_slam {
 class EkfEstimator {

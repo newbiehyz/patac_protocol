@@ -9,6 +9,7 @@
  */
 
 #include "visualization/pangolin_viewer.h"
+#include "map_io.h"
 namespace apa_slam {
 PangolinViewer::PangolinViewer() {
   _drawer = std::make_shared<PangolinDrawer>();
@@ -47,8 +48,12 @@ void PangolinViewer::run() {
     if (pangolin::Pushed(save_map_button)) {
       {
         std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
-        vis_meas.saveMap = true;
+        vis_meas.saveMap = true; // not used
+        ActionQueue::GetInstance().PushAction(SAVE); // SAVE action reserved
+        MapIO::GetInstance().SaveMapData();
+        
         save_map_button.Reset();
+        ActionQueue::GetInstance().PushAction(RESET);
       }
     }
     _drawer->DrawAPA(s_cam);

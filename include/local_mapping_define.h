@@ -58,7 +58,7 @@ struct DatasetParams {
 
 enum ParkingSlotType { Vertical = 0, Horizontal = 1, Oblique = 2};
 
-enum Action : std::uint8_t { RESET = 0, MAPPING = 1 };
+enum Action : std::uint8_t { RESET = 0, MAPPING = 1, SAVE = 2}; // SAVE action reserved
 
 struct ParkingSlotAttribute {
   bool parkable;

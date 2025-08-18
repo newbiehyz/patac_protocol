@@ -199,6 +199,9 @@ void EkfEstimator::InputSemanticMea(
       this->Reset();
       return;
     }
+    // else if (ac == SAVE) {
+    //   MapIO::GetInstance().SaveMapData();
+    // }
   }
 
   if (!this->Initialized()) {
