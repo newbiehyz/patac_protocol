@@ -11,6 +11,7 @@
 
 #include "semantic_map.h"
 #include "semantic_measurement.h"
+#include "map_io.h"
 
 namespace apa_slam {
 class MapManagement {

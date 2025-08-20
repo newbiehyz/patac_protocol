@@ -279,74 +279,74 @@ void SemanticMap::ClearMap() {
   _map.clear();
 }
 
-void SemanticMap::LoadMappingData(const SensorType type, const std::string& slot_map_data_filename) {
-  std::ifstream input_file(slot_map_data_filename, std::ios::binary);
-  if (!input_file.is_open()) {
-      std::cerr << "Failed to open " << slot_map_data_filename << " for reading" << std::endl;
-      return;
-  }
+// void SemanticMap::LoadMappingData(const SensorType type, const std::string& slot_map_data_filename) {
+//   std::ifstream input_file(slot_map_data_filename, std::ios::binary);
+//   if (!input_file.is_open()) {
+//       std::cerr << "Failed to open " << slot_map_data_filename << " for reading" << std::endl;
+//       return;
+//   }
 
-  _map[type].clear();
+//   _map[type].clear();
 
-  while (input_file) {
-    uint32_t data_length = 0;
-    input_file.read(reinterpret_cast<char*>(&data_length), sizeof(data_length));
+//   while (input_file) {
+//     uint32_t data_length = 0;
+//     input_file.read(reinterpret_cast<char*>(&data_length), sizeof(data_length));
     
-    if (!input_file || data_length == 0) {
-      break;
-    }
+//     if (!input_file || data_length == 0) {
+//       break;
+//     }
 
-    std::string serialized_data;
-    serialized_data.resize(data_length);
-    input_file.read(&serialized_data[0], data_length);
+//     std::string serialized_data;
+//     serialized_data.resize(data_length);
+//     input_file.read(&serialized_data[0], data_length);
 
-    if (!input_file) {
-      std::cerr << "Error reading serialized data from file" << std::endl;
-      break;
-    }
+//     if (!input_file) {
+//       std::cerr << "Error reading serialized data from file" << std::endl;
+//       break;
+//     }
 
-    patac_hpp::ParkingSlotList slot_list;
-    if (!slot_list.ParseFromString(serialized_data)) {
-      std::cerr << "Failed to parse ParkingSlotList from binary data" << std::endl;
-      continue;
-    }
+//     patac_hpp::ParkingSlotList slot_list;
+//     if (!slot_list.ParseFromString(serialized_data)) {
+//       std::cerr << "Failed to parse ParkingSlotList from binary data" << std::endl;
+//       continue;
+//     }
 
-    for (int i = 0; i < slot_list.parking_slot_list_size(); ++i) {
-      const auto& parking_slot = slot_list.parking_slot_list(i);
-      Eigen::MatrixXd slot_data =
-          Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
-      slot_data(0, 0) = parking_slot.points(0).x();
-      slot_data(1, 0) = parking_slot.points(0).y();
-      slot_data(0, 1) = parking_slot.points(1).x();
-      slot_data(1, 1) = parking_slot.points(1).y();
+//     for (int i = 0; i < slot_list.parking_slot_list_size(); ++i) {
+//       const auto& parking_slot = slot_list.parking_slot_list(i);
+//       Eigen::MatrixXd slot_data =
+//           Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
+//       slot_data(0, 0) = parking_slot.points(0).x();
+//       slot_data(1, 0) = parking_slot.points(0).y();
+//       slot_data(0, 1) = parking_slot.points(1).x();
+//       slot_data(1, 1) = parking_slot.points(1).y();
       
-      SemanticLandmark::Ptr landmark = std::make_shared<ParkingSlotLandmark>(parking_slot.id(), slot_data.data());
-      auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(landmark);
-      slot->SetInitializeFlag(true);
-      auto attr = slot->GetAttribute();
+//       SemanticLandmark::Ptr landmark = std::make_shared<ParkingSlotLandmark>(parking_slot.id(), slot_data.data());
+//       auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(landmark);
+//       slot->SetInitializeFlag(true);
+//       auto attr = slot->GetAttribute();
       
-      switch (parking_slot.type()) {
-        case patac_hpp::SlotTypeVertical:
-            attr.slot_type = Vertical;
-            break;
-        case patac_hpp::SlotTypeParallel:
-            attr.slot_type = Horizontal;
-            break;
-        default:
-            attr.slot_type = Oblique;
-            break;
-      }
+//       switch (parking_slot.type()) {
+//         case patac_hpp::SlotTypeVertical:
+//             attr.slot_type = Vertical;
+//             break;
+//         case patac_hpp::SlotTypeParallel:
+//             attr.slot_type = Horizontal;
+//             break;
+//         default:
+//             attr.slot_type = Oblique;
+//             break;
+//       }
 
-      attr.parkable = (parking_slot.occupancy() == patac_hpp::OccupancyStatusNotOccupied);
-      slot->SetAttribute(attr);
-      _map[type][parking_slot.id()] = landmark;
-    }
-  }
+//       attr.parkable = (parking_slot.occupancy() == patac_hpp::OccupancyStatusNotOccupied);
+//       slot->SetAttribute(attr);
+//       _map[type][parking_slot.id()] = landmark;
+//     }
+//   }
 
-  input_file.close();
+//   input_file.close();
 
-  std::cout << "Loaded " << _map[SEMANTIC_TYPE_PARKING_SLOT].size() << " parking slots for sensor type " 
-            << static_cast<int>(type) << " from " << slot_map_data_filename << std::endl;
-}
+//   std::cout << "Loaded " << _map[SEMANTIC_TYPE_PARKING_SLOT].size() << " parking slots for sensor type " 
+//             << static_cast<int>(type) << " from " << slot_map_data_filename << std::endl;
+// }
 
 }  // namespace apa_slam

@@ -23,6 +23,8 @@ public:
   
   void ClearManagerCache();
 
+  bool SetSemMap();
+
 private:
   std::vector<patac_hpp::ParkingSlotList> margin_data_list_;
   std::vector<patac_hpp::ParkingSlotList> slot_map_data_list_;

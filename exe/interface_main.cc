@@ -39,6 +39,10 @@ int main(int argc, char** argv) {
     fin.open(data_file, std::ios::in);
     std::string line;
     double t;
+    if (!vis_meas.startMapping && !vis_meas.startLocalization)
+    {
+      continue;
+    }
     while (getline(fin, line)) {
       std::stringstream ss(line);
       std::string type;

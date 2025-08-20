@@ -67,8 +67,10 @@ void MapManagement::process_slot_matching(
     } else {
       if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
         only_localization = true;
-        SemanticMap::GetInstance().LoadMappingData(
-            SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
+        std::cout << "!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)" << std::endl;
+        MapIO::GetInstance().LoadMapData(vis_meas.slot_map_data_filename, "");
+        // SemanticMap::GetInstance().LoadMappingData(
+        //     SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
       }
 
       if (SemanticMap::GetInstance().HasLandmark(SEMANTIC_TYPE_PARKING_SLOT,

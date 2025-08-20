@@ -71,7 +71,8 @@ void PangolinViewer::run() {
       vis_meas.startLocalization = true;
       only_localization = true;
       vis_meas.startMapping = false;
-      vis_meas.IsLoadMap = false;
+      MapIO::GetInstance().LoadMapData(vis_meas.slot_map_data_filename, "");
+      vis_meas.IsLoadMap = true;
       start_localization_button.Reset();
     }
 

@@ -143,6 +143,55 @@ bool MapIO::WriteWindowDataToBinary(const std::string &file_path) {
   return true;
 }
 
+bool MapIO::SetSemMap(){
+  for (int i = 0; i < margin_data_list_.size();i++){
+    patac_hpp::ParkingSlotList slot_list = margin_data_list_[i];
+    for (int i = 0; i < slot_list.parking_slot_list_size(); ++i) {
+      const auto& parking_slot = slot_list.parking_slot_list(i);
+      Eigen::MatrixXd slot_data =
+          Eigen::MatrixXd::Zero(DATA_ROWS_PARKING_SLOT, DATA_COLS_PARKING_SLOT);
+      slot_data(0, 0) = parking_slot.points(0).x();
+      slot_data(1, 0) = parking_slot.points(0).y();
+      slot_data(0, 1) = parking_slot.points(1).x();
+      slot_data(1, 1) = parking_slot.points(1).y();
+      
+      SemanticLandmark::Ptr landmark = std::make_shared<ParkingSlotLandmark>(parking_slot.id(), slot_data.data());
+      auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(landmark);
+      slot->SetInitializeFlag(true);
+      auto attr = slot->GetAttribute();
+      
+      switch (parking_slot.type()) {
+        case patac_hpp::SlotTypeVertical:
+            attr.slot_type = Vertical;
+            break;
+        case patac_hpp::SlotTypeParallel:
+            attr.slot_type = Horizontal;
+            break;
+        default:
+            attr.slot_type = Oblique;
+            break;
+      }
+
+      attr.parkable = (parking_slot.occupancy() == patac_hpp::OccupancyStatusNotOccupied);
+      slot->SetAttribute(attr);
+      SemanticMap::GetInstance().AddLandmark(landmark->GetSemanticType(), landmark);
+    }
+  }
+  std::cout << "[Load Map] Map Element Num: "
+            << SemanticMap::GetInstance().GetMapLandmarkNum(
+                   SEMANTIC_TYPE_PARKING_SLOT)
+            << std::endl;
+
+  std::cout << "[Load Map] Map Initialized Element Num: "
+            << SemanticMap::GetInstance().GetMapInitializedLandmarkNum(
+                   SEMANTIC_TYPE_PARKING_SLOT)
+            << std::endl;
+
+  std::cout << "Loaded " << SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT).size() << " parking slots " 
+            << " from " << vis_meas.slot_map_data_filename << std::endl;
+  return true;
+}
+
 bool MapIO::ReadMapDataFromBinary(const std::string &file_path) {
   std::ifstream file(file_path, std::ios::binary);
 
@@ -156,7 +205,13 @@ bool MapIO::ReadMapDataFromBinary(const std::string &file_path) {
     return false;
   }
 
-  if (!ReadAndDeserialize(file, slot_map_data_list_)) {
+  if(!SetSemMap()){
+    std::cerr << "Failed to SetSemMap" << std::endl;
+    return false;
+  }
+
+  if (!ReadAndDeserialize(file, slot_map_data_list_))
+  {
     file.close();
     return false;
   }
