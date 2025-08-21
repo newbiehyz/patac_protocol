@@ -42,5 +42,9 @@
   },
   "dataproto": {
     "recordmode": 0
+  },
+  "map_io": {
+    "map_save_path": "../",
+    "map_load_path": "../"
   }
 }

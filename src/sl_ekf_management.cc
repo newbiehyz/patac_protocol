@@ -202,11 +202,6 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
       if (vis_meas.startMapping && !vis_meas.startLocalization)
         save_slot_map_cache(timestamp);
 
-      if (vis_meas.startMapping && !vis_meas.startLocalization && !marginalization_list.empty()) {
-      // if (!marginalization_list.empty()) {
-        save_marginalization_cache(timestamp, marginalization_list);
-      }
-      // }
 
       if (residual.size() != 0) {
         Eigen::JacobiSVD<Eigen::MatrixXd> svd(
@@ -268,80 +263,6 @@ void SlEKFManagement::Update(const long long timestamp, bool zupt) {
   }
 }
 
-void SlEKFManagement::save_marginalization_cache(const long long ts, 
-                                               const std::map<SensorType, std::set<int>>& marginalization_list) {
-  
-  if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
-    return;
-  }
-  
-  // 只保存 marginalization slot 数据
-  patac_hpp::ParkingSlotList margin_slot_list;
-  margin_slot_list.set_timestamp(ts);
-  
-  const auto& marginalized_slot_ids = marginalization_list.at(SEMANTIC_TYPE_PARKING_SLOT);
-  const auto& slot_map = SemanticMap::GetInstance().GetMap(SEMANTIC_TYPE_PARKING_SLOT);
-  
-  uint32_t margin_slot_count = 0;
-
-  for (int slot_id : marginalized_slot_ids) {
-    auto it = slot_map.find(slot_id);
-    if (it != slot_map.end() && it->second->Initialized()) {
-      auto slot = std::dynamic_pointer_cast<ParkingSlotLandmark>(it->second);
-      if (!slot) {
-        continue; 
-      }
-      
-      Eigen::MatrixXd slot_data = slot->GetLandmarkData();
-      Eigen::MatrixXd slot_cov = slot->GetCov();
-      int id = it->second->GetId();
-      
-      patac_hpp::ParkingSlot* parking_slot = margin_slot_list.add_parking_slot_list();
-      parking_slot->set_id(id);
-      parking_slot->set_valid(1);
-      
-      auto attr = slot->GetAttribute();
-      switch (attr.slot_type) {
-        case Vertical:
-          parking_slot->set_type(patac_hpp::SlotTypeVertical);
-          break;
-        case Horizontal:
-          parking_slot->set_type(patac_hpp::SlotTypeParallel);
-          break;
-        case Oblique:
-          parking_slot->set_type(patac_hpp::SlotTypeOblique);
-          break;
-        default:
-          parking_slot->set_type(patac_hpp::SlotTypeUnknown);
-          break;
-      }
-      
-      if (attr.parkable) {
-        parking_slot->set_occupancy(patac_hpp::OccupancyStatusNotOccupied);
-      } else {
-        parking_slot->set_occupancy(patac_hpp::OccupancyStatusOccupied);
-      }
-      
-      patac_hpp::Point2f* point0 = parking_slot->add_points();
-      point0->set_x(slot_data(0,0));
-      point0->set_y(slot_data(1,0));
-      patac_hpp::Point2f* point1 = parking_slot->add_points();
-      point1->set_x(slot_data(0,1));
-      point1->set_y(slot_data(1,1));
-      
-      parking_slot->set_source(patac_hpp::ParkingSourceIpm);
-      
-      margin_slot_count++;
-    }
-  }
-  
-  margin_slot_list.set_num_parking_slot(margin_slot_count);
-  
-  if (margin_slot_count > 0) {
-    std::lock_guard<std::mutex> lock(_marginalization_data_mutex);
-    _marginalization_data_cache.push_back(margin_slot_list);
-  }
-}
 
 
 void SlEKFManagement::save_slot_map_cache(const long long ts) {
@@ -424,15 +345,6 @@ void SlEKFManagement::save_slot_map_cache(const long long ts) {
 }
 
 
-std::vector<patac_hpp::ParkingSlotList> SlEKFManagement::GetCachedMarginalizationData() {
-  std::lock_guard<std::mutex> lock(_marginalization_data_mutex);
-  return _marginalization_data_cache;
-}
-
-void SlEKFManagement::ClearMarginalizationDataCache() {
-  std::lock_guard<std::mutex> lock(_marginalization_data_mutex);
-  _marginalization_data_cache.clear();
-}
 
 
 std::vector<patac_hpp::ParkingSlotList> SlEKFManagement::GetCachedSlotMapData() {

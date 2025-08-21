@@ -35,8 +35,6 @@ public:
   void Reset();
 
   //protobuf cache
-  std::vector<patac_hpp::ParkingSlotList> GetCachedMarginalizationData();
-  void ClearMarginalizationDataCache();
   std::vector<patac_hpp::ParkingSlotList> GetCachedSlotMapData();
   void ClearSlotMapDataCache();
 
@@ -57,11 +55,6 @@ private:
 
   //protobuf cache
   void save_slot_map_cache(const long long ts);
-  void save_marginalization_cache(const long long ts, 
-                                  const std::map<SensorType, std::set<int>>& marginalization_list);
-  
-  std::vector<patac_hpp::ParkingSlotList> _marginalization_data_cache;
-  std::mutex _marginalization_data_mutex;
   std::vector<patac_hpp::ParkingSlotList> _slot_map_data_cache;
   std::mutex _slot_map_data_mutex;
 

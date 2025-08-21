@@ -25,11 +25,13 @@ class ApaParameters {
   const SimulationParams& GetSimulationParameters();
   const EstimatorParams& GetEstimatorParamters();
   const DatasetParams& GetDatasetParameters();
+  const MapIOParams &GetMapIOParameters();
 
  private:
   void printout_parameters();
   SimulationParams _sim_params;
   EstimatorParams _est_params;
   DatasetParams _dataset_params;
+  MapIOParams _map_io_params;
 };
 }  // namespace apa_slam

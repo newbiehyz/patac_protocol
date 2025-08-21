@@ -64,6 +64,10 @@ const DatasetParams &ApaParameters::GetDatasetParameters() {
   return _dataset_params;
 }
 
+const MapIOParams &ApaParameters::GetMapIOParameters() {
+  return _map_io_params;
+}
+
 bool ApaParameters::LoadParameters(const std::string &json_file) {
   try {
     std::ifstream input(json_file);
@@ -122,6 +126,12 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
     _dataset_params.udp_ip = data["fillback"]["network_ip"];
     _dataset_params.udp_port = data["fillback"]["port"];
     _dataset_params.recordmode = data["dataproto"]["recordmode"];
+
+    _map_io_params.map_save_path = data["map_io"]["map_save_path"];
+    _map_io_params.map_load_path = data["map_io"]["map_load_path"];
+
+
+
   } catch (const std::exception &e) {
     std::cerr << "JSON Error: " << e.what() << std::endl;
     return false;

@@ -22,15 +22,16 @@ MapIO &MapIO::GetInstance() {
 bool MapIO::SaveMapData() {
   CollectDataFromManagers();
 
-  if (margin_data_list_.empty() && slot_map_data_list_.empty() &&
-      deleted_window_data_list_.trajectory_point_list_size() == 0) {
+  if (slot_map_data_list_.empty() && deleted_window_data_list_.trajectory_point_list_size() == 0) {
     std::cout << "No data to save" << std::endl;
     return true;
   }
 
-  // 1. save margin + slot map
-  if (!margin_data_list_.empty() || !slot_map_data_list_.empty()) {
-    std::string map_file_path = "sematic_map.bin";
+  const auto& map_io_params = ApaParameters::GetInstance().GetMapIOParameters();
+
+  // 1. save slot map
+  if (!slot_map_data_list_.empty()) {
+    std::string map_file_path = map_io_params.map_save_path + "sematic_map.bin";
     if (!WriteMapDataToBinary(map_file_path)) {
       std::cerr << "Failed to save map data" << std::endl;
       return false;
@@ -39,7 +40,7 @@ bool MapIO::SaveMapData() {
 
   // 2. save deleted window data
   if (deleted_window_data_list_.trajectory_point_list_size() > 0) {
-    std::string window_file_path = "trajectory.bin";
+    std::string window_file_path = map_io_params.map_save_path + "trajectory.bin";
     if (!WriteWindowDataToBinary(window_file_path)) {
       std::cerr << "Failed to save window data" << std::endl;
       return false;
@@ -53,21 +54,25 @@ bool MapIO::SaveMapData() {
 }
 
 // TODO
-bool MapIO::LoadMapData(const std::string &map_file_path,
-                        const std::string &window_file_path) {
+bool MapIO::LoadMapData(const std::string &input_map_file_path,
+                        const std::string &input_window_file_path) {
 
   ClearCollectedData();
 
+  const auto& map_io_params = ApaParameters::GetInstance().GetMapIOParameters();
+  std::string map_file_path = map_io_params.map_load_path + "sematic_map.bin";
+  std::string window_file_path = map_io_params.map_load_path + "trajectory.bin";
+
   if (!map_file_path.empty()) {
     if (!ReadMapDataFromBinary(map_file_path)) {
-      std::cerr << "Failed to load map data" << std::endl;
+      std::cerr << "Failed to load map data from: " << map_file_path << std::endl;
       return false;
     }
   }
 
   if (!window_file_path.empty()) {
     if (!ReadWindowDataFromBinary(window_file_path)) {
-      std::cerr << "Failed to load window data" << std::endl;
+      std::cerr << "Failed to load window data from: " << window_file_path << std::endl;
       return false;
     }
   }
@@ -78,19 +83,16 @@ bool MapIO::LoadMapData(const std::string &map_file_path,
 }
 
 void MapIO::CollectDataFromManagers() {
-  margin_data_list_ = SlEKFManagement::GetInstance().GetCachedMarginalizationData();
   slot_map_data_list_ = SlEKFManagement::GetInstance().GetCachedSlotMapData();
   deleted_window_data_list_ = SlidingWindow::GetInstance().GetCachedDeletedWindowData();
 }
 
 void MapIO::ClearCollectedData() {
-  margin_data_list_.clear();
   slot_map_data_list_.clear();
   deleted_window_data_list_.Clear();
 }
 
 void MapIO::ClearManagerCache() {
-  SlEKFManagement::GetInstance().ClearMarginalizationDataCache();
   SlidingWindow::GetInstance().ClearDeletedWindowCache();
   SlEKFManagement::GetInstance().ClearSlotMapDataCache();
 }
@@ -100,11 +102,6 @@ bool MapIO::WriteMapDataToBinary(const std::string &file_path) {
 
   if (!file.is_open()) {
     std::cerr << "Failed to open " << file_path << " for writing" << std::endl;
-    return false;
-  }
-
-  if (!SerializeAndWrite(file, margin_data_list_)) {
-    file.close();
     return false;
   }
 
@@ -144,8 +141,8 @@ bool MapIO::WriteWindowDataToBinary(const std::string &file_path) {
 }
 
 bool MapIO::SetSemMap(){
-  for (int i = 0; i < margin_data_list_.size();i++){
-    patac_hpp::ParkingSlotList slot_list = margin_data_list_[i];
+  for (int i = 0; i < slot_map_data_list_.size();i++){
+    patac_hpp::ParkingSlotList slot_list = slot_map_data_list_[i];
     for (int i = 0; i < slot_list.parking_slot_list_size(); ++i) {
       const auto& parking_slot = slot_list.parking_slot_list(i);
       Eigen::MatrixXd slot_data =
@@ -200,19 +197,16 @@ bool MapIO::ReadMapDataFromBinary(const std::string &file_path) {
     return false;
   }
 
-  if (!ReadAndDeserialize(file, margin_data_list_)) {
-    file.close();
-    return false;
-  }
 
-  if(!SetSemMap()){
-    std::cerr << "Failed to SetSemMap" << std::endl;
-    return false;
-  }
-
+  
   if (!ReadAndDeserialize(file, slot_map_data_list_))
   {
     file.close();
+    return false;
+  }
+  
+  if(!SetSemMap()){
+    std::cerr << "Failed to SetSemMap" << std::endl;
     return false;
   }
 

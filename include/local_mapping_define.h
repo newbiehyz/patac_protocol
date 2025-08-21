@@ -57,6 +57,11 @@ struct DatasetParams {
   int recordmode;
 };
 
+struct MapIOParams {
+  std::string map_save_path;
+  std::string map_load_path;
+};
+
 enum ParkingSlotType { Vertical = 0, Horizontal = 1, Oblique = 2};
 
 enum Action : std::uint8_t { RESET = 0, MAPPING = 1, SAVE = 2}; // SAVE action reserved
