@@ -82,7 +82,6 @@ int main(int argc, char** argv) {
         seq_cnt++;
         std::cout <<"dataseq cnt: "<<seq_cnt<<" dataseqtime: " <<data_seq[0].first<<" dataseq type: "<<data_seq[0].second<< std::endl;
 
-        continue;
         if(!data_seq.empty()){
             std::cout <<"dataseq cnt: "<<seq_cnt<<" dataseqtime: " <<data_seq[0].first<<" dataseq type: "<<data_seq[0].second<< std::endl;
             int dr_rc,slots_rc,imgs_rc;
@@ -342,5 +341,6 @@ int main(int argc, char** argv) {
     cnt++;
     }//while
     }//traindata gen mode end
+
     return 0;
 }

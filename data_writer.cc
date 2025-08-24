@@ -187,6 +187,8 @@ void DataWriter::WriteImageList(const long long timestamp,
     _initialized_imgs = true;
   }
   patac_hpp::ImageList img_list;
+  img_list.set_timestamp(timestamp);
+  img_list.set_num_image(imgs.size());
   for (size_t i = 0; i < imgs.size(); ++i) {
     auto image = img_list.add_image_list();
     image->set_width(imgs.at(i).cols);
@@ -223,6 +225,8 @@ void DataWriter::WriteSlotMsg(const long long timestamp,
   }
 
   patac_hpp::ParkingSlotList ps_list;
+  ps_list.set_timestamp(timestamp);
+  ps_list.set_num_parking_slot(slot_uv.size());
   for (size_t i = 0; i < slot_uv.size(); ++i) {
     auto *ps = ps_list.add_parking_slot_list();
 
