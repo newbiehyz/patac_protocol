@@ -48,15 +48,13 @@ void PangolinViewer::run() {
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
     if (pangolin::Pushed(save_map_button)) {
-      {
-        std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
-        vis_meas.saveMap = true; // not used
-        ActionQueue::GetInstance().PushAction(SAVE); // SAVE action reserved
-        MapIO::GetInstance().SaveMapData();
-        
-        save_map_button.Reset();
-        ActionQueue::GetInstance().PushAction(RESET);
-      }
+      std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+      vis_meas.saveMap = true; // not used
+      ActionQueue::GetInstance().PushAction(SAVE); // SAVE action reserved
+      MapIO::GetInstance().SaveMapData();
+      
+      save_map_button.Reset();
+      ActionQueue::GetInstance().PushAction(RESET);
     }
     if (pangolin::Pushed(start_mapping_button)) {
       std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);

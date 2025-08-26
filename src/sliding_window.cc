@@ -796,7 +796,7 @@ void SlidingWindow::refresh_propagate_window_status(
     _sl_timestamp.push_back(timestamp);
 
   } else {
-    if (vis_meas.startMapping && !vis_meas.startLocalization) {
+    if (vis_meas.startMapping || vis_meas.startLocalization) {
       save_deleted_window_cache(timestamp);
     }
 

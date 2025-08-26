@@ -133,6 +133,64 @@ class ProtobufVisualizer:
             point = trajectory.trajectory_point_list[i]
             self.point_src.append([point.x, point.y, point.z])
 
+    def _construct_parking_rectangle(self, slot_points, slot_type):
+        """根据车位类型构造矩形"""
+        if len(slot_points) != 2:
+            return slot_points
+            
+        p1, p2 = slot_points
+        p1, p2 = np.array(p1), np.array(p2)
+        
+        # 计算两点间的距离
+        distance = np.linalg.norm(p2 - p1)
+        if distance < 1e-6:  # 避免除零错误
+            return slot_points
+            
+        # 计算从p1到p2的单位方向向量
+        direction_p1_to_p2 = (p2 - p1) / distance
+        
+        # 顺时针旋转90度得到"向后"方向
+        # 如果原向量是(x, y)，顺时针旋转90度后是(y, -x)
+        backward_direction = np.array([direction_p1_to_p2[1], -direction_p1_to_p2[0]])
+        
+        if slot_type == patac_slot_pb2.SlotTypeVertical:
+            # 垂直车位：两点连线作为宽边，向后延伸5.45m作为长边
+            depth = 5.45
+            
+            # 构造矩形的四个顶点
+            # p1和p2是车位开口的两端
+            # 向后延伸depth距离
+            corner1 = p1  # 开口端点1
+            corner2 = p2  # 开口端点2
+            corner3 = p2 + backward_direction * depth  # 后端点2
+            corner4 = p1 + backward_direction * depth  # 后端点1
+            
+        elif slot_type == patac_slot_pb2.SlotTypeParallel:
+            # 水平车位：两点连线作为长边，向后延伸2.25m作为宽边
+            width = 2.25
+            
+            # 构造矩形的四个顶点
+            # p1和p2是车位长边的两端
+            # 向后延伸width距离
+            corner1 = p1  # 前端点1
+            corner2 = p2  # 前端点2
+            corner3 = p2 + backward_direction * width  # 后端点2
+            corner4 = p1 + backward_direction * width  # 后端点1
+            
+        else:
+            # 其他类型车位，使用默认逻辑或原始点
+            return slot_points
+        
+        # 返回矩形的四个顶点
+        rectangle_points = [
+            [corner1[0], corner1[1]],
+            [corner2[0], corner2[1]],
+            [corner3[0], corner3[1]],
+            [corner4[0], corner4[1]]
+        ]
+        
+        return rectangle_points
+
     def visualize_combined(self, parking_list=None, trajectory=None):
         plt.figure(figsize=(16, 12))
         
@@ -169,24 +227,9 @@ class ProtobufVisualizer:
                     all_x.append(point.x)
                     all_y.append(point.y)
                 
-                # 矩形构造 待完善
+                # 使用新的矩形构造方法
                 if len(slot_points) == 2:
-                    p1, p2 = slot_points
-                    width = abs(p2[0] - p1[0])
-                    height = abs(p2[1] - p1[1])
-                    
-                    if width < 0.5:
-                        width = 5.0
-                    if height < 0.5:
-                        height = 5.0
-                    
-                    min_x, min_y = min(p1[0], p2[0]), min(p1[1], p2[1])
-                    slot_points = [
-                        [min_x, min_y],
-                        [min_x + width, min_y],
-                        [min_x + width, min_y + height],
-                        [min_x, min_y + height]
-                    ]
+                    slot_points = self._construct_parking_rectangle(slot_points, slot.type)
                                 
                 try:
                     polygon = patches.Polygon(slot_points,
@@ -415,24 +458,9 @@ class ProtobufVisualizer:
                 slot_points.append([point.x, point.y])
                 all_points.append([point.x, point.y])
             
-            # 矩形构造 待完善
+            # 使用新的矩形构造方法
             if len(slot_points) == 2:
-                p1, p2 = slot_points
-                width = abs(p2[0] - p1[0])
-                height = abs(p2[1] - p1[1])
-                
-                if width < 0.5:
-                    width = 5.0
-                if height < 0.5:
-                    height = 5.0
-                
-                min_x, min_y = min(p1[0], p2[0]), min(p1[1], p2[1])
-                slot_points = [
-                    [min_x, min_y],
-                    [min_x + width, min_y],
-                    [min_x + width, min_y + height],
-                    [min_x, min_y + height]
-                ]
+                slot_points = self._construct_parking_rectangle(slot_points, slot.type)
                             
             try:
                 polygon = patches.Polygon(slot_points,
