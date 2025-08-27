@@ -23,30 +23,44 @@ void SlidingWindow::Init() {
 }
 
 void SlidingWindow::Reset() {
-  _sl_timestamp.clear();
-  _sl_P.clear();
-  _sl_pose.clear();
+  // _sl_timestamp.clear();
+  // _sl_P.clear();
+  // _sl_pose.clear();
+  _keyframes.clear();
   _state_landmark.clear();
   _window_cross_correlation.clear();
   _window_lm_cross_correlation.clear();
   _initialized = false;
 }
 
-int SlidingWindow::GetCurWindowSz() { return _sl_timestamp.size(); }
+// int SlidingWindow::GetCurWindowSz() { return _sl_timestamp.size();
+int SlidingWindow::GetCurWindowSz() { return _keyframes.size(); }
 
+// bool SlidingWindow::GetSlidingWindowStatus(const int id, long long &timestamp,
+//                                            Eigen::VectorXd &x,
+//                                            Eigen::MatrixXd &P) {
+//   if (id > this->GetCurWindowSz() - 1) {
+//     std::cout << "Fatal Error, Window Id Wrong\n";
+//     return false;
+//   }
+
+//   timestamp = _sl_timestamp.at(id);
+//   x = _sl_pose.at(id);
+//   P = _sl_P.at(id);
+
+//   return true;
+// }
 bool SlidingWindow::GetSlidingWindowStatus(const int id, long long &timestamp,
-                                           Eigen::VectorXd &x,
-                                           Eigen::MatrixXd &P) {
-  if (id > this->GetCurWindowSz() - 1) {
-    std::cout << "Fatal Error, Window Id Wrong\n";
-    return false;
-  }
-
-  timestamp = _sl_timestamp.at(id);
-  x = _sl_pose.at(id);
-  P = _sl_P.at(id);
-
-  return true;
+                                         Eigen::VectorXd &x, Eigen::MatrixXd &P) {
+    if (id > this->GetCurWindowSz() - 1) {
+        std::cout << "Fatal Error, Window Id Wrong\n";
+        return false;
+    }
+    
+    timestamp = _keyframes[id].GetTimestamp();
+    x = _keyframes[id].GetPose();
+    P = _keyframes[id].GetCovariance();
+    return true;
 }
 
 bool SlidingWindow::Initialized() { return _initialized; }
@@ -67,8 +81,10 @@ void SlidingWindow::Propagate(
   Eigen::MatrixXd P_aug = P;
   P_aug.conservativeResize(P.rows() + STATE_VEHICLE_SIZE,
                            P.cols() + STATE_VEHICLE_SIZE);
+  // P_aug.bottomRightCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
+  //     _sl_P.back();
   P_aug.bottomRightCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
-      _sl_P.back();
+      _keyframes.back().GetCovariance();
   P_aug.bottomLeftCorner(STATE_VEHICLE_SIZE, P.cols()) =
       P.topRows(STATE_VEHICLE_SIZE);
   P_aug.topRightCorner(P.rows(), STATE_VEHICLE_SIZE) =
@@ -76,8 +92,10 @@ void SlidingWindow::Propagate(
 
   // std::cout << "P_aug::::::::::::::::::::::::::\n" << P_aug << std::endl;
 
-  long long timestamp_cur = _sl_timestamp.back();
-  Eigen::VectorXd x_cur = _sl_pose.back();
+  // long long timestamp_cur = _sl_timestamp.back();
+  // Eigen::VectorXd x_cur = _sl_pose.back();
+  long long timestamp_cur = _keyframes.back().GetTimestamp();
+  Eigen::VectorXd x_cur = _keyframes.back().GetPose();
 
   double time_scale =
       ApaParameters::GetInstance().GetEstimatorParamters().time_scale;
@@ -161,11 +179,17 @@ void SlidingWindow::construct_x_and_P(
   P = Eigen::MatrixXd::Zero(state_sz, state_sz);
   x = Eigen::VectorXd::Zero(state_sz);
 
+  // for (int i = 0; i < this->GetCurWindowSz(); ++i) {
+  //   int start_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
+  //   x.segment(start_pos, STATE_VEHICLE_SIZE) = _sl_pose[i];
+  //   P.block(start_pos, start_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
+  //       _sl_P[i];
+  // } // window auto correlation
   for (int i = 0; i < this->GetCurWindowSz(); ++i) {
     int start_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
-    x.segment(start_pos, STATE_VEHICLE_SIZE) = _sl_pose[i];
-    P.block(start_pos, start_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) =
-        _sl_P[i];
+    x.segment(start_pos, STATE_VEHICLE_SIZE) = _keyframes[i].GetPose();
+    P.block(start_pos, start_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE) = 
+        _keyframes[i].GetCovariance();
   } // window auto correlation
 
   // window cross correlation
@@ -290,17 +314,26 @@ void SlidingWindow::construct_x_and_P(
   }
 }
 
+// long long SlidingWindow::GetSlwTimestamp(const int id) {
+//   return _sl_timestamp.at(id);
+// }
 long long SlidingWindow::GetSlwTimestamp(const int id) {
-  return _sl_timestamp.at(id);
+    return _keyframes[id].GetTimestamp();
 }
 
-void SlidingWindow::InitializeSlw(const long long ts, const Eigen::VectorXd &x,
-                                  const Eigen::MatrixXd &P) {
-  _sl_pose.push_back(x);
-  _sl_timestamp.push_back(ts);
-  _sl_P.push_back(P);
+// void SlidingWindow::InitializeSlw(const long long ts, const Eigen::VectorXd &x,
+//                                   const Eigen::MatrixXd &P) {
+//   _sl_pose.push_back(x);
+//   _sl_timestamp.push_back(ts);
+//   _sl_P.push_back(P);
 
-  _initialized = true;
+//   _initialized = true;
+// }
+
+void SlidingWindow::InitializeSlw(const long long ts, const Eigen::VectorXd &x,
+                                const Eigen::MatrixXd &P) {
+    _keyframes.emplace_back(ts, x, P);
+    _initialized = true;
 }
 
 int SlidingWindow::get_residual_sz(
@@ -331,11 +364,17 @@ void SlidingWindow::UpdateEKF(
     const Eigen::VectorXd &x, const Eigen::MatrixXd &P,
     const std::map<SensorType, std::map<int, int>> &ekf_lm_pos,
     const std::map<SensorType, std::set<int>> &marginalization_list) {
+  // for (size_t i = 0; i < this->GetCurWindowSz(); ++i) {
+  //   int win_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
+  //   _sl_pose[i] = x.segment(win_pos, STATE_VEHICLE_SIZE);
+  //   _sl_P[i] =
+  //       P.block(win_pos, win_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
+  // }
   for (size_t i = 0; i < this->GetCurWindowSz(); ++i) {
     int win_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
-    _sl_pose[i] = x.segment(win_pos, STATE_VEHICLE_SIZE);
-    _sl_P[i] =
-        P.block(win_pos, win_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
+    _keyframes[i].SetPose(x.segment(win_pos, STATE_VEHICLE_SIZE));
+    _keyframes[i].SetCovariance(
+        P.block(win_pos, win_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE));
   }
 
   refresh_landmark_cross_correlation(P, ekf_lm_pos);
@@ -366,8 +405,12 @@ void SlidingWindow::ConstructEKF(
     std::map<SensorType, std::set<int>> &marginalization_list) {
   std::vector<std::map<SensorType, std::vector<int>>> sw_lm_list;
   std::map<SensorType, std::set<int>> margin_list;
-  SemanticMap::GetInstance().GetSlidingWindowEKFDataList(
-      _sl_timestamp, sw_lm_list, margin_list);
+  // SemanticMap::GetInstance().GetSlidingWindowEKFDataList(_sl_timestamp, sw_lm_list, margin_list);
+  std::vector<long long> timestamps;
+  for (const auto& kf : _keyframes) {
+      timestamps.push_back(kf.GetTimestamp());
+  }
+  SemanticMap::GetInstance().GetSlidingWindowEKFDataList(timestamps, sw_lm_list, margin_list);
 
   // std::vector<std::map<SensorType, std::vector<int>>> sw_lm_list_copy;
   // sw_lm_list_copy.resize(sw_lm_list.size());
@@ -433,15 +476,21 @@ void SlidingWindow::ConstructEKF(
         int lm_id = it_type->second.at(j);
 
         SemanticMea::Ptr mea;
+        // SemanticMap::GetInstance()
+        //     .GetLandmark(type, lm_id)
+        //     ->GetMea(_sl_timestamp.at(i), mea);
         SemanticMap::GetInstance()
-            .GetLandmark(type, lm_id)
-            ->GetMea(_sl_timestamp.at(i), mea);
+                .GetLandmark(type, lm_id)
+                ->GetMea(_keyframes[i].GetTimestamp(), mea);
         Eigen::VectorXd r;
         Eigen::MatrixXd J_window, J_landmark;
+        // SemanticMap::GetInstance()
+        //     .GetLandmark(type, lm_id)
+        //     ->GetResidualAndJacobian(mea, _sl_pose.at(i), r, J_window,
+        //                              J_landmark);
         SemanticMap::GetInstance()
             .GetLandmark(type, lm_id)
-            ->GetResidualAndJacobian(mea, _sl_pose.at(i), r, J_window,
-                                     J_landmark);
+            ->GetResidualAndJacobian(mea, _keyframes[i].GetPose(), r, J_window, J_landmark);
         // J_landmark.setZero();
 
         if (!only_localization) {
@@ -504,11 +553,18 @@ void SlidingWindow::ConstructEKF(
     gl_slw.sl_meas.resize(this->GetCurWindowSz());
 
     for (size_t i = 0; i < this->GetCurWindowSz(); ++i) {
-      gl_slw.sl_pose.at(i) = _sl_pose.at(i);
+      // gl_slw.sl_pose.at(i) = _sl_pose.at(i);
 
-      const auto &timestamp = _sl_timestamp.at(i);
-      Eigen::Vector2d twb = _sl_pose.at(i).head(2);
-      double yaw = _sl_pose.at(i).z();
+      // const auto &timestamp = _sl_timestamp.at(i);
+      // Eigen::Vector2d twb = _sl_pose.at(i).head(2);
+      // double yaw = _sl_pose.at(i).z();
+
+      gl_slw.sl_pose.at(i) = _keyframes[i].GetPose();
+      const auto &timestamp = _keyframes[i].GetTimestamp();
+      Eigen::Vector2d twb = _keyframes[i].GetPose().head(2);
+      double yaw = _keyframes[i].GetPose().z();
+
+
       Eigen::Rotation2Dd rot(yaw);
       Eigen::Matrix2d Rwb = rot.toRotationMatrix();
       if (!sw_lm_list.at(i).empty()) {
@@ -784,33 +840,56 @@ void SlidingWindow::refresh_propagate_window_status(
     const std::map<SensorType, std::map<int, int>> &ekf_lm_pos) {
   int slw_sz = ApaParameters::GetInstance().GetEstimatorParamters().window_size;
   int cur_win_sz = this->GetCurWindowSz();
+  // if (cur_win_sz < slw_sz) {
+  //   for (size_t i = 0; i < cur_win_sz; ++i) {
+  //     int start_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
+  //     _sl_P.at(i) =
+  //         P.block(start_pos, start_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
+  //   }
+
+  //   _sl_P.push_back(P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE));
+  //   _sl_pose.push_back(latest_state);
+  //   _sl_timestamp.push_back(timestamp);
+
+  // } else {
+  //   if (vis_meas.startMapping || vis_meas.startLocalization) {
+  //     save_deleted_window_cache(timestamp);
+  //   }
+
+  //   for (size_t i = 0; i < cur_win_sz - 1; ++i) {
+  //     std::swap(_sl_pose.at(i), _sl_pose.at(i + 1));
+  //     std::swap(_sl_P.at(i), _sl_P.at(i + 1));
+  //     std::swap(_sl_timestamp.at(i), _sl_timestamp.at(i + 1));
+  //   }
+
+  //   _sl_timestamp.at(cur_win_sz - 1) = timestamp;
+  //   _sl_P.at(cur_win_sz - 1) =
+  //       P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
+  //   _sl_pose.at(cur_win_sz - 1) = latest_state;
+  // }
   if (cur_win_sz < slw_sz) {
     for (size_t i = 0; i < cur_win_sz; ++i) {
-      int start_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
-      _sl_P.at(i) =
-          P.block(start_pos, start_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
+        int start_pos = STATE_VEHICLE_SIZE * (this->GetCurWindowSz() - i - 1);
+        _keyframes[i].SetCovariance(
+            P.block(start_pos, start_pos, STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE));
     }
-
-    _sl_P.push_back(P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE));
-    _sl_pose.push_back(latest_state);
-    _sl_timestamp.push_back(timestamp);
-
+    
+    _keyframes.emplace_back(timestamp, latest_state, 
+                            P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE));
   } else {
     if (vis_meas.startMapping || vis_meas.startLocalization) {
-      save_deleted_window_cache(timestamp);
+        save_deleted_window_cache(timestamp);
     }
-
+    
     for (size_t i = 0; i < cur_win_sz - 1; ++i) {
-      std::swap(_sl_pose.at(i), _sl_pose.at(i + 1));
-      std::swap(_sl_P.at(i), _sl_P.at(i + 1));
-      std::swap(_sl_timestamp.at(i), _sl_timestamp.at(i + 1));
+        std::swap(_keyframes[i], _keyframes[i + 1]);
     }
-
-    _sl_timestamp.at(cur_win_sz - 1) = timestamp;
-    _sl_P.at(cur_win_sz - 1) =
-        P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE);
-    _sl_pose.at(cur_win_sz - 1) = latest_state;
+    
+    _keyframes[cur_win_sz - 1].SetKeyFrameData(
+        timestamp, latest_state, 
+        P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE));
   }
+
   // refresh_propagate_window(cur_win_sz, P);
   refresh_window_cross_correlation(P);
 
@@ -831,9 +910,12 @@ void SlidingWindow::initialize_landmark(
                  .GetLandmark(type, landmark_id)
                  ->Initialized()) {
           Eigen::MatrixXd Jx;
+          // SemanticMap::GetInstance().InitializeLandmark(
+          //     type, landmark_id, _sl_timestamp.at(i), _sl_pose.at(i),
+          //     _sl_P.at(i), Jx);
           SemanticMap::GetInstance().InitializeLandmark(
-              type, landmark_id, _sl_timestamp.at(i), _sl_pose.at(i),
-              _sl_P.at(i), Jx);
+              type, landmark_id, _keyframes[i].GetTimestamp(), _keyframes[i].GetPose(),
+              _keyframes[i].GetCovariance(), Jx);
           std::cout << "Aug Landmark: " << landmark_id << std::endl;
           // SemanticMap::GetInstance().SetLandmarkCov(type, landmark_id,
           // Eigen::MatrixXd::Zero(4, 4));
@@ -992,11 +1074,16 @@ int SlidingWindow::get_state_size(
 
 bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
                                 const double translation_th) {
-  if (_sl_pose.empty()) {
+  // if (_sl_pose.empty()) {
+  //   return true;
+  // } else {
+  //   int sl_sz = this->GetCurWindowSz();
+  //   Eigen::VectorXd last_x = _sl_pose.at(sl_sz - 1);
+  if (_keyframes.empty()) {
     return true;
   } else {
     int sl_sz = this->GetCurWindowSz();
-    Eigen::VectorXd last_x = _sl_pose.at(sl_sz - 1);
+    Eigen::VectorXd last_x = _keyframes[sl_sz - 1].GetPose();
 
     Eigen::Vector2d twb_cur = x.head(2);
     Eigen::Vector2d twb_last = last_x.head(2);
@@ -1021,9 +1108,12 @@ void SlidingWindow::save_deleted_window_cache(const long long &timestamp) {
   patac_hpp::TrajectoryPoint trajectory_point;
 
   if (this->GetCurWindowSz() > 0) {
-    Eigen::VectorXd oldest_x = _sl_pose[0];
+    // Eigen::VectorXd oldest_x = _sl_pose[0];
 
-    trajectory_point.set_timestamp(_sl_timestamp[0]);
+    // trajectory_point.set_timestamp(_sl_timestamp[0]);
+    Eigen::VectorXd oldest_x = _keyframes[0].GetPose();
+    trajectory_point.set_timestamp(_keyframes[0].GetTimestamp());
+
     trajectory_point.set_id(_trajectory_point_id_counter++);
     trajectory_point.set_x(oldest_x[0]);
     trajectory_point.set_y(oldest_x[1]);

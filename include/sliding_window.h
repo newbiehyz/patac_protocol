@@ -21,6 +21,8 @@
 
 #include "patac_trajetory.pb.h"
 
+#include "key_frame.h"
+
 
 using WindowCrossCorrelation =
     std::map<std::pair<int, int>,
@@ -138,9 +140,10 @@ class SlidingWindow {
 
   bool _initialized{false};
 
-  std::vector<long long> _sl_timestamp;
-  std::vector<Eigen::VectorXd> _sl_pose;
-  std::vector<Eigen::MatrixXd> _sl_P;
+  // std::vector<long long> _sl_timestamp;
+  // std::vector<Eigen::VectorXd> _sl_pose;
+  // std::vector<Eigen::MatrixXd> _sl_P;
+  std::vector<KeyFrame> _keyframes;
 
   Eigen::MatrixXd _N;  // odo measurement
 

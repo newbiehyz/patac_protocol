@@ -42,7 +42,7 @@ class SemanticMap {
 
   void InitializeLandmark(const SensorType type, const int id, const long long timestamp,
                           const Eigen::VectorXd& vehicle_mean,
-                          Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx);
+                          const Eigen::MatrixXd& vehicle_P, Eigen::MatrixXd& Jx);
 
   void GetEKFDataList(
       std::map<SensorType, std::set<int>>& augmentation_list,

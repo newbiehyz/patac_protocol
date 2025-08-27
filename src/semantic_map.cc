@@ -53,7 +53,7 @@ void SemanticMap::InitializeLandmark(const SensorType type, const int id,
 void SemanticMap::InitializeLandmark(const SensorType type, const int id,
                                      const long long timestamp,
                                      const Eigen::VectorXd& vehicle_mean,
-                                     Eigen::MatrixXd& vehicle_P,
+                                     const Eigen::MatrixXd& vehicle_P,
                                      Eigen::MatrixXd& Jx) {
   _map.at(type).at(id)->InitializeLandmark(timestamp, vehicle_mean, vehicle_P,
                                            Jx);
