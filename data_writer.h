@@ -16,6 +16,7 @@
 #include "patac_dr.pb.h"
 #include "patac_image.pb.h"
 #include "patac_slot.pb.h"
+#include "patac_ptcloud.pb.h"
 #include "data_type.h"
 namespace apa_slam {
 
@@ -39,6 +40,8 @@ public:
 
   void WriteSlotMsg(const long long timestamp,
                     const std::vector<Eigen::MatrixXd> &slot_uv);
+  void WritePTCMsg(const long long timestamp,
+                    const std::vector<Eigen::MatrixXd> &ptc);
   void WriteSlotMsg(const long long timestamp,
                     const class patac_hpp::ParkingSlotList &slot_uv);
 private:
@@ -55,5 +58,7 @@ private:
   bool _initialized_dr = false;      // 标记dr是否已初始化查询
   sqlite3_stmt* _stmt_slots = nullptr;  // 保存车位查询状态
   bool _initialized_slots = false;      // 标记车位是否已初始化查询
+  sqlite3_stmt* _stmt_ptc = nullptr;  // 保存ptc查询状态
+  bool _initialized_ptc = false;      // 标记ptc是否已初始化查询
 };
 } // namespace apa_slam

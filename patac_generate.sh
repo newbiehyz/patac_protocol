@@ -23,6 +23,6 @@ mkdir $PYTHON_DIR
 ./protoc-3.19.6-linux-x86_64/bin/protoc -I=./protocol/patac_hpp/ --cpp_out=./cpp_gen/ ./protocol/patac_hpp/*.proto
 
 # === 生成 Python 文件 ===
-./protoc-3.19.6-linux-x86_64/bin/ -I=./protocol/patac_hpp/ --python_out=./python_gen/ ./protocol/patac_hpp/*.proto
+./protoc-3.19.6-linux-x86_64/bin/protoc -I=./protocol/patac_hpp/ --python_out=./python_gen/ ./protocol/patac_hpp/*.proto
 
 echo "Protocol buffers (patac_hpp) generated and saved to ${CPP_DIR} and ${PYTHON_DIR}"

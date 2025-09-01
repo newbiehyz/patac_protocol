@@ -12,6 +12,7 @@
 #include "patac_dr.pb.h"
 #include "patac_image.pb.h"
 #include "patac_slot.pb.h"
+#include "patac_ptcloud.pb.h"
 #include "data_type.h"
 namespace apa_slam {
 
@@ -81,7 +82,7 @@ private:
     bool _initialized_dr = false;      // 标记dr是否已初始化查询
     sqlite3_stmt* _stmt_slots = nullptr;  // 保存车位查询状态
     bool _initialized_slots = false;      // 标记车位是否已初始化查询
-    sqlite3_stmt* _stmt_query[4] = {nullptr};
-    bool _initialized_query[4] = {false};
+    sqlite3_stmt* _stmt_query[5] = {nullptr};
+    bool _initialized_query[5] = {false};
 };
 } // namespace apa_slam

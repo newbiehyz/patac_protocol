@@ -35,6 +35,38 @@ void PrintParkingSlots(const patac_hpp::ParkingSlotList& slots) {
         }
     }
 }
+
+// 打印 Ptcloud 对象的完整信息
+void printPtcloud(const patac_hpp::Ptcloud& ptc) {
+    std::cout << "========== Ptcloud 信息 ==========" << std::endl;
+    std::cout << "时间戳: " << ptc.timestamp() << std::endl;
+    std::cout << "点云数量: " << ptc.num_pt() << std::endl;
+    
+    std::cout << "点云数据详情:" << std::endl;
+    std::cout << "索引\tX\t\tY\t\tZ\t\tLabel" << std::endl;
+    std::cout << "----------------------------------------------" << std::endl;
+    
+    // 设置输出精度
+    std::cout << std::fixed << std::setprecision(6);
+    
+    for (int i = 0; i < ptc.ptcloud_list_size(); ++i) {
+        const auto& point = ptc.ptcloud_list(i);
+        std::cout << i << "\t" 
+                  << point.x() << "\t" 
+                  << point.y() << "\t" 
+                  << point.z() << "\t" 
+                  << point.label() << std::endl;
+        
+        // 如果点云很大，可以限制打印数量
+        if (i >= 9 && ptc.ptcloud_list_size() > 10) {
+            std::cout << "... (总共 " << ptc.ptcloud_list_size() << " 个点)" << std::endl;
+            break;
+        }
+    }
+    
+    std::cout << "==================================" << std::endl;
+}
+
 Eigen::Matrix4d get_pose_matrix(double x, double y, double yaw_deg) {
     // 将角度转换为弧度并调整方向 (90 - yaw)
     double theta = (90.0 - yaw_deg) * M_PI / 180.0;
@@ -188,6 +220,13 @@ int main(int argc, char** argv) {
                     //         // cv::waitKey(0); 
                     //     }
                     // }
+                    break;
+                }
+            case 4:
+                {
+                    patac_hpp::Ptcloud ptc;
+                    reader.QueryDataByTimestamp("pt_cloud", data_seq[0].first, ptc,4);
+                    printPtcloud(ptc);
                     break;
                 }        
             default:

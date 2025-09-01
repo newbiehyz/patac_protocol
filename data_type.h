@@ -15,6 +15,6 @@
 
 namespace apa_slam {
 
-enum DataType : std::uint8_t { DataTypePose = 0, DataTypeDR = 1, DataTypeSLOT = 2, DataTypeFISHEYE = 3 };
+enum DataType : std::uint8_t { DataTypePose = 0, DataTypeDR = 1, DataTypeSLOT = 2, DataTypeFISHEYE = 3, DataTypePTC = 4 };
 
 } // namespace apa_slam

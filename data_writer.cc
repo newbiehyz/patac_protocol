@@ -14,8 +14,8 @@ void DataWriter::Init() {
   std::ostringstream oss;
   oss << std::put_time(localTime, "%Y-%m-%d_%H-%M-%S");
   //   _output_file_name = "/userdata/apatest/" + oss.str() + ".db";
-  // _output_file_name = "./" + oss.str() + ".db";
-  _output_file_name = "/userdata/apatest/" + oss.str() + ".db";
+  _output_file_name = "./" + oss.str() + ".db";
+  // _output_file_name = "/userdata/apatest/" + oss.str() + ".db";
   _rc = sqlite3_open(_output_file_name.c_str(), &_db);
   if (_rc) {
     std::cerr << "Can't open database: " << sqlite3_errmsg(_db) << "\n";
@@ -104,6 +104,21 @@ void DataWriter::create_tables() {
   }
 
   std::cout << "create_slot_tbl Succ\n";
+
+    std::string create_pt_cloud_tbl = R"(CREATE TABLE IF NOT EXISTS pt_cloud (
+    timestamp INTEGER NOT NULL,
+    data BLOB NOT NULL);)";
+
+  _rc = sqlite3_exec(_db, create_pt_cloud_tbl.c_str(), nullptr, nullptr, &_errMsg);
+
+  if (_rc != SQLITE_OK) {
+    std::cerr << "create_pt_cloud_tbl failed SQL error: " << _errMsg << std::endl;
+    sqlite3_free(_errMsg);
+    sqlite3_close(_db);
+    return;
+  }
+
+  std::cout << "create_pt_cloud_tbl Succ\n";
 }
 
 void DataWriter::WriteDataSeq(const long long timestamp, const DataType &type) {
@@ -252,6 +267,46 @@ void DataWriter::WriteSlotMsg(const long long timestamp,
   }
 
   sqlite3_reset(_stmt_slots);
+}
+
+void DataWriter::WritePTCMsg(const long long timestamp,
+                             const std::vector<Eigen::MatrixXd> &ptc)
+{
+  if (!_initialized_ptc) {
+  std::string insert_data_ptc =
+      "INSERT INTO pt_cloud (timestamp, data) VALUES (?, ?);";
+  sqlite3_prepare_v2(_db, insert_data_ptc.c_str(), -1, &_stmt_ptc, nullptr);
+    _initialized_ptc = true;
+  }
+
+  patac_hpp::Ptcloud ptc_list;
+  ptc_list.set_timestamp(timestamp);
+  ptc_list.set_num_pt(ptc.size());
+  for (size_t i = 0; i < ptc.size(); ++i) {
+    auto *pt = ptc_list.add_ptcloud_list();
+    const Eigen::MatrixXd& point_matrix = ptc[i];
+
+      pt->set_x(point_matrix(0,0));
+      pt->set_y(point_matrix(0,1));
+      pt->set_z(point_matrix(0,2));
+      pt->set_label(point_matrix(0,3));
+    }
+
+  std::string serialized;
+  ptc_list.SerializeToString(&serialized);
+  sqlite3_bind_int64(_stmt_ptc, 1, timestamp);
+  sqlite3_bind_blob(_stmt_ptc, 2, serialized.data(), serialized.size(),
+                    SQLITE_TRANSIENT);
+
+  int rc = sqlite3_step(_stmt_ptc);
+  if (rc != SQLITE_DONE) {
+    std::cerr << "Insert into pt_cloud failed: " << sqlite3_errmsg(_db)
+              << std::endl;
+  } else {
+    // std::cout << "Successfully inserted pose at " << timestamp << std::endl;
+  }
+
+  sqlite3_reset(_stmt_ptc);
 }
 
 void DataWriter::WriteSlotMsg(const long long timestamp,

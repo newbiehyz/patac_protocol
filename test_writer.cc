@@ -135,5 +135,14 @@ int main() {
     timestamp += 200;
   }
 
+  timestamp += 200;
+  std::vector<Eigen::MatrixXd> ptc;
+  Eigen::MatrixXd matrix(1, 4);
+  matrix << 1.0, 2.0, 3.0, 4;  // 初始化值
+  ptc.push_back(matrix);
+  DataWriter::GetInstance().WriteDataSeq(timestamp,
+                                           static_cast<apa_slam::DataType>(4));
+  DataWriter::GetInstance().WritePTCMsg(timestamp, ptc);     
+                                  
   return 0;
 }
