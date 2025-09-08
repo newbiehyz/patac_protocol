@@ -23,9 +23,6 @@ void SlidingWindow::Init() {
 }
 
 void SlidingWindow::Reset() {
-  // _sl_timestamp.clear();
-  // _sl_P.clear();
-  // _sl_pose.clear();
   _keyframes.clear();
   _state_landmark.clear();
   _window_cross_correlation.clear();
@@ -877,9 +874,9 @@ void SlidingWindow::refresh_propagate_window_status(
     _keyframes.emplace_back(timestamp, latest_state, 
                             P.topLeftCorner(STATE_VEHICLE_SIZE, STATE_VEHICLE_SIZE));
   } else {
-    if (vis_meas.startMapping || vis_meas.startLocalization) {
-        save_deleted_window_cache(timestamp);
-    }
+    // if (vis_meas.startMapping || vis_meas.startLocalization) {
+    //     save_deleted_window_cache(timestamp);
+    // }
     
     for (size_t i = 0; i < cur_win_sz - 1; ++i) {
         std::swap(_keyframes[i], _keyframes[i + 1]);
@@ -1104,45 +1101,45 @@ bool SlidingWindow::AddKeyFrame(const long long ts, const Eigen::VectorXd &x,
   return false;
 }
 
-void SlidingWindow::save_deleted_window_cache(const long long &timestamp) {
-  patac_hpp::TrajectoryPoint trajectory_point;
+// void SlidingWindow::save_deleted_window_cache(const long long &timestamp) {
+//   patac_hpp::TrajectoryPoint trajectory_point;
 
-  if (this->GetCurWindowSz() > 0) {
-    // Eigen::VectorXd oldest_x = _sl_pose[0];
+//   if (this->GetCurWindowSz() > 0) {
+//     // Eigen::VectorXd oldest_x = _sl_pose[0];
 
-    // trajectory_point.set_timestamp(_sl_timestamp[0]);
-    Eigen::VectorXd oldest_x = _keyframes[0].GetPose();
-    trajectory_point.set_timestamp(_keyframes[0].GetTimestamp());
+//     // trajectory_point.set_timestamp(_sl_timestamp[0]);
+//     Eigen::VectorXd oldest_x = _keyframes[0].GetPose();
+//     trajectory_point.set_timestamp(_keyframes[0].GetTimestamp());
 
-    trajectory_point.set_id(_trajectory_point_id_counter++);
-    trajectory_point.set_x(oldest_x[0]);
-    trajectory_point.set_y(oldest_x[1]);
-    trajectory_point.set_z(0.0f);
+//     trajectory_point.set_id(_trajectory_point_id_counter++);
+//     trajectory_point.set_x(oldest_x[0]);
+//     trajectory_point.set_y(oldest_x[1]);
+//     trajectory_point.set_z(0.0f);
     
-    double yaw = oldest_x[2];
-    float qw = static_cast<float>(std::cos(yaw / 2.0));
-    float qx = 0.0f;
-    float qy = 0.0f;
-    float qz = static_cast<float>(std::sin(yaw / 2.0));
+//     double yaw = oldest_x[2];
+//     float qw = static_cast<float>(std::cos(yaw / 2.0));
+//     float qx = 0.0f;
+//     float qy = 0.0f;
+//     float qz = static_cast<float>(std::sin(yaw / 2.0));
     
-    trajectory_point.set_qx(qx);
-    trajectory_point.set_qy(qy);
-    trajectory_point.set_qz(qz);
-    trajectory_point.set_qw(qw);
+//     trajectory_point.set_qx(qx);
+//     trajectory_point.set_qy(qy);
+//     trajectory_point.set_qz(qz);
+//     trajectory_point.set_qw(qw);
     
-    trajectory_point.set_velocity(0.0f);
-    trajectory_point.set_angular_velocity(0.0f);
-  }
+//     trajectory_point.set_velocity(0.0f);
+//     trajectory_point.set_angular_velocity(0.0f);
+//   }
 
-  {
-    std::lock_guard<std::mutex> lock(_trajectory_mutex);
+//   {
+//     std::lock_guard<std::mutex> lock(_trajectory_mutex);
 
-    auto* new_point = _trajectory_cache.add_trajectory_point_list();
-    *new_point = trajectory_point;
+//     auto* new_point = _trajectory_cache.add_trajectory_point_list();
+//     *new_point = trajectory_point;
     
-    _trajectory_cache.set_num_trajectory_point(_trajectory_cache.trajectory_point_list_size());
-  }
-}
+//     _trajectory_cache.set_num_trajectory_point(_trajectory_cache.trajectory_point_list_size());
+//   }
+// }
 
 const patac_hpp::Trajectory& SlidingWindow::GetCachedDeletedWindowData() {
   std::lock_guard<std::mutex> lock(_trajectory_mutex);

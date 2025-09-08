@@ -37,6 +37,7 @@ public:
   //protobuf cache
   std::vector<patac_hpp::ParkingSlotList> GetCachedSlotMapData();
   void ClearSlotMapDataCache();
+  patac_hpp::Trajectory GetCompleteTrajectory() const;
 
 private:
   void erase_pres(const long long timestamp);
@@ -59,6 +60,9 @@ private:
   std::mutex _slot_map_data_mutex;
 
   std::set<int> _cached_slot_ids; // for finding already cached
+  std::map<long long, patac_hpp::TrajectoryPoint> _complete_trajectory;
+  mutable std::mutex _complete_trajectory_mutex;
+  int _complete_trajectory_id_counter = 0;
 
 };
 

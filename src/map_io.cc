@@ -84,7 +84,7 @@ bool MapIO::LoadMapData(const std::string &input_map_file_path,
 
 void MapIO::CollectDataFromManagers() {
   slot_map_data_list_ = SlEKFManagement::GetInstance().GetCachedSlotMapData();
-  deleted_window_data_list_ = SlidingWindow::GetInstance().GetCachedDeletedWindowData();
+  deleted_window_data_list_ = SlEKFManagement::GetInstance().GetCompleteTrajectory();
 }
 
 void MapIO::ClearCollectedData() {
