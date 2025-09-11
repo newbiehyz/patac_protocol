@@ -82,7 +82,7 @@ private:
     bool _initialized_dr = false;      // 标记dr是否已初始化查询
     sqlite3_stmt* _stmt_slots = nullptr;  // 保存车位查询状态
     bool _initialized_slots = false;      // 标记车位是否已初始化查询
-    sqlite3_stmt* _stmt_query[5] = {nullptr};
-    bool _initialized_query[5] = {false};
+    sqlite3_stmt* _stmt_query[7] = {nullptr};
+    bool _initialized_query[7] = {false};
 };
 } // namespace apa_slam

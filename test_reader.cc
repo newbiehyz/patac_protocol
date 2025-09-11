@@ -173,14 +173,14 @@ int main(int argc, char** argv) {
 
                             // cv::Mat display_img = imgdecode.clone();
                             // cv::imshow("BGR Image", imgdecode);//显示环视4路鱼眼
-                            if(i == 1)//索引1表示前视鱼眼，仅显示一路前视鱼眼
+                            // if(i == 1)//索引1表示前视鱼眼，仅显示一路前视鱼眼
                             {   
                                 // std::ostringstream filename;
                                 //     filename << "../data_set/frame-" 
                                 //     << std::setw(6) << std::setfill('0') << cnt 
                                 //     << ".color.jpg";
                                 // cv::imwrite(filename.str(), imgdecode);  // JPEG格式（有损压缩，文件小）
-                                cv::imshow("BGR Image", imgdecode);
+                                cv::imshow("fisheye Image", imgdecode);
                             }
                             cv::waitKey(0); 
                         }
@@ -222,11 +222,49 @@ int main(int argc, char** argv) {
                     // }
                     break;
                 }
-            case 4:
+            case 6:
                 {
                     patac_hpp::Ptcloud ptc;
                     reader.QueryDataByTimestamp("pt_cloud", data_seq[0].first, ptc,4);
                     printPtcloud(ptc);
+                    break;
+                }
+            case 5:
+                {
+                    patac_hpp::ImageList img;
+                    reader.QueryDataByTimestamp("seg_images", data_seq[0].first, img,5);
+                    //     // 处理每个Image
+                        std::cout << "imgstime: " << img.timestamp()<<" num_image: "<<img.num_image()<< std::endl;            
+                        for (int i = 0; i < img.image_list_size(); ++i) {
+
+                            const patac_hpp::Image& img_proto = img.image_list(i);
+                            std::cout <<"img index: "<<i<< std::endl;
+                            std::cout <<"wxh: "<<img_proto.width()<<","<<img_proto.height()<< std::endl;
+                            // 读取BGR原始数据
+                            // cv::Mat imgdecode(
+                            //     img_proto.height(),
+                            //     img_proto.width(),
+                            //     CV_8UC3,
+                            //     const_cast<char*>(img_proto.data().data()) 
+                            // );
+                            // 读取PNG编码数据
+                            std::string img_data = img_proto.data(); 
+                            std::vector<uchar> buffer(img_data.begin(), img_data.end());
+                            cv::Mat imgdecode = cv::imdecode(buffer, cv::IMREAD_COLOR);
+
+                            // cv::Mat display_img = imgdecode.clone();
+                            // cv::imshow("BGR Image", imgdecode);//显示环视4路鱼眼
+                            // if(i == 1)//索引1表示前视鱼眼，仅显示一路前视鱼眼
+                            {   
+                                // std::ostringstream filename;
+                                //     filename << "../data_set/frame-" 
+                                //     << std::setw(6) << std::setfill('0') << cnt 
+                                //     << ".color.jpg";
+                                cv::imwrite("./segfwf.png", imgdecode);  // JPEG格式（有损压缩，文件小）
+                                // cv::imshow("seg Image", imgdecode);
+                            }
+                            // cv::waitKey(0); 
+                        }
                     break;
                 }        
             default:
@@ -335,14 +373,15 @@ int main(int argc, char** argv) {
             std::vector<uchar> buffer(img_data.begin(), img_data.end());
             cv::Mat imgdecode = cv::imdecode(buffer, cv::IMREAD_COLOR);
 
+            cv::resize(imgdecode, imgdecode,cv::Size(img_proto.width()*3, img_proto.height()*3));//前视鱼眼原图
             // cv::Mat display_img = imgdecode.clone();
             // cv::imshow("BGR Image", imgdecode);
-            if(i == 1)
+            // if(i == 1)
             {   
                 std::ostringstream filename;
                     filename << "../data_set/frame-" 
                     << std::setw(6) << std::setfill('0') << cnt 
-                    << ".color.jpg";
+                    << ".color.png";
                 cv::imwrite(filename.str(), imgdecode);  // JPEG格式（有损压缩，文件小）
             }
             // cv::waitKey(0); 

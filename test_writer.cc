@@ -67,8 +67,8 @@ int main() {
   for (size_t i = 0; i < 10; ++i) {
 
     std::vector<cv::Mat> imgs;
-    for (size_t j = 0; j < 4; ++j) {
-      cv::Mat img = generate_random_shape_image();
+    for (size_t j = 0; j < 1; ++j) {
+      cv::Mat img = generate_random_shape_image(640/2,384/2);
       imgs.push_back(img);
     }
 
@@ -89,7 +89,32 @@ int main() {
     // cv::imshow("random", imgs.at(0));
     // cv::waitKey(1);
   }
+    //seg
+    for (size_t i = 0; i < 10; ++i) {
 
+    std::vector<cv::Mat> imgs;
+    for (size_t j = 0; j < 1; ++j) {
+      cv::Mat img = generate_random_shape_image(200,200);
+      imgs.push_back(img);
+    }
+
+    DataWriter::GetInstance().WriteDataSeq(timestamp,
+                                           static_cast<apa_slam::DataType>(5));
+                                              
+    auto startnow = std::chrono::system_clock::now();
+    auto millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+    startnow.time_since_epoch()
+    ).count();
+    DataWriter::GetInstance().WriteSegImage(timestamp, imgs);
+    auto end_now = std::chrono::system_clock::now();
+    auto end_millisec_since_epoch = std::chrono::duration_cast<std::chrono::milliseconds>(
+        end_now.time_since_epoch()
+    ).count();
+    std::cout<<"img save time: "<<end_millisec_since_epoch-millisec_since_epoch<<","<<millisec_since_epoch<<","<<end_millisec_since_epoch<<std::endl;
+    timestamp += 200;
+    // cv::imshow("random", imgs.at(0));
+    // cv::waitKey(1);
+  }
 
   int cnt = 0;
   for (size_t i = 0; i < 10; ++i) {
@@ -136,13 +161,16 @@ int main() {
   }
 
   timestamp += 200;
+  Eigen::Vector4d pose;
+  // 初始化 (x, y, z, w)
+  pose << 1.0, 2.0, 3.0, 4.0;
   std::vector<Eigen::MatrixXd> ptc;
   Eigen::MatrixXd matrix(1, 4);
   matrix << 1.0, 2.0, 3.0, 4;  // 初始化值
   ptc.push_back(matrix);
   DataWriter::GetInstance().WriteDataSeq(timestamp,
-                                           static_cast<apa_slam::DataType>(4));
-  DataWriter::GetInstance().WritePTCMsg(timestamp, ptc);     
+                                           static_cast<apa_slam::DataType>(6));
+  DataWriter::GetInstance().WritePTCMsg(timestamp, ptc,pose);     
                                   
   return 0;
 }

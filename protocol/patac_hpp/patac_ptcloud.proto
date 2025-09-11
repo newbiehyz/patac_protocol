@@ -9,12 +9,21 @@ message PointC {
   uint32 label = 4;
 
 }
+message Pose {
 
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float yaw = 4; 
+
+}
 message Ptcloud {
 
   uint64 timestamp = 1;
  
   uint32 num_pt = 2;
- 
-  repeated PointC ptcloud_list = 3;
+
+  Pose pose = 3;
+  
+  repeated PointC ptcloud_list = 4;
 }

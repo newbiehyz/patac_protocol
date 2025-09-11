@@ -35,13 +35,13 @@ public:
   void WriteDrPoseMsg(const long long timestamp, const Eigen::Vector3d &pose);
 
   void WriteImageList(const long long timestamp, const std::vector<cv::Mat> &imgs);
-
+  void WriteSegImage(const long long timestamp, const std::vector<cv::Mat> &imgs); 
   void WriteDataSeq(const long long timestamp, const DataType &type);
 
   void WriteSlotMsg(const long long timestamp,
                     const std::vector<Eigen::MatrixXd> &slot_uv);
   void WritePTCMsg(const long long timestamp,
-                    const std::vector<Eigen::MatrixXd> &ptc);
+                    const std::vector<Eigen::MatrixXd> &ptc,const Eigen::Vector4d &pose);
   void WriteSlotMsg(const long long timestamp,
                     const class patac_hpp::ParkingSlotList &slot_uv);
 private:
@@ -60,5 +60,7 @@ private:
   bool _initialized_slots = false;      // 标记车位是否已初始化查询
   sqlite3_stmt* _stmt_ptc = nullptr;  // 保存ptc查询状态
   bool _initialized_ptc = false;      // 标记ptc是否已初始化查询
+  sqlite3_stmt* _stmt_segimgs = nullptr;  // 保存seg图片查询状态
+  bool _initialized_segimgs = false;      // 标记seg图片是否已初始化查询
 };
 } // namespace apa_slam

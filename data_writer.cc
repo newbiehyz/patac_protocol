@@ -105,6 +105,21 @@ void DataWriter::create_tables() {
 
   std::cout << "create_slot_tbl Succ\n";
 
+    std::string create_seg_images_tbl = R"(CREATE TABLE IF NOT EXISTS seg_images (
+    timestamp INTEGER NOT NULL,
+    data BLOB NOT NULL);)";
+
+  _rc = sqlite3_exec(_db, create_seg_images_tbl.c_str(), nullptr, nullptr, &_errMsg);
+
+  if (_rc != SQLITE_OK) {
+    std::cerr << "create_seg_images_tbl failed SQL error: " << _errMsg << std::endl;
+    sqlite3_free(_errMsg);
+    sqlite3_close(_db);
+    return;
+  }
+
+  std::cout << "create_seg_images_tbl Succ\n";
+
     std::string create_pt_cloud_tbl = R"(CREATE TABLE IF NOT EXISTS pt_cloud (
     timestamp INTEGER NOT NULL,
     data BLOB NOT NULL);)";
@@ -153,10 +168,14 @@ void DataWriter::Reset() {
   if (_stmt_slots) {
       sqlite3_finalize(_stmt_slots);
   }
+  if (_stmt_segimgs) {
+      sqlite3_finalize(_stmt_segimgs);
+  }
   _initialized_seq = false;
   _initialized_dr = false;
   _initialized_slots = false;
   _initialized_imgs = false;
+  _initialized_segimgs = false; 
   sqlite3_close(_db);
   Init();
 } 
@@ -229,6 +248,42 @@ void DataWriter::WriteImageList(const long long timestamp,
 
   sqlite3_reset(_stmt_imgs);
 }
+void DataWriter::WriteSegImage(const long long timestamp, const std::vector<cv::Mat> &imgs){
+
+  if (!_initialized_segimgs) {
+  std::string insert_data_img =
+      "INSERT INTO seg_images (timestamp, data) VALUES (?, ?);";
+  sqlite3_prepare_v2(_db, insert_data_img.c_str(), -1, &_stmt_segimgs, nullptr);
+    _initialized_segimgs = true;
+  }
+  patac_hpp::ImageList img_list;
+  img_list.set_timestamp(timestamp);
+  img_list.set_num_image(imgs.size());
+  for (size_t i = 0; i < imgs.size(); ++i) {
+    auto image = img_list.add_image_list();
+    image->set_width(imgs.at(i).cols);
+    image->set_height(imgs.at(i).rows);
+    std::vector<uchar> buffer;
+    cv::imencode(".png", imgs.at(i), buffer);
+    image->set_data(buffer.data(), buffer.size());
+  }
+
+  std::string serialized;
+  img_list.SerializeToString(&serialized);
+  sqlite3_bind_int64(_stmt_segimgs, 1, timestamp);
+  sqlite3_bind_blob(_stmt_segimgs, 2, serialized.data(), serialized.size(),
+                    SQLITE_TRANSIENT);
+
+  int rc = sqlite3_step(_stmt_segimgs);
+  if (rc != SQLITE_DONE) {
+    std::cerr << "Insert into seg_images failed: " << sqlite3_errmsg(_db)
+              << std::endl;
+  } else {
+    // std::cout << "Successfully inserted pose at " << timestamp << std::endl;
+  }
+
+  sqlite3_reset(_stmt_segimgs);
+}
 
 void DataWriter::WriteSlotMsg(const long long timestamp,
                               const std::vector<Eigen::MatrixXd> &slot_uv) {
@@ -270,7 +325,7 @@ void DataWriter::WriteSlotMsg(const long long timestamp,
 }
 
 void DataWriter::WritePTCMsg(const long long timestamp,
-                             const std::vector<Eigen::MatrixXd> &ptc)
+                             const std::vector<Eigen::MatrixXd> &ptc,const Eigen::Vector4d &pose)
 {
   if (!_initialized_ptc) {
   std::string insert_data_ptc =
@@ -282,6 +337,11 @@ void DataWriter::WritePTCMsg(const long long timestamp,
   patac_hpp::Ptcloud ptc_list;
   ptc_list.set_timestamp(timestamp);
   ptc_list.set_num_pt(ptc.size());
+  auto ptcpose = ptc_list.mutable_pose();
+  ptcpose->set_x(pose(0));
+  ptcpose->set_y(pose(1));
+  ptcpose->set_z(pose(2));
+  ptcpose->set_yaw(pose(3)); 
   for (size_t i = 0; i < ptc.size(); ++i) {
     auto *pt = ptc_list.add_ptcloud_list();
     const Eigen::MatrixXd& point_matrix = ptc[i];
