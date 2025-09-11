@@ -15,6 +15,7 @@
 #include "ekf_estimator.h"
 #include "fillback_data_loader.h"
 #include "kinematic_measurement.h"
+#include "loc_output.h"
 #include "odo_measurement.h"
 #include "parking_slot_measurement.h"
 #include "semantic_measurement.h"
@@ -26,7 +27,8 @@ class LocalMappingInterface {
   static LocalMappingInterface& GetInstance();
   void Reset();
   void SaveMappingData();
-  void Init(const std::string& cfg_json);
+  void InitMapping(const std::string& cfg_json);
+  void InitLocalization(const std::string &cfg_json);
   void ProcDrPose(long long timestamp, const Eigen::VectorXd& pose);
   void ProcSlotData(long long timestamp_d,
                     const std::vector<Eigen::VectorXd>& slot_data,
@@ -39,9 +41,11 @@ class LocalMappingInterface {
   void SetTargetSlotId(const int id);
 
   void NotifyTargetStatus();
-  void ProcImages(long long timestamp,
-                  const std::vector<cv::Mat> &imgs);
-private:
+  void ProcImages(long long timestamp, const std::vector<cv::Mat>& imgs);
+  void ProcDrPose_Output(long long timestamp, const Eigen::VectorXd& pose);
+  bool GetVehiclePose_Output(Eigen::VectorXd& pose);
+
+ private:
   void set_id_th();
   std::string _output_file_name;
   std::string _cfg;

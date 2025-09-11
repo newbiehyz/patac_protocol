@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <Eigen/Eigen>
 #include "patac_trajetory.pb.h"
 #include "patac_slot.pb.h"
 
@@ -15,7 +16,7 @@ public:
 
   bool SaveMapData();
   
-  bool LoadMapData(const std::string& map_file_path, const std::string& window_file_path);
+  bool LoadMapData(const std::string& map_file_path);
   
   void CollectDataFromManagers();
   
@@ -26,9 +27,19 @@ public:
   bool SetSemMap();
 
 private:
+  struct EulerAngles {
+    double roll;
+    double pitch;
+    double yaw;
+  };
+
   std::vector<patac_hpp::ParkingSlotList> margin_data_list_;
   std::vector<patac_hpp::ParkingSlotList> slot_map_data_list_;
   patac_hpp::Trajectory deleted_window_data_list_;
+
+  bool WriteTrajectoryToCSV(const std::string &csv_file_path);
+  double QuaternionToYaw(double qx, double qy, double qz, double qw);
+  EulerAngles QuaternionToEulerAngles(double qx, double qy, double qz, double qw);
 
   // 内部序列化和写入方法
   bool WriteMapDataToBinary(const std::string& file_path);

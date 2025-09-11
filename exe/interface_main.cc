@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
   const std::string cfg = argv[1];
   std::string data_file = argv[2];
 
-  LocalMappingInterface::GetInstance().Init(cfg);
+  LocalMappingInterface::GetInstance().InitMapping(cfg);
 
 #ifdef ENABLE_OPENGL
   PangolinViewer::Ptr viewer = std::make_shared<PangolinViewer>();
@@ -31,7 +31,7 @@ int main(int argc, char** argv) {
   reset_th.detach();
 #endif
 
-  LocalMappingInterface::GetInstance().Init(cfg);
+  LocalMappingInterface::GetInstance().InitLocalization(cfg);
 
   while (true) {
     LocalMappingInterface::GetInstance().Reset();

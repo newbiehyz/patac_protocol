@@ -32,6 +32,8 @@ using json = nlohmann::json;
 #define APA_BIRD_VIEW_WIDTH 896                                      // 896
 #define APA_REAR_BIRD_VIEW_HEIGHT 896                                // 896
 #define APA_REAR_BIRD_VIEW_WIDTH 896                                 // 896
+#define SEG_VIEW_WIDTH 600                                           // 600
+#define SEG_VIEW_HEIGHT 600                                          // 600
 #define APA_LR_BIRD_PIXECL_2_WORLD (20000.0 / APA_BIRD_VIEW_HEIGHT)  // 20000.0
 #define APA_REAR_BIRD_PIXECL_2_WORLD \
   (20000.0 / APA_REAR_BIRD_VIEW_WIDTH)  // 20000.0

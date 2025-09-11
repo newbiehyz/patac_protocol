@@ -74,8 +74,6 @@ class SemanticMap {
 
   void SetTargetSlotId(const int id);
 
-  // void LoadMappingData(const SensorType type, const std::string& slot_map_data_filename);
-
 private:
   std::map<SensorType, std::map<int, SemanticLandmark::Ptr>> _map;
 

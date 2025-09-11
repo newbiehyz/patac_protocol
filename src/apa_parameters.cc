@@ -50,6 +50,8 @@ void ApaParameters::printout_parameters() {
             << std::endl;
   std::cout << "estimator.duplicate_slot_thresh: "
             << _est_params.duplicate_slot_thresh << std::endl;
+  std::cout << "map_io.map_save_path: " << _map_io_params.map_save_path << std::endl;
+  std::cout << "map_io.map_load_path: " << _map_io_params.map_load_path << std::endl;
 }
 
 const SimulationParams &ApaParameters::GetSimulationParameters() {
@@ -129,7 +131,6 @@ bool ApaParameters::LoadParameters(const std::string &json_file) {
 
     _map_io_params.map_save_path = data["map_io"]["map_save_path"];
     _map_io_params.map_load_path = data["map_io"]["map_load_path"];
-
 
 
   } catch (const std::exception &e) {

@@ -21,12 +21,12 @@ void MapManagement::ProcessMatching(const std::vector<SemanticMea::Ptr> &meas,
                                     const Pose &mea_pose,
                                     const SensorType &type) {
   switch (type) {
-  case SEMANTIC_TYPE_PARKING_SLOT:
-    process_slot_matching(meas, map_matching, mea_pose);
-    break;
+    case SEMANTIC_TYPE_PARKING_SLOT:
+      process_slot_matching(meas, map_matching, mea_pose);
+      break;
 
-  default:
-    break;
+    default:
+      break;
   }
 }
 
@@ -67,8 +67,14 @@ void MapManagement::process_slot_matching(
     } else {
       if (!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)) {
         only_localization = true;
-        std::cout << "!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)" << std::endl;
-        MapIO::GetInstance().LoadMapData(vis_meas.slot_map_data_filename, "");
+        std::cout
+            << "!SemanticMap::GetInstance().HasMap(SEMANTIC_TYPE_PARKING_SLOT)"
+            << std::endl;
+        const auto &map_io_params =
+            ApaParameters::GetInstance().GetMapIOParameters();
+        std::string map_file_path =
+            map_io_params.map_load_path + "sematic_map.bin";
+        MapIO::GetInstance().LoadMapData(map_file_path);
         // SemanticMap::GetInstance().LoadMappingData(
         //     SEMANTIC_TYPE_PARKING_SLOT, vis_meas.slot_map_data_filename);
       }
@@ -81,4 +87,4 @@ void MapManagement::process_slot_matching(
     }
   }
 }
-} // namespace apa_slam
+}  // namespace apa_slam

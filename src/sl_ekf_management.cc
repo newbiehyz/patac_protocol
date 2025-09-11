@@ -17,13 +17,6 @@ void SlEKFManagement::Reset() {
   _initialized = false;
   _odo_meas.clear();
   _pre_states.clear();
-  
-  {
-    std::lock_guard<std::mutex> lock(_complete_trajectory_mutex);
-    _complete_trajectory.clear();
-    _complete_trajectory_id_counter = 0;
-  }
-  
   this->Init();
 }
 
@@ -114,33 +107,6 @@ void SlEKFManagement::Propagate(const long long timestamp, const double v,
   _vehicle_P = P;
   _ts = timestamp;
 
-  if (_initialized) {
-    std::lock_guard<std::mutex> lock(_complete_trajectory_mutex);
-    
-    if (_complete_trajectory.find(timestamp) == _complete_trajectory.end()) {
-      patac_hpp::TrajectoryPoint point;
-      
-      point.set_timestamp(timestamp);
-      point.set_id(_complete_trajectory_id_counter++);
-      point.set_x(x[0]);
-      point.set_y(x[1]);
-      point.set_z(0.0f);
-      
-      double yaw_angle = x[2];
-      float qw = static_cast<float>(std::cos(yaw_angle / 2.0));
-      float qz = static_cast<float>(std::sin(yaw_angle / 2.0));
-      
-      point.set_qx(0.0f);
-      point.set_qy(0.0f);
-      point.set_qz(qz);
-      point.set_qw(qw);
-      point.set_velocity(static_cast<float>(v));
-      point.set_angular_velocity(static_cast<float>(w));
-      
-      _complete_trajectory[timestamp] = point;
-    }
-  }
-
   // hist information
   Eigen::VectorXd odo_mea = Eigen::VectorXd::Zero(2);
   odo_mea[0] = v;
@@ -153,20 +119,6 @@ void SlEKFManagement::Propagate(const long long timestamp, const double v,
         SlidingWindow::GetInstance().GetSlwTimestamp(sl_sz - 1);
     // erase_pres(sl_timestmap);
   }
-}
-
-patac_hpp::Trajectory SlEKFManagement::GetCompleteTrajectory() const {
-  std::lock_guard<std::mutex> lock(_complete_trajectory_mutex);
-  patac_hpp::Trajectory trajectory;
-  
-  // 从 map 中按时间顺序提取轨迹点
-  for (const auto& pair : _complete_trajectory) {
-    auto* point = trajectory.add_trajectory_point_list();
-    *point = pair.second;
-  }
-  
-  trajectory.set_num_trajectory_point(trajectory.trajectory_point_list_size());
-  return trajectory;
 }
 
 void SlEKFManagement::erase_pres(const long long timestamp) {

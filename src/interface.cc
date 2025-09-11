@@ -17,7 +17,14 @@ LocalMappingInterface &LocalMappingInterface::GetInstance() {
   return instance;
 }
 
-void LocalMappingInterface::Init(const std::string &cfg_json) {
+void LocalMappingInterface::InitMapping(const std::string &cfg_json) {
+  {
+    std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+    vis_meas.startMapping = true;
+    only_localization = false;
+    vis_meas.startLocalization = false;
+    vis_meas.IsLoadMap = false;
+  }
   _cfg = cfg_json;
   ApaParameters::GetInstance().LoadParameters(cfg_json);
   EkfEstimator::GetInstance().Init();
@@ -31,6 +38,22 @@ void LocalMappingInterface::Init(const std::string &cfg_json) {
       "/userdata/apatest/" + oss.str() + "_apa_local_mapping.txt";
 
   DataWriter().GetInstance().Init();
+}
+
+void LocalMappingInterface::InitLocalization(const std::string &cfg_json) {
+  {
+    std::lock_guard<std::mutex> lock(vis_meas.meas_mutex);
+    vis_meas.startLocalization = true;
+    only_localization = true;
+    vis_meas.startMapping = false;
+    vis_meas.IsLoadMap = true;
+  }
+  _cfg = cfg_json;
+  ApaParameters::GetInstance().LoadParameters(cfg_json);
+  EkfEstimator::GetInstance().Init();
+  const auto &map_io_params = ApaParameters::GetInstance().GetMapIOParameters();
+  std::string map_file_path = map_io_params.map_load_path + "sematic_map.bin";
+  MapIO::GetInstance().LoadMapData(map_file_path);
 }
 
 void LocalMappingInterface::ProcImages(long long timestamp,
@@ -65,13 +88,13 @@ void LocalMappingInterface::ProcDrPose(long long timestamp,
     fout_interface.open(_output_file_name, std::ios::app);
     double timestamp_d = static_cast<double>(timestamp) * 0.001;
     fout_interface << "pose " << std::setprecision(20)
-                  << std::to_string(timestamp_d) << " " << p.x << " " << p.y
-                  << " " << p.yaw << std::endl;
+                   << std::to_string(timestamp_d) << " " << p.x << " " << p.y
+                   << " " << p.yaw << std::endl;
     fout_interface.close();
     double v_out, w_out;
     long long ts_out;
     if (EkfEstimator::GetInstance().ProcDrPose(timestamp, p, ts_out, v_out,
-                                              w_out)) {
+                                               w_out)) {
       // std::cout << timestamp << " ################ " << pose.transpose()
       //           << " **** " << v_out << " " << w_out << std::endl;
       // v_out *= 0.9;
@@ -113,26 +136,27 @@ void LocalMappingInterface::ProcSlotData(
     //   slot_matrix.push_back(matrix);
     // }
     for (size_t i = 0; i < slot_data.size(); ++i) {
-    Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(2, 4);
-    // 假设每个slot_data[i]包含8个元素：x0,y0, x1,y1, x2,y2, x3,y3
-    for (int j = 0; j < 4; ++j) {
+      Eigen::MatrixXd matrix = Eigen::MatrixXd::Zero(2, 4);
+      // 假设每个slot_data[i]包含8个元素：x0,y0, x1,y1, x2,y2, x3,y3
+      for (int j = 0; j < 4; ++j) {
         matrix.col(j) = slot_data.at(i).segment(2 * j, 2);
+      }
+      slot_matrix.push_back(matrix);
     }
-    slot_matrix.push_back(matrix);
-}
 
     DataWriter().GetInstance().WriteSlotMsg(timestamp, slot_matrix);
   } else {
     fout_interface << "slot " << std::setprecision(20)
-                  << std::to_string(timestamp_d) << " " << slot_data.size();
+                   << std::to_string(timestamp_d) << " " << slot_data.size();
 
     for (size_t i = 0; i < slot_data.size(); ++i) {
       Eigen::MatrixXd data = Eigen::MatrixXd::Zero(2, 2);
       Eigen::Vector2d uv0 = slot_data.at(i).head(2);
       Eigen::Vector2d uv1 = slot_data.at(i).segment(2, 2);
-      fout_interface << " " << uv0.x() << " " << uv0.y() << " " << uv1.x() << " "
-                    << uv1.y() << " " << slot_attribute.at(i).parkable << " "
-                    << " " << slot_attribute.at(i).slot_type << " ";
+      fout_interface << " " << uv0.x() << " " << uv0.y() << " " << uv1.x()
+                     << " " << uv1.y() << " " << slot_attribute.at(i).parkable
+                     << " "
+                     << " " << slot_attribute.at(i).slot_type << " ";
 
       // if x > 392 - 11 and x < 503 + 11 and y > 319 - 11 and y < 576 + 11:
 
@@ -152,11 +176,11 @@ void LocalMappingInterface::ProcSlotData(
           FillbackDataLoader::GetInstance().ConvertUvToVehicle(uv1);
 
       if (pt0.norm() > ApaParameters::GetInstance()
-                          .GetEstimatorParamters()
-                          .slot_mea_max_range ||
+                           .GetEstimatorParamters()
+                           .slot_mea_max_range ||
           pt1.norm() > ApaParameters::GetInstance()
-                          .GetEstimatorParamters()
-                          .slot_mea_max_range) {
+                           .GetEstimatorParamters()
+                           .slot_mea_max_range) {
         continue;
       }
 
@@ -208,13 +232,14 @@ void LocalMappingInterface::NotifyTargetStatus() {
 
     std::thread set_th(&LocalMappingInterface::set_id_th, this);
     set_th.detach();
-    
   }
   _ready_set = true;
 }
 
 void LocalMappingInterface::set_id_th() {
-  int n_sec = ApaParameters::GetInstance().GetEstimatorParamters().slot_confirm_time_sec;
+  int n_sec = ApaParameters::GetInstance()
+                  .GetEstimatorParamters()
+                  .slot_confirm_time_sec;
   std::this_thread::sleep_for(std::chrono::seconds(n_sec));
   SemanticMap::GetInstance().SetTargetSlotId(_tar_id);
   std::ofstream fout_interface;
@@ -271,8 +296,19 @@ void LocalMappingInterface::Reset() {
 
   ActionQueue::GetInstance().PushAction(RESET);
   DataWriter().GetInstance().Reset();
+  LocOutput::GetInstance().Reset();
 }
 
+void LocalMappingInterface::ProcDrPose_Output(long long timestamp,
+                                              const Eigen::VectorXd &pose) {
+  LocOutput::GetInstance().ProcDrPose(timestamp, pose);
+}
 
+bool LocalMappingInterface::GetVehiclePose_Output(Eigen::VectorXd &pose) {
+  if (LocOutput::GetInstance().GetLatestVechilePos(pose)) {
+    return true;
+  }
+  return false;
+}
 
 }  // namespace apa_slam
