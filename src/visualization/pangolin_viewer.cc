@@ -69,8 +69,8 @@ void PangolinViewer::run() {
       vis_meas.startLocalization = true;
       only_localization = true;
       vis_meas.startMapping = false;
-      MapIO::GetInstance().LoadMapData("sematic_map.bin");
-      vis_meas.IsLoadMap = true;
+      // MapIO::GetInstance().LoadMapData("sematic_map.bin");
+      // vis_meas.IsLoadMap = true;
       start_localization_button.Reset();
     }
 

@@ -100,6 +100,12 @@ TARGET_LINK_LIBRARIES(run_interface ${PROJECT_NAME})
 IF(ENABLE_OPENGL)
   TARGET_LINK_LIBRARIES(run_interface viewer ${Pangolin_LIBRARIES})
 ENDIF()
+
+ADD_EXECUTABLE(run_interface_db ${CMAKE_CURRENT_SOURCE_DIR}/exe/interface_main_db.cc)
+TARGET_LINK_LIBRARIES(run_interface_db ${PROJECT_NAME})
+IF(ENABLE_OPENGL)
+  TARGET_LINK_LIBRARIES(run_interface_db viewer ${Pangolin_LIBRARIES})
+ENDIF()
 # 
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/unit_test)
 
