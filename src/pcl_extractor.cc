@@ -30,52 +30,6 @@ Eigen::Vector3d PCLExtractor::uvToVehicle3D(const cv::Point& pt) {
   return corner_v;
 }
 
-void PCLExtractor::quadtreeRecursive(const std::vector<Eigen::Vector2d>& points,
-                                     double xmin, double xmax, double ymin,
-                                     double ymax, int max_points,
-                                     std::vector<Eigen::Vector2d>& out_points) {
-  if (points.empty()) return;
-
-  if (points.size() <= max_points) {
-    Eigen::Vector2d center = Eigen::Vector2d::Zero();
-    for (auto& p : points) center += p;
-    center /= points.size();
-
-    double min_dist = std::numeric_limits<double>::max();
-    Eigen::Vector2d closest_point;
-    for (auto& p : points) {
-      double d = (p - center).squaredNorm();
-      if (d < min_dist) {
-        min_dist = d;
-        closest_point = p;
-      }
-    }
-    out_points.push_back(closest_point);
-    return;
-  }
-
-  double xmid = (xmin + xmax) * 0.5;
-  double ymid = (ymin + ymax) * 0.5;
-
-  std::vector<Eigen::Vector2d> q1, q2, q3, q4;
-
-  for (const auto& p : points) {
-    if (p.x() <= xmid && p.y() <= ymid)
-      q1.push_back(p);
-    else if (p.x() > xmid && p.y() <= ymid)
-      q2.push_back(p);
-    else if (p.x() <= xmid && p.y() > ymid)
-      q3.push_back(p);
-    else
-      q4.push_back(p);
-  }
-
-  quadtreeRecursive(q1, xmin, xmid, ymin, ymid, max_points, out_points);
-  quadtreeRecursive(q2, xmid, xmax, ymin, ymid, max_points, out_points);
-  quadtreeRecursive(q3, xmin, xmid, ymid, ymax, max_points, out_points);
-  quadtreeRecursive(q4, xmid, xmax, ymid, ymax, max_points, out_points);
-}
-
 void PCLExtractor::extractAllClassesQuadtree(const cv::Mat& seg,
                                              int max_points_per_cell) {
   if (seg.empty() || seg.channels() != 1) return;
@@ -112,9 +66,9 @@ void PCLExtractor::extractAllClassesQuadtree(const cv::Mat& seg,
     }
 
     std::vector<Eigen::Vector2d> sampled_points;
-
-    quadtreeRecursive(points, xmin, xmax, ymin, ymax, max_points_per_cell,
-                      sampled_points);
+    Quadtree qt(max_points_per_cell);
+    qt.Build(points, xmin, xmax, ymin, ymax);
+    sampled_points = qt.GetSampledPoints();
 
     for (const auto& p : sampled_points)
       class_points_[cls].emplace_back(p.x(), p.y(), 0.0);

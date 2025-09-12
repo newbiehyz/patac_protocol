@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include "fillback_data_loader.h"
+#include "quadtree.h"
 
 namespace apa_slam {
 
@@ -40,11 +41,6 @@ class PCLExtractor {
   std::map<SemanticClass, std::vector<Eigen::Vector3d>> class_points_;
 
   Eigen::Vector3d uvToVehicle3D(const cv::Point& pt);
-
-  void quadtreeRecursive(const std::vector<Eigen::Vector2d>& points,
-                         double xmin, double xmax, double ymin, double ymax,
-                         int max_points,
-                         std::vector<Eigen::Vector2d>& out_points);
 };
 
 }  // namespace apa_slam
