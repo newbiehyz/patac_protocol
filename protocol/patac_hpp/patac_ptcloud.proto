@@ -15,15 +15,24 @@ message Pose {
   float y = 2;
   float z = 3;
   float yaw = 4; 
-
+  float roll = 5; 
+  float pitch = 6; 
 }
 message Ptcloud {
 
   uint64 timestamp = 1;
- 
-  uint32 num_pt = 2;
 
-  Pose pose = 3;
+  uint32 frame_id = 2;
+
+  uint32 num_pt = 3;
+
+  Pose pose = 4;
   
-  repeated PointC ptcloud_list = 4;
+  repeated PointC ptcloud_list = 5;
+}
+message Ptcloudframelist {
+ 
+  uint32 num_frame = 1;
+
+  repeated Ptcloud ptcloudframe_list = 2;
 }
