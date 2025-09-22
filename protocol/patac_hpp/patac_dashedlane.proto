@@ -1,0 +1,14 @@
+syntax = "proto3";
+package patac_hpp;
+import "patac_slot.proto";
+
+message DashedLane {
+  int32 id = 1;
+  repeated Point2f endpoints = 2;
+}
+
+message DashedLaneList {
+  uint64 timestamp = 1;
+  uint32 num_dashedlane = 2;
+  repeated DashedLane dashedlane_list = 3;
+}
