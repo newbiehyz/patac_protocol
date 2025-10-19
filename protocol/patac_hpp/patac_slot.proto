@@ -48,5 +48,5 @@ message ParkingSlotList {
   uint64 timestamp = 1;
   uint32 num_parking_slot = 2;
   repeated ParkingSlot parking_slot_list = 3;
-  int32 start_point_slot_id = 4;
+  int32 mapping_end_slot_id = 4;
 }
